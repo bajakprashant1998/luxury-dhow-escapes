@@ -19,6 +19,10 @@ import AdminEditTour from "./pages/admin/EditTour";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminGallery from "./pages/admin/Gallery";
 import AdminSettings from "./pages/admin/Settings";
+import AdminLocations from "./pages/admin/Locations";
+import AdminCategories from "./pages/admin/Categories";
+import AdminCustomers from "./pages/admin/Customers";
+import AdminDiscounts from "./pages/admin/Discounts";
 import NotFound from "./pages/NotFound";
 import RequireSession from "./components/admin/RequireSession";
 
@@ -108,6 +112,38 @@ const App = () => (
             element={
               <RequireSession>
                 <AdminSettings />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/locations"
+            element={
+              <RequireSession>
+                <AdminLocations />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/tours/categories"
+            element={
+              <RequireSession>
+                <AdminCategories />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/customers"
+            element={
+              <RequireSession>
+                <AdminCustomers />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/discounts"
+            element={
+              <RequireSession>
+                <AdminDiscounts />
               </RequireSession>
             }
           />
