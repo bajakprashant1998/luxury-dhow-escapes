@@ -1,66 +1,42 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
+import yachtInterior from "@/assets/yacht-interior.jpg";
+import buffetDining from "@/assets/buffet-dining.jpg";
+import dubaiMarinaNight from "@/assets/dubai-marina-night.jpg";
+import tanuraEntertainment from "@/assets/tanura-entertainment.jpg";
+import privateYacht from "@/assets/private-yacht.jpg";
 
 const galleryImages = [
   {
-    src: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800",
+    src: dubaiMarinaNight,
     alt: "Dubai Marina skyline at night",
     category: "Skyline",
   },
   {
-    src: "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=800",
-    alt: "Traditional dhow boat",
+    src: heroDhowCruise,
+    alt: "Traditional dhow boat at sunset",
     category: "Dhow",
   },
   {
-    src: "https://images.unsplash.com/photo-1546412414-e1885259563a?w=800",
-    alt: "Dubai Marina waterfront",
+    src: privateYacht,
+    alt: "Luxury private yacht deck",
     category: "Skyline",
   },
   {
-    src: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
-    alt: "Luxury yacht dining",
+    src: yachtInterior,
+    alt: "Luxury yacht dining interior",
     category: "Dining",
   },
   {
-    src: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=800",
-    alt: "Dubai sunset view",
-    category: "Skyline",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1533395427226-788cee25cc7b?w=800",
-    alt: "Buffet dinner spread",
+    src: buffetDining,
+    alt: "International buffet spread",
     category: "Dining",
   },
   {
-    src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
-    alt: "Evening entertainment",
-    category: "Entertainment",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?w=800",
-    alt: "Dubai skyline panorama",
-    category: "Skyline",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1597659840241-37e2b9c2f55f?w=800",
-    alt: "Cruise deck view",
-    category: "Dhow",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1571406252241-db0280bd36cd?w=800",
-    alt: "Fine dining setup",
-    category: "Dining",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1549944850-84e00be4203b?w=800",
-    alt: "Marina night lights",
-    category: "Skyline",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1524824267900-2fa9cbf7a506?w=800",
-    alt: "Traditional performance",
+    src: tanuraEntertainment,
+    alt: "Traditional Tanura dance performance",
     category: "Entertainment",
   },
 ];
@@ -82,7 +58,7 @@ const Gallery = () => {
       <section className="relative py-20 bg-primary text-primary-foreground">
         <div className="absolute inset-0 opacity-20">
           <img
-            src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920"
+            src={dubaiMarinaNight}
             alt="Dubai Marina"
             className="w-full h-full object-cover"
           />
