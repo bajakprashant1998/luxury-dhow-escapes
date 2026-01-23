@@ -19,6 +19,7 @@ import TourCard from "@/components/TourCard";
 import TestimonialCard from "@/components/TestimonialCard";
 import { tours, getFeaturedTours } from "@/data/tours";
 import { testimonials } from "@/data/testimonials";
+import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
 
 const Home = () => {
   const featuredTours = getFeaturedTours();
@@ -44,7 +45,7 @@ const Home = () => {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920"
+            src={heroDhowCruise}
             alt="Dubai Marina at night"
             className="w-full h-full object-cover"
           />
