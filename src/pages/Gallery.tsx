@@ -1,56 +1,24 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
-import yachtInterior from "@/assets/yacht-interior.jpg";
-import buffetDining from "@/assets/buffet-dining.jpg";
+import { useGallery, useGalleryCategories } from "@/hooks/useGallery";
+import { Skeleton } from "@/components/ui/skeleton";
 import dubaiMarinaNight from "@/assets/dubai-marina-night.jpg";
-import tanuraEntertainment from "@/assets/tanura-entertainment.jpg";
-import privateYacht from "@/assets/private-yacht.jpg";
-
-const galleryImages = [
-  {
-    src: dubaiMarinaNight,
-    alt: "Dubai Marina skyline at night",
-    category: "Skyline",
-  },
-  {
-    src: heroDhowCruise,
-    alt: "Traditional dhow boat at sunset",
-    category: "Dhow",
-  },
-  {
-    src: privateYacht,
-    alt: "Luxury private yacht deck",
-    category: "Skyline",
-  },
-  {
-    src: yachtInterior,
-    alt: "Luxury yacht dining interior",
-    category: "Dining",
-  },
-  {
-    src: buffetDining,
-    alt: "International buffet spread",
-    category: "Dining",
-  },
-  {
-    src: tanuraEntertainment,
-    alt: "Traditional Tanura dance performance",
-    category: "Entertainment",
-  },
-];
-
-const categories = ["All", "Skyline", "Dhow", "Dining", "Entertainment"];
 
 const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
+  const { data: images = [], isLoading: imagesLoading } = useGallery();
+  const { data: dbCategories = [] } = useGalleryCategories();
+
+  // Build categories list: "All" + unique categories from database
+  const categories = ["All", ...dbCategories];
+
   const filteredImages =
     selectedCategory === "All"
-      ? galleryImages
-      : galleryImages.filter((img) => img.category === selectedCategory);
+      ? images
+      : images.filter((img) => img.category === selectedCategory);
 
   return (
     <Layout>
@@ -99,31 +67,49 @@ const Gallery = () => {
             ))}
           </div>
 
-          {/* Image Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredImages.map((image, index) => (
-              <div
-                key={index}
-                className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer"
-                onClick={() => setLightboxImage(image.src)}
-              >
-                <img
-                  src={image.src}
-                  alt={image.alt}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/40 transition-colors duration-300 flex items-center justify-center">
-                  <span className="text-primary-foreground font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                    View
-                  </span>
+          {/* Loading State */}
+          {imagesLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <Skeleton key={index} className="aspect-square rounded-xl" />
+              ))}
+            </div>
+          ) : filteredImages.length === 0 ? (
+            /* Empty State */
+            <div className="text-center py-16">
+              <p className="text-muted-foreground text-lg">
+                {selectedCategory === "All"
+                  ? "No images in the gallery yet."
+                  : `No images found in "${selectedCategory}" category.`}
+              </p>
+            </div>
+          ) : (
+            /* Image Grid */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredImages.map((image) => (
+                <div
+                  key={image.id}
+                  className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer"
+                  onClick={() => setLightboxImage(image.src)}
+                >
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/40 transition-colors duration-300 flex items-center justify-center">
+                    <span className="text-primary-foreground font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      View
+                    </span>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary/80 to-transparent p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <p className="text-primary-foreground text-sm">{image.alt}</p>
+                    <span className="text-secondary text-xs">{image.category}</span>
+                  </div>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary/80 to-transparent p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <p className="text-primary-foreground text-sm">{image.alt}</p>
-                  <span className="text-secondary text-xs">{image.category}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -140,7 +126,7 @@ const Gallery = () => {
             <X className="w-8 h-8" />
           </button>
           <img
-            src={lightboxImage.replace("w=800", "w=1400")}
+            src={lightboxImage}
             alt="Gallery image"
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}

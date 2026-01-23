@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
+import GalleryUploadDialog from "@/components/admin/GalleryUploadDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, Upload, Image as ImageIcon } from "lucide-react";
+import { Search, Trash2, Upload, Image as ImageIcon } from "lucide-react";
 
 interface GalleryImage {
   id: string;
@@ -18,6 +20,8 @@ const AdminGallery = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     fetchImages();
@@ -40,13 +44,30 @@ const AdminGallery = () => {
     }
   };
 
-  const deleteImage = async (id: string) => {
+  const handleUploadSuccess = () => {
+    fetchImages();
+    // Invalidate React Query cache for public gallery
+    queryClient.invalidateQueries({ queryKey: ["gallery"] });
+    queryClient.invalidateQueries({ queryKey: ["gallery-categories"] });
+  };
+
+  const deleteImage = async (id: string, imageUrl: string) => {
     try {
+      // Extract file path from URL to delete from storage
+      const urlParts = imageUrl.split("/tour-images/");
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1];
+        await supabase.storage.from("tour-images").remove([filePath]);
+      }
+
+      // Delete from database
       const { error } = await supabase.from("gallery").delete().eq("id", id);
 
       if (error) throw error;
 
       setImages((prev) => prev.filter((img) => img.id !== id));
+      queryClient.invalidateQueries({ queryKey: ["gallery"] });
+      queryClient.invalidateQueries({ queryKey: ["gallery-categories"] });
       toast.success("Image deleted");
     } catch (error) {
       console.error("Error deleting image:", error);
@@ -82,7 +103,7 @@ const AdminGallery = () => {
               Manage your tour images and media
             </p>
           </div>
-          <Button>
+          <Button onClick={() => setUploadDialogOpen(true)}>
             <Upload className="w-4 h-4 mr-2" />
             Upload Image
           </Button>
@@ -109,7 +130,7 @@ const AdminGallery = () => {
             <p className="text-muted-foreground mb-4">
               Upload images to build your gallery
             </p>
-            <Button>
+            <Button onClick={() => setUploadDialogOpen(true)}>
               <Upload className="w-4 h-4 mr-2" />
               Upload First Image
             </Button>
@@ -130,14 +151,16 @@ const AdminGallery = () => {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => deleteImage(image.id)}
+                    onClick={() => deleteImage(image.id, image.image_url)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-                {image.title && (
+                {(image.title || image.category) && (
                   <div className="p-3">
-                    <p className="text-sm font-medium truncate">{image.title}</p>
+                    {image.title && (
+                      <p className="text-sm font-medium truncate">{image.title}</p>
+                    )}
                     {image.category && (
                       <p className="text-xs text-muted-foreground">{image.category}</p>
                     )}
@@ -148,6 +171,13 @@ const AdminGallery = () => {
           </div>
         )}
       </div>
+
+      {/* Upload Dialog */}
+      <GalleryUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onSuccess={handleUploadSuccess}
+      />
     </AdminLayout>
   );
 };
