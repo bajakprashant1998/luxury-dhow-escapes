@@ -71,6 +71,44 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          image_url: string
+          sort_order: number | null
+          title: string | null
+          tour_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          image_url: string
+          sort_order?: number | null
+          title?: string | null
+          tour_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          sort_order?: number | null
+          title?: string | null
+          tour_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inquiries: {
         Row: {
           created_at: string
@@ -128,6 +166,159 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string
+          id: string
+          rating: number
+          review_text: string | null
+          status: string | null
+          tour_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name: string
+          id?: string
+          rating: number
+          review_text?: string | null
+          status?: string | null
+          tour_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          id?: string
+          rating?: number
+          review_text?: string | null
+          status?: string | null
+          tour_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      tours: {
+        Row: {
+          capacity: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          duration: string | null
+          excluded: string[] | null
+          faqs: Json | null
+          featured: boolean | null
+          gallery: string[] | null
+          highlights: string[] | null
+          id: string
+          image_url: string | null
+          included: string[] | null
+          itinerary: Json | null
+          long_description: string | null
+          original_price: number | null
+          price: number
+          rating: number | null
+          review_count: number | null
+          slug: string
+          status: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          capacity?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          excluded?: string[] | null
+          faqs?: Json | null
+          featured?: boolean | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          included?: string[] | null
+          itinerary?: Json | null
+          long_description?: string | null
+          original_price?: number | null
+          price: number
+          rating?: number | null
+          review_count?: number | null
+          slug: string
+          status?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          capacity?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          excluded?: string[] | null
+          faqs?: Json | null
+          featured?: boolean | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          included?: string[] | null
+          itinerary?: Json | null
+          long_description?: string | null
+          original_price?: number | null
+          price?: number
+          rating?: number | null
+          review_count?: number | null
+          slug?: string
+          status?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
