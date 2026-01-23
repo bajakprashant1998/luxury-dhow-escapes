@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { Button } from "@/components/ui/button";
 import StatCard from "@/components/admin/StatCard";
 import VisitorsChart from "@/components/admin/VisitorsChart";
 import SalesChart from "@/components/admin/SalesChart";
 import OverviewCard from "@/components/admin/OverviewCard";
 import ToursTable from "@/components/admin/ToursTable";
+import { withTimeout } from "@/lib/withTimeout";
 import {
   Users,
   DollarSign,
@@ -34,22 +36,28 @@ const AdminDashboard = () => {
     totalRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
+    setLoadError(null);
     try {
-      const { data: bookings, error: bookingsError } = await supabase
-        .from("bookings")
-        .select("*");
+      const { data: bookings, error: bookingsError } = await withTimeout(
+        supabase.from("bookings").select("status,total_price"),
+        8000,
+        "Bookings request timed out",
+      );
 
       if (bookingsError) throw bookingsError;
 
-      const { data: inquiries, error: inquiriesError } = await supabase
-        .from("inquiries")
-        .select("*");
+      const { data: inquiries, error: inquiriesError } = await withTimeout(
+        supabase.from("inquiries").select("status"),
+        8000,
+        "Inquiries request timed out",
+      );
 
       if (inquiriesError) throw inquiriesError;
 
@@ -71,9 +79,15 @@ const AdminDashboard = () => {
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      setLoadError("Couldn't load dashboard data. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setLoading(true);
+    fetchDashboardData();
   };
 
   if (loading) {
@@ -89,6 +103,18 @@ const AdminDashboard = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {loadError && (
+          <div className="bg-card rounded-xl border border-border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="font-medium text-foreground">Dashboard data unavailable</p>
+              <p className="text-sm text-muted-foreground">{loadError}</p>
+            </div>
+            <Button variant="outline" onClick={handleRetry}>
+              Retry
+            </Button>
+          </div>
+        )}
+
         {/* Header */}
         <div>
           <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">

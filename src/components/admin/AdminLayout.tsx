@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { withTimeout } from "@/lib/withTimeout";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopBar from "./AdminTopBar";
 
@@ -19,42 +20,79 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-
-      setUser(session.user);
-      await checkAdminRole(session.user.id);
-    };
-
-    checkAuth();
+    let cancelled = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (cancelled) return;
+
         if (event === "SIGNED_OUT") {
+          setUser(null);
+          setIsAdmin(false);
+          setLoading(false);
           navigate("/auth");
-        } else if (session) {
+          return;
+        }
+
+        if (session?.user) {
           setUser(session.user);
           await checkAdminRole(session.user.id);
         }
-      }
+      },
     );
 
-    return () => subscription.unsubscribe();
+    const init = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await withTimeout(
+          supabase.auth.getSession(),
+          8000,
+          "Auth check timed out",
+        );
+        if (cancelled) return;
+        if (error) throw error;
+
+        const session = data.session;
+        if (!session) {
+          setIsAdmin(false);
+          setLoading(false);
+          navigate("/auth");
+          return;
+        }
+
+        setUser(session.user);
+        await checkAdminRole(session.user.id);
+      } catch (err) {
+        console.error("Error checking auth:", err);
+        if (!cancelled) {
+          setIsAdmin(false);
+          setLoading(false);
+          navigate("/auth");
+        }
+      }
+    };
+
+    init();
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const checkAdminRole = async (userId: string) => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
+      const { data, error } = await withTimeout(
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .maybeSingle(),
+        8000,
+        "Role check timed out",
+      );
 
       if (error) throw error;
 
@@ -70,6 +108,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       }
     } catch (error) {
       console.error("Error checking admin role:", error);
+      toast({
+        title: "Admin check failed",
+        description: "Couldn't verify admin access. Please refresh and try again.",
+        variant: "destructive",
+      });
       navigate("/");
     } finally {
       setLoading(false);
