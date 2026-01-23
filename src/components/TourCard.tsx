@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Star, Clock, Users, ChevronRight, Ship } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tour } from "@/data/tours";
+import { Tour } from "@/lib/tourMapper";
 
 interface TourCardProps {
   tour: Tour;

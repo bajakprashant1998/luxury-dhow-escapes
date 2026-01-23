@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Filter, Ship, Anchor, Crown, Users } from "lucide-react";
+import { ArrowRight, Filter, Ship, Anchor, Crown, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/layout/Layout";
 import TourCard from "@/components/TourCard";
-import { tours, categories, Tour } from "@/data/tours";
+import { useTours, categories } from "@/hooks/useTours";
 
 const categoryIcons: Record<string, React.ReactNode> = {
   "all": <Filter className="w-4 h-4" />,
@@ -17,6 +18,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
 const Tours = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState<"popular" | "price-low" | "price-high">("popular");
+  
+  const { data: tours = [], isLoading, error } = useTours();
 
   const filteredTours = selectedCategory === "all" 
     ? tours 
@@ -132,14 +135,48 @@ const Tours = () => {
             </div>
           )}
 
-          {/* Tours Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {sortedTours.map((tour) => (
-              <TourCard key={tour.id} tour={tour} />
-            ))}
-          </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-card rounded-xl overflow-hidden shadow-md">
+                  <Skeleton className="aspect-[4/3] w-full" />
+                  <div className="p-5 space-y-3">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <div className="flex gap-4 pt-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <div className="flex justify-between pt-4 border-t border-border">
+                      <Skeleton className="h-6 w-24" />
+                      <Skeleton className="h-8 w-20" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-          {sortedTours.length === 0 && (
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-destructive mb-4">Failed to load tours. Please try again.</p>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+            </div>
+          )}
+
+          {/* Tours Grid */}
+          {!isLoading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {sortedTours.map((tour) => (
+                <TourCard key={tour.id} tour={tour} />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && !error && sortedTours.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No tours found in this category.</p>
             </div>

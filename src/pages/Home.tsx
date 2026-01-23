@@ -19,18 +19,19 @@ import {
   Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/layout/Layout";
 import TourCard from "@/components/TourCard";
 import TestimonialCard from "@/components/TestimonialCard";
-import { tours, getFeaturedTours, categories } from "@/data/tours";
 import { testimonials } from "@/data/testimonials";
+import { useFeaturedTours } from "@/hooks/useTours";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
 import dubaiMarinaNight from "@/assets/dubai-marina-night.jpg";
 import yachtInterior from "@/assets/yacht-interior.jpg";
 import buffetDining from "@/assets/buffet-dining.jpg";
 
 const Home = () => {
-  const featuredTours = getFeaturedTours();
+  const { data: featuredTours = [], isLoading: toursLoading } = useFeaturedTours();
 
   const highlights = [
     { icon: Anchor, title: "Traditional Dhow", description: "Authentic wooden vessel experience" },
@@ -263,11 +264,44 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {featuredTours.slice(0, 4).map((tour) => (
-              <TourCard key={tour.id} tour={tour} />
-            ))}
-          </div>
+          {/* Loading State */}
+          {toursLoading && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-card rounded-xl overflow-hidden shadow-md">
+                  <Skeleton className="aspect-[4/3] w-full" />
+                  <div className="p-5 space-y-3">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <div className="flex gap-4 pt-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tours Grid */}
+          {!toursLoading && featuredTours.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {featuredTours.slice(0, 4).map((tour) => (
+                <TourCard key={tour.id} tour={tour} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!toursLoading && featuredTours.length === 0 && (
+            <div className="text-center py-12 bg-muted/30 rounded-xl">
+              <p className="text-muted-foreground mb-4">No featured tours available at the moment.</p>
+              <Link to="/tours">
+                <Button>Browse All Tours</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

@@ -14,6 +14,7 @@ import {
   Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Accordion,
   AccordionContent,
@@ -22,7 +23,6 @@ import {
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
-import { getTourBySlug, tours } from "@/data/tours";
 import TourCard from "@/components/TourCard";
 import ImageGallery from "@/components/tour-detail/ImageGallery";
 import TrustBadges from "@/components/tour-detail/TrustBadges";
@@ -30,12 +30,43 @@ import QuickInfoCards from "@/components/tour-detail/QuickInfoCards";
 import BookingSidebar from "@/components/tour-detail/BookingSidebar";
 import ReviewsSection from "@/components/tour-detail/ReviewsSection";
 import MobileBookingBar from "@/components/tour-detail/MobileBookingBar";
+import { useTour, useRelatedTours } from "@/hooks/useTours";
 
 const TourDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const tour = getTourBySlug(slug || "");
+  const { data: tour, isLoading, error } = useTour(slug || "");
+  const { data: relatedTours = [] } = useRelatedTours(
+    tour?.category || "",
+    tour?.id || ""
+  );
 
-  if (!tour) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="bg-muted py-3">
+          <div className="container">
+            <Skeleton className="h-5 w-64" />
+          </div>
+        </div>
+        <section className="py-6 md:py-8">
+          <div className="container">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-12 w-96 mb-4" />
+            <div className="flex gap-4 mb-6">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-5 w-28" />
+            </div>
+            <Skeleton className="aspect-[16/9] w-full rounded-xl" />
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  // Error or not found state
+  if (error || !tour) {
     return (
       <Layout>
         <div className="container py-20 text-center">
@@ -48,11 +79,6 @@ const TourDetail = () => {
       </Layout>
     );
   }
-
-  const relatedTours = tours.filter((t) => t.id !== tour.id && t.category === tour.category).slice(0, 3);
-  const moreRelated = relatedTours.length < 3 
-    ? [...relatedTours, ...tours.filter(t => t.id !== tour.id && !relatedTours.includes(t)).slice(0, 3 - relatedTours.length)]
-    : relatedTours;
 
   // Get icon for itinerary activity
   const getActivityIcon = (activity: string) => {
@@ -166,105 +192,113 @@ const TourDetail = () => {
               </div>
 
               {/* Highlights */}
-              <div className="bg-card rounded-xl p-6 shadow-md">
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">Highlights</h2>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {tour.highlights.map((highlight, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="w-4 h-4 text-secondary" />
-                      </div>
-                      <span className="text-foreground">{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {tour.highlights.length > 0 && (
+                <div className="bg-card rounded-xl p-6 shadow-md">
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4">Highlights</h2>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {tour.highlights.map((highlight, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-4 h-4 text-secondary" />
+                        </div>
+                        <span className="text-foreground">{highlight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Inclusions & Exclusions with Tabs */}
-              <div className="bg-card rounded-xl p-6 shadow-md">
-                <Tabs defaultValue="included" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="included" className="gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      What's Included
-                    </TabsTrigger>
-                    <TabsTrigger value="excluded" className="gap-2">
-                      <X className="w-4 h-4 text-destructive" />
-                      What's Excluded
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="included">
-                    <ul className="space-y-3">
-                      {tour.included.map((item, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-foreground">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </TabsContent>
-                  <TabsContent value="excluded">
-                    <ul className="space-y-3">
-                      {tour.excluded.map((item, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <X className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-foreground">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </TabsContent>
-                </Tabs>
-              </div>
+              {(tour.included.length > 0 || tour.excluded.length > 0) && (
+                <div className="bg-card rounded-xl p-6 shadow-md">
+                  <Tabs defaultValue="included" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="included" className="gap-2">
+                        <Check className="w-4 h-4 text-green-500" />
+                        What's Included
+                      </TabsTrigger>
+                      <TabsTrigger value="excluded" className="gap-2">
+                        <X className="w-4 h-4 text-destructive" />
+                        What's Excluded
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="included">
+                      <ul className="space-y-3">
+                        {tour.included.map((item, index) => (
+                          <li key={index} className="flex items-start gap-3">
+                            <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-foreground">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </TabsContent>
+                    <TabsContent value="excluded">
+                      <ul className="space-y-3">
+                        {tour.excluded.map((item, index) => (
+                          <li key={index} className="flex items-start gap-3">
+                            <X className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-foreground">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              )}
 
               {/* Itinerary */}
-              <div className="bg-card rounded-xl p-6 shadow-md">
-                <h2 className="font-display text-2xl font-bold text-foreground mb-6">Your Experience</h2>
-                <div className="relative">
-                  {tour.itinerary.map((item, index) => {
-                    const IconComponent = getActivityIcon(item.activity);
-                    return (
-                      <div key={index} className="flex gap-4 pb-6 last:pb-0">
-                        {/* Timeline */}
-                        <div className="flex flex-col items-center">
-                          <div className="w-12 h-12 rounded-xl bg-secondary/10 border-2 border-secondary flex items-center justify-center">
-                            <IconComponent className="w-5 h-5 text-secondary" />
+              {tour.itinerary.length > 0 && (
+                <div className="bg-card rounded-xl p-6 shadow-md">
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-6">Your Experience</h2>
+                  <div className="relative">
+                    {tour.itinerary.map((item, index) => {
+                      const IconComponent = getActivityIcon(item.activity);
+                      return (
+                        <div key={index} className="flex gap-4 pb-6 last:pb-0">
+                          {/* Timeline */}
+                          <div className="flex flex-col items-center">
+                            <div className="w-12 h-12 rounded-xl bg-secondary/10 border-2 border-secondary flex items-center justify-center">
+                              <IconComponent className="w-5 h-5 text-secondary" />
+                            </div>
+                            {index < tour.itinerary.length - 1 && (
+                              <div className="w-0.5 h-full bg-gradient-to-b from-secondary/50 to-secondary/10 mt-2" />
+                            )}
                           </div>
-                          {index < tour.itinerary.length - 1 && (
-                            <div className="w-0.5 h-full bg-gradient-to-b from-secondary/50 to-secondary/10 mt-2" />
-                          )}
+                          {/* Content */}
+                          <div className="flex-1 pb-4">
+                            <p className="text-secondary font-bold text-lg">{item.time}</p>
+                            <p className="text-foreground">{item.activity}</p>
+                          </div>
                         </div>
-                        {/* Content */}
-                        <div className="flex-1 pb-4">
-                          <p className="text-secondary font-bold text-lg">{item.time}</p>
-                          <p className="text-foreground">{item.activity}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Reviews Section */}
               <ReviewsSection rating={tour.rating} reviewCount={tour.reviewCount} />
 
               {/* FAQs */}
-              <div className="bg-card rounded-xl p-6 shadow-md">
-                <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-                  Frequently Asked Questions
-                </h2>
-                <Accordion type="single" collapsible className="w-full">
-                  {tour.faqs.map((faq, index) => (
-                    <AccordionItem key={index} value={`faq-${index}`}>
-                      <AccordionTrigger className="text-left font-medium">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground">
-                        {faq.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
+              {tour.faqs.length > 0 && (
+                <div className="bg-card rounded-xl p-6 shadow-md">
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-6">
+                    Frequently Asked Questions
+                  </h2>
+                  <Accordion type="single" collapsible className="w-full">
+                    {tour.faqs.map((faq, index) => (
+                      <AccordionItem key={index} value={`faq-${index}`}>
+                        <AccordionTrigger className="text-left font-medium">
+                          {faq.question}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground">
+                          {faq.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              )}
 
               {/* Important Information */}
               <div className="bg-card rounded-xl p-6 shadow-md">
@@ -310,14 +344,14 @@ const TourDetail = () => {
       </section>
 
       {/* Related Tours */}
-      {moreRelated.length > 0 && (
+      {relatedTours.length > 0 && (
         <section className="py-12 bg-muted/50">
           <div className="container">
             <h2 className="font-display text-2xl font-bold text-foreground mb-8">
               You Might Also Like
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {moreRelated.map((relatedTour) => (
+              {relatedTours.map((relatedTour) => (
                 <TourCard key={relatedTour.id} tour={relatedTour} />
               ))}
             </div>
