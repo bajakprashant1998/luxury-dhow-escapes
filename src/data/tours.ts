@@ -292,6 +292,30 @@ export const tours: Tour[] = [
         question: "Can we swim during the cruise?",
         answer: "Yes, weather permitting, there may be a swimming stop where guests can take a dip in the Arabian Gulf.",
       },
+      {
+        question: "What can I expect on a yacht tour Dubai?",
+        answer: "You can expect a scenic luxury cruise with live BBQ, highlighting Dubai's iconic coastline and landmarks including Burj Al Arab and Palm Jumeirah.",
+      },
+      {
+        question: "Where does the yacht depart from?",
+        answer: "We depart from Dubai Marina. The boarding point is at Xclusive Marina - Behind Al Majara Tower.",
+      },
+      {
+        question: "What yacht will we cruise on?",
+        answer: "Typically we cruise on a 65ft luxury catamaran or an 86ft yacht. However, based on our schedule, another yacht of similar size may be used.",
+      },
+      {
+        question: "Is this a private yacht?",
+        answer: "No, this is a shared yacht experience with other guests joining you on board.",
+      },
+      {
+        question: "What time should we arrive?",
+        answer: "Please arrive 20-30 minutes prior to your cruise and notify the operations team when you arrive.",
+      },
+      {
+        question: "What is the child policy?",
+        answer: "Children under 2 years go free. Ages 2-11 require a child ticket. Children below 12 must be accompanied by adults on board.",
+      },
     ],
     category: "yacht-shared",
     featured: false,
@@ -344,8 +368,28 @@ export const tours: Tour[] = [
     ],
     faqs: [
       {
-        question: "What time is sunset?",
-        answer: "Sunset times vary throughout the year. The cruise is timed to capture the golden hour and sunset. We depart approximately 1 hour before sunset.",
+        question: "What can I expect on a yacht tour Dubai?",
+        answer: "You can expect a scenic luxury cruise with live BBQ, highlighting Dubai's iconic coastline and landmarks including Burj Al Arab and Palm Jumeirah.",
+      },
+      {
+        question: "Where does the yacht depart from?",
+        answer: "We depart from Dubai Marina. The boarding point is at Xclusive Marina - Behind Al Majara Tower.",
+      },
+      {
+        question: "What yacht will we cruise on?",
+        answer: "Typically we cruise on a 65ft luxury catamaran or an 86ft yacht. However, based on our schedule, another yacht of similar size may be used.",
+      },
+      {
+        question: "Is this a private yacht?",
+        answer: "No, this is a shared yacht experience with other guests joining you on board.",
+      },
+      {
+        question: "What time should we arrive?",
+        answer: "Please arrive 20-30 minutes prior to your cruise and notify the operations team when you arrive.",
+      },
+      {
+        question: "What is the cancellation policy?",
+        answer: "For a full refund, cancel at least 24 hours in advance. No-shows and late cancellations are non-refundable.",
       },
     ],
     category: "yacht-shared",
@@ -396,7 +440,36 @@ export const tours: Tour[] = [
       { time: "9:00 PM", activity: "BBQ dinner under the stars" },
       { time: "10:00 PM", activity: "Return to marina" },
     ],
-    faqs: [],
+    faqs: [
+      {
+        question: "What can I expect on a yacht tour Dubai?",
+        answer: "You can expect a scenic luxury cruise with live BBQ, highlighting Dubai's iconic coastline and landmarks including Burj Al Arab and Palm Jumeirah.",
+      },
+      {
+        question: "Where does the yacht depart from?",
+        answer: "We depart from Dubai Marina. The boarding point is at Xclusive Marina - Behind Al Majara Tower.",
+      },
+      {
+        question: "What yacht will we cruise on?",
+        answer: "Typically we cruise on a 65ft luxury catamaran or an 86ft yacht. However, based on our schedule, another yacht of similar size may be used.",
+      },
+      {
+        question: "Is this a private yacht?",
+        answer: "No, this is a shared yacht experience with other guests joining you on board.",
+      },
+      {
+        question: "What time should we arrive?",
+        answer: "Please arrive 20-30 minutes prior to your cruise and notify the operations team when you arrive.",
+      },
+      {
+        question: "What is the cancellation policy?",
+        answer: "For a full refund, cancel at least 24 hours in advance. No-shows and late cancellations are non-refundable.",
+      },
+      {
+        question: "What is the child policy?",
+        answer: "Children under 2 years go free. Ages 2-11 require a child ticket. Children below 12 must be accompanied by adults on board.",
+      },
+    ],
     category: "yacht-shared",
     featured: false,
   },
