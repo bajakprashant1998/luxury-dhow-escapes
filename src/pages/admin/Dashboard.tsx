@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/admin/AdminLayout";
+import StatCard from "@/components/admin/StatCard";
+import VisitorsChart from "@/components/admin/VisitorsChart";
+import SalesChart from "@/components/admin/SalesChart";
+import OverviewCard from "@/components/admin/OverviewCard";
+import ToursTable from "@/components/admin/ToursTable";
 import {
+  Users,
+  DollarSign,
+  TrendingUp,
   Calendar,
   MessageSquare,
-  Users,
-  TrendingUp,
-  DollarSign,
-  Clock,
-  CheckCircle,
-  XCircle,
+  Eye,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -30,8 +33,6 @@ const AdminDashboard = () => {
     newInquiries: 0,
     totalRevenue: 0,
   });
-  const [recentBookings, setRecentBookings] = useState<any[]>([]);
-  const [recentInquiries, setRecentInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,21 +41,18 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch bookings stats
       const { data: bookings, error: bookingsError } = await supabase
         .from("bookings")
         .select("*");
 
       if (bookingsError) throw bookingsError;
 
-      // Fetch inquiries stats
       const { data: inquiries, error: inquiriesError } = await supabase
         .from("inquiries")
         .select("*");
 
       if (inquiriesError) throw inquiriesError;
 
-      // Calculate stats
       const totalBookings = bookings?.length || 0;
       const pendingBookings = bookings?.filter((b) => b.status === "pending").length || 0;
       const confirmedBookings = bookings?.filter((b) => b.status === "confirmed").length || 0;
@@ -71,56 +69,12 @@ const AdminDashboard = () => {
         newInquiries,
         totalRevenue,
       });
-
-      // Set recent items
-      setRecentBookings(bookings?.slice(0, 5) || []);
-      setRecentInquiries(inquiries?.slice(0, 5) || []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
   };
-
-  const statCards = [
-    {
-      title: "Total Bookings",
-      value: stats.totalBookings,
-      icon: Calendar,
-      color: "bg-blue-500",
-      change: "+12%",
-    },
-    {
-      title: "Pending",
-      value: stats.pendingBookings,
-      icon: Clock,
-      color: "bg-amber-500",
-    },
-    {
-      title: "Confirmed",
-      value: stats.confirmedBookings,
-      icon: CheckCircle,
-      color: "bg-emerald-500",
-    },
-    {
-      title: "Total Revenue",
-      value: `AED ${stats.totalRevenue.toLocaleString()}`,
-      icon: DollarSign,
-      color: "bg-secondary",
-    },
-    {
-      title: "Inquiries",
-      value: stats.totalInquiries,
-      icon: MessageSquare,
-      color: "bg-purple-500",
-    },
-    {
-      title: "New Inquiries",
-      value: stats.newInquiries,
-      icon: TrendingUp,
-      color: "bg-rose-500",
-    },
-  ];
 
   if (loading) {
     return (
@@ -134,116 +88,95 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's an overview of your business.</p>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">
+            Dashboard
+          </h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's an overview of your business.
+          </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {statCards.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-card rounded-xl p-6 shadow-sm border border-border"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center`}>
-                  <stat.icon className="w-5 h-5 text-white" />
-                </div>
-                {stat.change && (
-                  <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
-                    {stat.change}
-                  </span>
-                )}
-              </div>
-              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.title}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Online Store Visitors"
+            value="12,426"
+            icon={Eye}
+            change="+12.5%"
+            changeType="positive"
+            subtitle="Since last week"
+            viewReportLink="/admin/analytics"
+          />
+          <StatCard
+            title="Total Bookings"
+            value={stats.totalBookings}
+            icon={Calendar}
+            change="+8.2%"
+            changeType="positive"
+            subtitle="Since last month"
+            viewReportLink="/admin/bookings"
+          />
+          <StatCard
+            title="Conversion Rate"
+            value="3.6%"
+            icon={TrendingUp}
+            change="+2.1%"
+            changeType="positive"
+            subtitle="Since last week"
+            viewReportLink="/admin/analytics"
+          />
+          <StatCard
+            title="Total Revenue"
+            value={`AED ${stats.totalRevenue.toLocaleString()}`}
+            icon={DollarSign}
+            change="+15.3%"
+            changeType="positive"
+            subtitle="Since last month"
+            viewReportLink="/admin/bookings"
+          />
         </div>
 
-        {/* Recent Activity */}
+        {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Bookings */}
-          <div className="bg-card rounded-xl shadow-sm border border-border">
-            <div className="p-6 border-b border-border">
-              <h2 className="font-display text-xl font-bold text-foreground">Recent Bookings</h2>
-            </div>
-            <div className="p-6">
-              {recentBookings.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No bookings yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {recentBookings.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-foreground">{booking.customer_name}</p>
-                        <p className="text-sm text-muted-foreground">{booking.tour_name}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">AED {booking.total_price}</p>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            booking.status === "confirmed"
-                              ? "bg-emerald-500/10 text-emerald-500"
-                              : booking.status === "pending"
-                              ? "bg-amber-500/10 text-amber-500"
-                              : "bg-rose-500/10 text-rose-500"
-                          }`}
-                        >
-                          {booking.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <VisitorsChart />
+          <SalesChart />
+        </div>
 
-          {/* Recent Inquiries */}
-          <div className="bg-card rounded-xl shadow-sm border border-border">
-            <div className="p-6 border-b border-border">
-              <h2 className="font-display text-xl font-bold text-foreground">Recent Inquiries</h2>
-            </div>
-            <div className="p-6">
-              {recentInquiries.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No inquiries yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {recentInquiries.map((inquiry) => (
-                    <div
-                      key={inquiry.id}
-                      className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-foreground">{inquiry.name}</p>
-                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">
-                          {inquiry.message}
-                        </p>
-                      </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          inquiry.status === "new"
-                            ? "bg-blue-500/10 text-blue-500"
-                            : inquiry.status === "responded"
-                            ? "bg-emerald-500/10 text-emerald-500"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {inquiry.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        {/* Bottom Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <ToursTable />
           </div>
+          <OverviewCard />
+        </div>
+
+        {/* Quick Stats Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCard
+            title="Pending Bookings"
+            value={stats.pendingBookings}
+            icon={Calendar}
+            change={stats.pendingBookings > 0 ? "Action needed" : "All clear"}
+            changeType={stats.pendingBookings > 0 ? "negative" : "positive"}
+          />
+          <StatCard
+            title="Total Inquiries"
+            value={stats.totalInquiries}
+            icon={MessageSquare}
+            change={`${stats.newInquiries} new`}
+            changeType={stats.newInquiries > 0 ? "negative" : "neutral"}
+          />
+          <StatCard
+            title="Active Customers"
+            value="1,847"
+            icon={Users}
+            change="+5.4%"
+            changeType="positive"
+            subtitle="Since last month"
+          />
         </div>
       </div>
     </AdminLayout>
