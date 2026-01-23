@@ -20,6 +20,7 @@ import AdminReviews from "./pages/admin/Reviews";
 import AdminGallery from "./pages/admin/Gallery";
 import AdminSettings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
+import RequireSession from "./components/admin/RequireSession";
 
 const queryClient = new QueryClient();
 
@@ -38,15 +39,78 @@ const App = () => (
           <Route path="/contact" element={<Contact />} />
           <Route path="/auth" element={<Auth />} />
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/bookings" element={<AdminBookings />} />
-          <Route path="/admin/inquiries" element={<AdminInquiries />} />
-          <Route path="/admin/tours" element={<AdminTours />} />
-          <Route path="/admin/tours/add" element={<AdminAddTour />} />
-          <Route path="/admin/tours/edit/:slug" element={<AdminEditTour />} />
-          <Route path="/admin/reviews" element={<AdminReviews />} />
-          <Route path="/admin/gallery" element={<AdminGallery />} />
-          <Route path="/admin/settings/*" element={<AdminSettings />} />
+          <Route
+            path="/admin"
+            element={
+              <RequireSession>
+                <AdminDashboard />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/bookings"
+            element={
+              <RequireSession>
+                <AdminBookings />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/inquiries"
+            element={
+              <RequireSession>
+                <AdminInquiries />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/tours"
+            element={
+              <RequireSession>
+                <AdminTours />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/tours/add"
+            element={
+              <RequireSession>
+                <AdminAddTour />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/tours/edit/:slug"
+            element={
+              <RequireSession>
+                <AdminEditTour />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/reviews"
+            element={
+              <RequireSession>
+                <AdminReviews />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/gallery"
+            element={
+              <RequireSession>
+                <AdminGallery />
+              </RequireSession>
+            }
+          />
+          <Route
+            path="/admin/settings/*"
+            element={
+              <RequireSession>
+                <AdminSettings />
+              </RequireSession>
+            }
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
