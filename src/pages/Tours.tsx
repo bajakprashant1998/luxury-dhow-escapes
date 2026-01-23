@@ -1,11 +1,39 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Filter } from "lucide-react";
+import { ArrowRight, Filter, Ship, Anchor, Crown, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
 import TourCard from "@/components/TourCard";
-import { tours } from "@/data/tours";
+import { tours, categories, Tour } from "@/data/tours";
+
+const categoryIcons: Record<string, React.ReactNode> = {
+  "all": <Filter className="w-4 h-4" />,
+  "dhow-cruise": <Anchor className="w-4 h-4" />,
+  "yacht-shared": <Users className="w-4 h-4" />,
+  "yacht-private": <Ship className="w-4 h-4" />,
+  "megayacht": <Crown className="w-4 h-4" />,
+};
 
 const Tours = () => {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useState<"popular" | "price-low" | "price-high">("popular");
+
+  const filteredTours = selectedCategory === "all" 
+    ? tours 
+    : tours.filter(tour => tour.category === selectedCategory);
+
+  const sortedTours = [...filteredTours].sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.price - b.price;
+      case "price-high":
+        return b.price - a.price;
+      case "popular":
+      default:
+        return b.reviewCount - a.reviewCount;
+    }
+  });
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -23,37 +51,99 @@ const Tours = () => {
               Explore Our Experiences
             </p>
             <h1 className="font-display text-4xl md:text-5xl font-bold mb-6">
-              Dhow Cruise Packages
+              Dhow Cruises & Yacht Charters
             </h1>
             <p className="text-primary-foreground/80 text-lg">
               Choose from our selection of carefully curated cruise experiences. 
-              From intimate lower deck dining to exclusive private charters, 
+              From traditional dhow cruises to luxury private yacht charters, 
               find the perfect voyage for your Dubai adventure.
             </p>
           </div>
         </div>
       </section>
 
+      {/* Category Filter */}
+      <section className="py-8 bg-cream border-b border-border">
+        <div className="container">
+          <div className="flex flex-wrap justify-center gap-3">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
+                  selectedCategory === category.id
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "bg-card text-foreground hover:bg-muted border border-border"
+                }`}
+              >
+                {categoryIcons[category.id]}
+                {category.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Tours Grid */}
-      <section className="py-16">
+      <section className="py-12">
         <div className="container">
           {/* Stats Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-8 border-b border-border">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-border">
             <p className="text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{tours.length}</span> available cruises
+              Showing <span className="font-semibold text-foreground">{sortedTours.length}</span> experiences
             </p>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Filter className="w-4 h-4" />
-              <span>Sort by: <span className="font-medium text-foreground">Most Popular</span></span>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="bg-card border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-secondary"
+              >
+                <option value="popular">Most Popular</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
             </div>
           </div>
 
-          {/* Tours */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {tours.map((tour) => (
+          {/* Category Description */}
+          {selectedCategory !== "all" && (
+            <div className="mb-8 p-6 bg-cream rounded-xl">
+              {selectedCategory === "dhow-cruise" && (
+                <p className="text-muted-foreground">
+                  <span className="font-semibold text-foreground">Traditional Dhow Cruises</span> — Experience the timeless charm of Arabian wooden vessels as you cruise through Dubai Marina with dinner, entertainment, and stunning skyline views.
+                </p>
+              )}
+              {selectedCategory === "yacht-shared" && (
+                <p className="text-muted-foreground">
+                  <span className="font-semibold text-foreground">Shared Yacht Experiences</span> — Join fellow travelers aboard luxury yachts for affordable yet premium experiences with live BBQ, swimming, and spectacular views.
+                </p>
+              )}
+              {selectedCategory === "yacht-private" && (
+                <p className="text-muted-foreground">
+                  <span className="font-semibold text-foreground">Private Yacht Charters</span> — Exclusive use of the entire yacht for your group. Perfect for celebrations, corporate events, or intimate gatherings.
+                </p>
+              )}
+              {selectedCategory === "megayacht" && (
+                <p className="text-muted-foreground">
+                  <span className="font-semibold text-foreground">Megayacht Dining</span> — The ultimate luxury experience aboard magnificent multi-deck vessels with lavish buffets and world-class service.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Tours Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {sortedTours.map((tour) => (
               <TourCard key={tour.id} tour={tour} />
             ))}
           </div>
+
+          {sortedTours.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No tours found in this category.</p>
+            </div>
+          )}
         </div>
       </section>
 

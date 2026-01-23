@@ -147,7 +147,7 @@ const Home = () => {
                 Our Signature Experience
               </p>
               <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                Featured Dhow Cruises
+                Featured Experiences
               </h2>
             </div>
             <Link to="/tours" className="mt-4 md:mt-0">
@@ -158,9 +158,9 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="space-y-8">
-            {featuredTours.map((tour) => (
-              <TourCard key={tour.id} tour={tour} featured />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {featuredTours.slice(0, 4).map((tour) => (
+              <TourCard key={tour.id} tour={tour} />
             ))}
           </div>
         </div>
