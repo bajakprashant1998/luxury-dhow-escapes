@@ -1,3 +1,22 @@
+// Tour Images
+import dhowCruiseMarina from "@/assets/tours/dhow-cruise-marina.jpg";
+import megayachtBurjKhalifa from "@/assets/tours/megayacht-burj-khalifa.jpg";
+import catamaranBurjAlArab from "@/assets/tours/catamaran-burj-al-arab.jpg";
+import yachtSunsetTour from "@/assets/tours/yacht-sunset-tour.jpg";
+import yachtLunchDaytime from "@/assets/tours/yacht-lunch-daytime.jpg";
+import yachtMoonlight from "@/assets/tours/yacht-moonlight.jpg";
+import privateYacht33ft from "@/assets/tours/private-yacht-33ft.jpg";
+import privateYacht55ft from "@/assets/tours/private-yacht-55ft.jpg";
+import privateYacht80ft from "@/assets/tours/private-yacht-80ft.jpg";
+import privateYacht100ft from "@/assets/tours/private-yacht-100ft.jpg";
+import yachtBbqExperience from "@/assets/tours/yacht-bbq-experience.jpg";
+import yachtSwimming from "@/assets/tours/yacht-swimming.jpg";
+// Existing assets
+import buffetDining from "@/assets/buffet-dining.jpg";
+import tanuraEntertainment from "@/assets/tanura-entertainment.jpg";
+import dubaiMarinaNight from "@/assets/dubai-marina-night.jpg";
+import yachtInterior from "@/assets/yacht-interior.jpg";
+
 export interface Tour {
   id: string;
   slug: string;
@@ -36,13 +55,13 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.9,
     reviewCount: 3245,
-    image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200",
+    image: dhowCruiseMarina,
     gallery: [
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800",
-      "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=800",
-      "https://images.unsplash.com/photo-1546412414-e1885259563a?w=800",
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
-      "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=800",
+      dhowCruiseMarina,
+      dubaiMarinaNight,
+      buffetDining,
+      tanuraEntertainment,
+      yachtInterior,
     ],
     highlights: [
       "Traditional wooden dhow cruise experience",
@@ -110,11 +129,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.8,
     reviewCount: 1823,
-    image: "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1200",
+    image: catamaranBurjAlArab,
     gallery: [
-      "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=800",
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800",
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      catamaranBurjAlArab,
+      dubaiMarinaNight,
+      buffetDining,
+      yachtInterior,
     ],
     highlights: [
       "Modern luxury catamaran experience",
@@ -172,11 +192,12 @@ export const tours: Tour[] = [
     duration: "3 Hours",
     rating: 4.9,
     reviewCount: 2156,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: megayachtBurjKhalifa,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800",
-      "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=800",
+      megayachtBurjKhalifa,
+      yachtInterior,
+      buffetDining,
+      dubaiMarinaNight,
     ],
     highlights: [
       "Luxury megayacht experience",
@@ -231,10 +252,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.8,
     reviewCount: 956,
-    image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200",
+    image: yachtLunchDaytime,
     gallery: [
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800",
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      yachtLunchDaytime,
+      yachtBbqExperience,
+      yachtSwimming,
+      catamaranBurjAlArab,
     ],
     highlights: [
       "Luxury shared yacht experience",
@@ -285,10 +308,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.9,
     reviewCount: 1234,
-    image: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=1200",
+    image: yachtSunsetTour,
     gallery: [
-      "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=800",
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800",
+      yachtSunsetTour,
+      yachtBbqExperience,
+      dubaiMarinaNight,
+      yachtSwimming,
     ],
     highlights: [
       "Magical sunset views",
@@ -338,10 +363,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.7,
     reviewCount: 876,
-    image: "https://images.unsplash.com/photo-1546412414-e1885259563a?w=1200",
+    image: yachtMoonlight,
     gallery: [
-      "https://images.unsplash.com/photo-1546412414-e1885259563a?w=800",
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800",
+      yachtMoonlight,
+      dubaiMarinaNight,
+      yachtBbqExperience,
+      yachtInterior,
     ],
     highlights: [
       "Nighttime yacht cruise",
@@ -386,9 +413,11 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.8,
     reviewCount: 234,
-    image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200",
+    image: privateYacht33ft,
     gallery: [
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800",
+      privateYacht33ft,
+      yachtSwimming,
+      dubaiMarinaNight,
     ],
     highlights: [
       "Private yacht charter",
@@ -437,9 +466,11 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.7,
     reviewCount: 312,
-    image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200",
+    image: privateYacht33ft,
     gallery: [
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800",
+      privateYacht33ft,
+      yachtSwimming,
+      dubaiMarinaNight,
     ],
     highlights: [
       "Private charter experience",
@@ -481,9 +512,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.8,
     reviewCount: 445,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht55ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht55ft,
+      yachtSwimming,
+      yachtInterior,
+      dubaiMarinaNight,
     ],
     highlights: [
       "Elegant private yacht",
@@ -525,9 +559,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.8,
     reviewCount: 389,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht55ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht55ft,
+      yachtInterior,
+      yachtSwimming,
+      dubaiMarinaNight,
     ],
     highlights: [
       "Spacious mid-sized yacht",
@@ -570,9 +607,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.9,
     reviewCount: 523,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht55ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht55ft,
+      yachtInterior,
+      yachtSwimming,
+      dubaiMarinaNight,
     ],
     highlights: [
       "Mid-size luxury yacht",
@@ -616,9 +656,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.8,
     reviewCount: 412,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht80ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht80ft,
+      yachtInterior,
+      yachtSwimming,
+      dubaiMarinaNight,
     ],
     highlights: [
       "Spacious 60-foot yacht",
@@ -661,9 +704,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.9,
     reviewCount: 367,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht80ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht80ft,
+      yachtInterior,
+      yachtSwimming,
+      dubaiMarinaNight,
     ],
     highlights: [
       "64-foot luxury yacht",
@@ -705,9 +751,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 4.9,
     reviewCount: 289,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht80ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht80ft,
+      yachtInterior,
+      yachtSwimming,
+      dubaiMarinaNight,
     ],
     highlights: [
       "70-foot premium yacht",
@@ -750,9 +799,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 5.0,
     reviewCount: 178,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht100ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht100ft,
+      yachtInterior,
+      megayachtBurjKhalifa,
+      dubaiMarinaNight,
     ],
     highlights: [
       "88-foot luxury yacht",
@@ -795,9 +847,12 @@ export const tours: Tour[] = [
     duration: "2 Hours",
     rating: 5.0,
     reviewCount: 134,
-    image: "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=1200",
+    image: privateYacht100ft,
     gallery: [
-      "https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800",
+      privateYacht100ft,
+      megayachtBurjKhalifa,
+      yachtInterior,
+      dubaiMarinaNight,
     ],
     highlights: [
       "100-foot mega yacht",
