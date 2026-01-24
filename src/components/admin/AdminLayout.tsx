@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -20,6 +20,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [loading, setLoading] = useState(true);
   const [adminGateError, setAdminGateError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Track if admin has been verified to prevent re-checking on token refresh
+  const adminVerifiedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,6 +32,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         if (cancelled) return;
 
         if (event === "SIGNED_OUT") {
+          adminVerifiedRef.current = false;
           setUser(null);
           setIsAdmin(false);
           setAdminGateError(null);
@@ -39,7 +43,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
         if (session?.user) {
           setUser(session.user);
-          await checkAdminRole(session.user.id);
+          
+          // Skip role check if already verified and just a token refresh
+          if (adminVerifiedRef.current && event === "TOKEN_REFRESHED") {
+            return;
+          }
+          
+          // Only verify on meaningful auth events
+          if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+            await checkAdminRole(session.user.id);
+          }
         }
       },
     );
@@ -83,6 +96,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       cancelled = true;
       subscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const checkAdminRole = async (userId: string) => {
@@ -106,8 +120,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
       if (hasAdminRole) {
         setIsAdmin(true);
+        adminVerifiedRef.current = true;
       } else {
         setIsAdmin(false);
+        adminVerifiedRef.current = false;
         setAdminGateError("You don't have admin privileges.");
         toast({
           title: "Access Denied",
