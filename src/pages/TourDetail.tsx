@@ -34,6 +34,7 @@ import BookingSidebar from "@/components/tour-detail/BookingSidebar";
 import ReviewsSection from "@/components/tour-detail/ReviewsSection";
 import MobileBookingBar from "@/components/tour-detail/MobileBookingBar";
 import FloatingBookWidget from "@/components/tour-detail/FloatingBookWidget";
+import BookingModal from "@/components/tour-detail/BookingModal";
 import { useTour, useRelatedTours } from "@/hooks/useTours";
 
 const TourDetail = () => {
@@ -45,6 +46,7 @@ const TourDetail = () => {
     tour?.id || ""
   );
   const [isSaved, setIsSaved] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   // Load saved state from localStorage
   useEffect(() => {
@@ -390,6 +392,8 @@ const TourDetail = () => {
                 originalPrice={tour.originalPrice} 
                 duration={tour.duration}
                 reviewCount={tour.reviewCount}
+                tourTitle={tour.title}
+                tourId={tour.id}
               />
             </div>
           </div>
@@ -420,6 +424,16 @@ const TourDetail = () => {
         price={tour.price} 
         originalPrice={tour.originalPrice} 
         tourTitle={tour.title}
+        onBookClick={() => setIsBookingModalOpen(true)}
+      />
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        tourTitle={tour.title}
+        tourId={tour.id}
+        price={tour.price}
       />
 
       {/* Bottom padding for mobile booking bar */}
