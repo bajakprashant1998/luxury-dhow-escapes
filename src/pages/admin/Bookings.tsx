@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Search, Eye, Check, X, Calendar, Users, Download } from "lucide-react";
+import { Search, Eye, Check, X, Calendar, Users, Download, Mail } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ import TablePagination from "@/components/admin/TablePagination";
 import BulkActionToolbar, { BOOKING_BULK_ACTIONS } from "@/components/admin/BulkActionToolbar";
 import { usePagination } from "@/hooks/usePagination";
 import { exportBookings } from "@/lib/exportCsv";
+import { sendBookingEmail } from "@/lib/sendBookingEmail";
 
 interface Booking {
   id: string;
@@ -90,6 +91,15 @@ const AdminBookings = () => {
 
       setBookings(bookings.map((b) => (b.id === id ? { ...b, status } : b)));
       toast.success(`Booking ${status}`);
+
+      // Send email notification
+      const emailType = status === "confirmed" ? "confirmation" : status === "cancelled" ? "cancelled" : "pending";
+      const emailResult = await sendBookingEmail(id, emailType);
+      if (emailResult.success) {
+        toast.success("Email notification sent");
+      } else {
+        console.warn("Email sending failed:", emailResult.error);
+      }
     } catch (error) {
       console.error("Error updating booking:", error);
       toast.error("Failed to update booking");

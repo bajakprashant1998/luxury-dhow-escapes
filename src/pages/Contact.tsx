@@ -49,6 +49,8 @@ import Layout from "@/components/layout/Layout";
 import { tours } from "@/data/tours";
 import { useToast } from "@/hooks/use-toast";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
+import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
+import { Discount } from "@/hooks/useDiscounts";
 
 const bookingSchema = z.object({
   tourId: z.string().min(1, "Please select a tour"),
@@ -71,6 +73,7 @@ const Contact = () => {
   const [infants, setInfants] = useState(0);
   const [selectedTour, setSelectedTour] = useState<string>("");
   const [step, setStep] = useState(1);
+  const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -99,12 +102,25 @@ const Contact = () => {
     setInfants(0);
     setSelectedTour("");
     setStep(1);
+    setAppliedDiscount(null);
   };
 
   const tour = tours.find((t) => t.id === selectedTour);
   const totalPrice = tour
     ? tour.price * adults + tour.price * 0.5 * children
     : 0;
+
+  // Calculate discount
+  const calculateDiscountAmount = () => {
+    if (!appliedDiscount) return 0;
+    if (appliedDiscount.type === "percentage") {
+      return (totalPrice * appliedDiscount.value) / 100;
+    }
+    return Math.min(appliedDiscount.value, totalPrice);
+  };
+
+  const discountAmount = calculateDiscountAmount();
+  const finalPrice = totalPrice - discountAmount;
 
   // Generate date options for next 30 days
   const dateOptions = Array.from({ length: 30 }, (_, i) => {
@@ -625,6 +641,16 @@ const Contact = () => {
                           </div>
                         </div>
 
+                        {/* Discount Code */}
+                        {tour && (
+                          <DiscountCodeInput
+                            orderAmount={totalPrice}
+                            tourId={tour.id}
+                            onDiscountApplied={setAppliedDiscount}
+                            appliedDiscount={appliedDiscount}
+                          />
+                        )}
+
                         {/* Price Summary */}
                         {tour && (
                           <div className="bg-secondary/10 rounded-xl p-6">
@@ -646,10 +672,24 @@ const Contact = () => {
                                   <span>Free</span>
                                 </div>
                               )}
+                              {appliedDiscount && (
+                                <>
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Subtotal</span>
+                                    <span>AED {totalPrice}</span>
+                                  </div>
+                                  <div className="flex justify-between text-secondary">
+                                    <span>
+                                      Discount ({appliedDiscount.code})
+                                    </span>
+                                    <span>-AED {discountAmount.toFixed(0)}</span>
+                                  </div>
+                                </>
+                              )}
                               <hr className="border-border my-3" />
                               <div className="flex justify-between font-bold text-xl">
                                 <span>Total</span>
-                                <span className="text-secondary">AED {totalPrice}</span>
+                                <span className="text-secondary">AED {finalPrice.toFixed(0)}</span>
                               </div>
                             </div>
                           </div>

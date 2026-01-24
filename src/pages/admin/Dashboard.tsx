@@ -7,6 +7,9 @@ import VisitorsChart from "@/components/admin/VisitorsChart";
 import SalesChart from "@/components/admin/SalesChart";
 import OverviewCard from "@/components/admin/OverviewCard";
 import ToursTable from "@/components/admin/ToursTable";
+import RevenueChart from "@/components/admin/RevenueChart";
+import DiscountUsageChart from "@/components/admin/DiscountUsageChart";
+import CustomerRetentionChart from "@/components/admin/CustomerRetentionChart";
 import { withTimeout } from "@/lib/withTimeout";
 import {
   Users,
@@ -169,6 +172,15 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <VisitorsChart />
           <SalesChart />
+        </div>
+
+        {/* Analytics Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <RevenueChart />
+          <div className="grid grid-cols-1 gap-6">
+            <DiscountUsageChart />
+            <CustomerRetentionChart />
+          </div>
         </div>
 
         {/* Bottom Row */}
