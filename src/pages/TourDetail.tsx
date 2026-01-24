@@ -33,7 +33,7 @@ import QuickInfoCards from "@/components/tour-detail/QuickInfoCards";
 import BookingSidebar from "@/components/tour-detail/BookingSidebar";
 import ReviewsSection from "@/components/tour-detail/ReviewsSection";
 import MobileBookingBar from "@/components/tour-detail/MobileBookingBar";
-import FloatingBookWidget from "@/components/tour-detail/FloatingBookWidget";
+
 import BookingModal from "@/components/tour-detail/BookingModal";
 import { useTour, useRelatedTours } from "@/hooks/useTours";
 
@@ -419,13 +419,6 @@ const TourDetail = () => {
       {/* Mobile Booking Bar */}
       <MobileBookingBar price={tour.price} originalPrice={tour.originalPrice} />
 
-      {/* Floating Book Widget (desktop only) */}
-      <FloatingBookWidget 
-        price={tour.price} 
-        originalPrice={tour.originalPrice} 
-        tourTitle={tour.title}
-        onBookClick={() => setIsBookingModalOpen(true)}
-      />
 
       {/* Booking Modal */}
       <BookingModal
