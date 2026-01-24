@@ -747,7 +747,7 @@ const Contact = () => {
                   </a>
 
                   <a
-                    href="https://wa.me/971585725692"
+                    href="https://wa.me/971585725692?text=Hi%21%20I%27d%20like%20to%20inquire%20about%20booking%20a%20cruise.%20Can%20you%20assist%3F"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors group"

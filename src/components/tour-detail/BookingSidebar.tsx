@@ -271,7 +271,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
               Reserve Now
             </Button>
           </motion.div>
-          <a href="https://wa.me/971585725692" target="_blank" rel="noopener noreferrer" className="block">
+          <a href="https://wa.me/971585725692?text=Hi%21%20I%27m%20interested%20in%20booking%20this%20tour.%20Can%20you%20help%3F" target="_blank" rel="noopener noreferrer" className="block">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button variant="outline" className="w-full h-12 hover:border-secondary/50">
                 <MessageCircle className="w-5 h-5 mr-2" />
