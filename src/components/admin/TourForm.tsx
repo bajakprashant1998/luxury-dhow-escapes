@@ -16,9 +16,15 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Upload, X, Plus, Loader2, ImageIcon } from "lucide-react";
+import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin } from "lucide-react";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useActiveCategories } from "@/hooks/useCategories";
+import { useActiveLocations } from "@/hooks/useLocations";
+import ItineraryEditor, { ItineraryItem } from "./ItineraryEditor";
+import FAQEditor, { FAQItem } from "./FAQEditor";
+import CharacterCounter from "./CharacterCounter";
+import SEOPreview from "./SEOPreview";
+import KeywordsInput from "./KeywordsInput";
 
 type Tour = Tables<"tours">;
 
@@ -35,8 +41,9 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
 
-  // Fetch categories from database
+  // Fetch categories and locations from database
   const { data: categories = [], isLoading: categoriesLoading } = useActiveCategories();
+  const { data: locations = [], isLoading: locationsLoading } = useActiveLocations();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -50,13 +57,20 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
     duration: tour?.duration || "",
     capacity: tour?.capacity || "",
     category: tour?.category || "dhow",
+    location: tour?.location || "",
     featured: tour?.featured || false,
     status: tour?.status || "active",
     image_url: tour?.image_url || "",
+    image_alt: tour?.image_alt || "",
     gallery: tour?.gallery || [],
     highlights: tour?.highlights || [],
     included: tour?.included || [],
     excluded: tour?.excluded || [],
+    itinerary: (tour?.itinerary as unknown as ItineraryItem[]) || [],
+    faqs: (tour?.faqs as unknown as FAQItem[]) || [],
+    meta_title: tour?.meta_title || "",
+    meta_description: tour?.meta_description || "",
+    meta_keywords: tour?.meta_keywords || [],
   });
 
   // Array field inputs
@@ -165,6 +179,26 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
     }));
   };
 
+  // SEO auto-suggest functions
+  const suggestMetaTitle = () => {
+    setFormData((prev) => ({
+      ...prev,
+      meta_title: prev.title.slice(0, 60),
+    }));
+  };
+
+  const suggestMetaDescription = () => {
+    setFormData((prev) => ({
+      ...prev,
+      meta_description: (prev.description || "").slice(0, 160),
+    }));
+  };
+
+  const suggestImageAlt = () => {
+    const alt = [formData.title, formData.location].filter(Boolean).join(" - ");
+    setFormData((prev) => ({ ...prev, image_alt: alt }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -181,13 +215,20 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
         duration: formData.duration || null,
         capacity: formData.capacity || null,
         category: formData.category,
+        location: formData.location || null,
         featured: formData.featured,
         status: formData.status,
         image_url: formData.image_url || null,
+        image_alt: formData.image_alt || null,
         gallery: formData.gallery?.length ? formData.gallery : null,
         highlights: formData.highlights?.length ? formData.highlights : null,
         included: formData.included?.length ? formData.included : null,
         excluded: formData.excluded?.length ? formData.excluded : null,
+        itinerary: formData.itinerary?.length ? JSON.parse(JSON.stringify(formData.itinerary)) : null,
+        faqs: formData.faqs?.length ? JSON.parse(JSON.stringify(formData.faqs)) : null,
+        meta_title: formData.meta_title || null,
+        meta_description: formData.meta_description || null,
+        meta_keywords: formData.meta_keywords?.length ? formData.meta_keywords : null,
       };
 
       if (mode === "create") {
@@ -328,7 +369,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Category *</Label>
                   {categoriesLoading ? (
@@ -345,6 +386,38 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                         {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.slug}>
                             {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Location</Label>
+                  {locationsLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                  ) : (
+                    <Select
+                      value={formData.location}
+                      onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select location">
+                          {formData.location && (
+                            <span className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              {locations.find((l) => l.name === formData.location)?.name || formData.location}
+                            </span>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.name}>
+                            <span className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              {loc.name}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -503,6 +576,114 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Itinerary */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Itinerary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ItineraryEditor
+                items={formData.itinerary}
+                onChange={(items) => setFormData((prev) => ({ ...prev, itinerary: items }))}
+              />
+            </CardContent>
+          </Card>
+
+          {/* FAQs */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Frequently Asked Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FAQEditor
+                items={formData.faqs}
+                onChange={(items) => setFormData((prev) => ({ ...prev, faqs: items }))}
+              />
+            </CardContent>
+          </Card>
+
+          {/* SEO Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>SEO Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Meta Title */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="meta_title">Meta Title</Label>
+                  <div className="flex items-center gap-2">
+                    <CharacterCounter current={formData.meta_title.length} min={30} max={60} />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={suggestMetaTitle}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Auto
+                    </Button>
+                  </div>
+                </div>
+                <Input
+                  id="meta_title"
+                  value={formData.meta_title}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, meta_title: e.target.value }))}
+                  placeholder="SEO optimized title (50-60 characters)"
+                  maxLength={70}
+                />
+              </div>
+
+              {/* Meta Description */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="meta_description">Meta Description</Label>
+                  <div className="flex items-center gap-2">
+                    <CharacterCounter current={formData.meta_description.length} min={120} max={160} />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={suggestMetaDescription}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Auto
+                    </Button>
+                  </div>
+                </div>
+                <Textarea
+                  id="meta_description"
+                  value={formData.meta_description}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
+                  placeholder="SEO optimized description (150-160 characters)"
+                  rows={3}
+                  maxLength={200}
+                />
+              </div>
+
+              {/* Meta Keywords */}
+              <div className="space-y-2">
+                <Label>Meta Keywords</Label>
+                <KeywordsInput
+                  keywords={formData.meta_keywords || []}
+                  onChange={(keywords) => setFormData((prev) => ({ ...prev, meta_keywords: keywords }))}
+                />
+              </div>
+
+              {/* Google Preview */}
+              <div className="space-y-2">
+                <Label>Search Result Preview</Label>
+                <SEOPreview
+                  title={formData.meta_title || formData.title}
+                  description={formData.meta_description || formData.description}
+                  slug={formData.slug}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -563,7 +744,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                 <div className="relative group">
                   <img
                     src={formData.image_url}
-                    alt="Tour main image"
+                    alt={formData.image_alt || "Tour main image"}
                     className="w-full h-48 object-cover rounded-lg"
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
@@ -579,7 +760,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                       type="button"
                       variant="destructive"
                       size="sm"
-                      onClick={() => setFormData((prev) => ({ ...prev, image_url: "" }))}
+                      onClick={() => setFormData((prev) => ({ ...prev, image_url: "", image_alt: "" }))}
                     >
                       Remove
                     </Button>
@@ -601,6 +782,31 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                     </>
                   )}
                 </button>
+              )}
+
+              {/* Image Alt Text */}
+              {formData.image_url && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="image_alt">Alt Text (SEO)</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={suggestImageAlt}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Auto
+                    </Button>
+                  </div>
+                  <Input
+                    id="image_alt"
+                    value={formData.image_alt}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, image_alt: e.target.value }))}
+                    placeholder="Describe the image for accessibility"
+                  />
+                </div>
               )}
             </CardContent>
           </Card>
