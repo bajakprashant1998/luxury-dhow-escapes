@@ -4,9 +4,11 @@ import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube } from "luci
 import rentalYachtLogo from "@/assets/rental-yacht-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_CACHE_KEY, ADMIN_USER_KEY } from "@/components/admin/AdminLayout";
+import { useContactConfig } from "@/hooks/useContactConfig";
 
 const Footer = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const { phone, phoneFormatted, email, address } = useContactConfig();
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +86,7 @@ const Footer = () => {
       subscription.unsubscribe();
     };
   }, []);
+
   return (
     <footer className="bg-primary text-primary-foreground">
       {/* Main Footer */}
@@ -193,21 +196,21 @@ const Footer = () => {
             <h4 className="font-display text-lg font-semibold text-secondary mb-6">Contact Us</h4>
             <ul className="space-y-4">
               <li>
-                <a href="tel:+971585725692" className="flex items-start gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-sm">
+                <a href={`tel:${phone}`} className="flex items-start gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-sm">
                   <Phone className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <span>+971 58 572 5692</span>
+                  <span>{phoneFormatted}</span>
                 </a>
               </li>
               <li>
-                <a href="mailto:info@rentalyachtdubai.com" className="flex items-start gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-sm">
+                <a href={`mailto:${email}`} className="flex items-start gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-sm">
                   <Mail className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <span>info@rentalyachtdubai.com</span>
+                  <span>{email}</span>
                 </a>
               </li>
               <li>
                 <div className="flex items-start gap-3 text-primary-foreground/80 text-sm">
                   <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <span>Dubai Marina Walk, Dubai, United Arab Emirates</span>
+                  <span>{address}</span>
                 </div>
               </li>
             </ul>

@@ -2,8 +2,11 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Phone, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useContactConfig } from "@/hooks/useContactConfig";
 
 const CTASection = () => {
+  const { phone, phoneFormatted } = useContactConfig();
+
   return (
     <section className="py-24 bg-muted/30 overflow-hidden relative">
       {/* Decorative Elements */}
@@ -61,10 +64,10 @@ const CTASection = () => {
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <a href="tel:+971585725692">
+            <a href={`tel:${phone}`}>
               <Button size="lg" variant="outline" className="font-semibold text-lg px-8 h-14 hover:bg-primary hover:text-primary-foreground transition-all duration-300">
                 <Phone className="w-5 h-5 mr-2" />
-                +971 58 572 5692
+                {phoneFormatted}
               </Button>
             </a>
           </motion.div>

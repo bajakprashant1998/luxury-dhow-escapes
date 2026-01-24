@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ChevronUp } from "lucide-react";
 import BookingModal from "./BookingModal";
+import { useContactConfig } from "@/hooks/useContactConfig";
 
 interface MobileBookingBarProps {
   price: number;
@@ -14,6 +15,7 @@ interface MobileBookingBarProps {
 const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "" }: MobileBookingBarProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const { whatsappLinkWithGreeting } = useContactConfig();
   const discount = Math.round((1 - price / originalPrice) * 100);
 
   return (
@@ -100,7 +102,7 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "" }:
             {/* Buttons */}
             <div className="flex gap-2">
               <motion.a 
-                href="https://wa.me/971585725692?text=Hi%21%20I%27m%20interested%20in%20booking%20this%20tour.%20Can%20you%20help%3F" 
+                href={whatsappLinkWithGreeting(`Hi! I'm interested in booking ${tourTitle}. Can you help?`)} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 whileTap={{ scale: 0.95 }}

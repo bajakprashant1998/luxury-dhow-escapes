@@ -1,9 +1,12 @@
 import { MessageCircle } from "lucide-react";
+import { useContactConfig } from "@/hooks/useContactConfig";
 
 const WhatsAppWidget = () => {
+  const { whatsappLinkWithGreeting } = useContactConfig();
+
   return (
     <a
-      href="https://wa.me/971585725692?text=Hi%21%20I%27m%20interested%20in%20your%20yacht%20and%20dhow%20cruise%20experiences.%20Can%20you%20help%20me%20with%20booking%3F"
+      href={whatsappLinkWithGreeting("Hi! I'm interested in your yacht and dhow cruise experiences. Can you help me with booking?")}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 group lg:bottom-8 lg:right-8"

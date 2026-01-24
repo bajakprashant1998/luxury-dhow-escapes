@@ -23,6 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import BookingModal from "./BookingModal";
+import { useContactConfig } from "@/hooks/useContactConfig";
 
 interface BookingSidebarProps {
   price: number;
@@ -39,6 +40,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
   const [children, setChildren] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const { phone, phoneFormatted, whatsappLinkWithGreeting } = useContactConfig();
 
   const discount = Math.round((1 - price / originalPrice) * 100);
   const totalPrice = price * adults + price * 0.7 * children;
@@ -271,7 +273,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
               Reserve Now
             </Button>
           </motion.div>
-          <a href="https://wa.me/971585725692?text=Hi%21%20I%27m%20interested%20in%20booking%20this%20tour.%20Can%20you%20help%3F" target="_blank" rel="noopener noreferrer" className="block">
+          <a href={whatsappLinkWithGreeting(`Hi! I'm interested in booking ${tourTitle}. Can you help?`)} target="_blank" rel="noopener noreferrer" className="block">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button variant="outline" className="w-full h-12 hover:border-secondary/50">
                 <MessageCircle className="w-5 h-5 mr-2" />
@@ -279,10 +281,10 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
               </Button>
             </motion.div>
           </a>
-          <a href="tel:+971585725692" className="block">
+          <a href={`tel:${phone}`} className="block">
             <Button variant="ghost" className="w-full h-12 text-muted-foreground hover:text-foreground">
               <Phone className="w-5 h-5 mr-2" />
-              +971 58 572 5692
+              {phoneFormatted}
             </Button>
           </a>
         </div>

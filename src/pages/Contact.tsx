@@ -51,6 +51,7 @@ import { useToast } from "@/hooks/use-toast";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
 import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
 import { Discount } from "@/hooks/useDiscounts";
+import { useContactConfig } from "@/hooks/useContactConfig";
 
 const bookingSchema = z.object({
   tourId: z.string().min(1, "Please select a tour"),
@@ -68,6 +69,7 @@ type BookingFormData = z.infer<typeof bookingSchema>;
 
 const Contact = () => {
   const { toast } = useToast();
+  const { phone, phoneFormatted, email, whatsappLinkWithGreeting } = useContactConfig();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
@@ -734,7 +736,7 @@ const Contact = () => {
                 </h3>
                 <div className="space-y-3">
                   <a
-                    href="tel:+971585725692"
+                    href={`tel:${phone}`}
                     className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors group"
                   >
                     <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -742,18 +744,18 @@ const Contact = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">Call Us</p>
-                      <p className="text-sm text-muted-foreground">+971 58 572 5692</p>
+                      <p className="text-sm text-muted-foreground">{phoneFormatted}</p>
                     </div>
                   </a>
 
                   <a
-                    href="https://wa.me/971585725692?text=Hi%21%20I%27d%20like%20to%20inquire%20about%20booking%20a%20cruise.%20Can%20you%20assist%3F"
+                    href={whatsappLinkWithGreeting("Hi! I'd like to inquire about booking a cruise. Can you assist?")}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors group"
+                    className="flex items-center gap-4 p-4 bg-secondary/10 rounded-xl hover:bg-secondary/20 transition-colors group"
                   >
-                    <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <MessageCircle className="w-5 h-5 text-emerald-600" />
+                    <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <MessageCircle className="w-5 h-5 text-secondary" />
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">WhatsApp</p>
@@ -762,7 +764,7 @@ const Contact = () => {
                   </a>
 
                   <a
-                    href="mailto:info@betterviewtourism.com"
+                    href={`mailto:${email}`}
                     className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl hover:bg-muted transition-colors group"
                   >
                     <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -770,7 +772,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">Email Us</p>
-                      <p className="text-sm text-muted-foreground">info@betterviewtourism.com</p>
+                      <p className="text-sm text-muted-foreground">{email}</p>
                     </div>
                   </a>
                 </div>

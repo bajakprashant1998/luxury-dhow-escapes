@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useContactConfig } from "@/hooks/useContactConfig";
 
 interface FloatingBookWidgetProps {
   price: number;
@@ -12,6 +13,7 @@ interface FloatingBookWidgetProps {
 
 const FloatingBookWidget = ({ price, originalPrice, tourTitle, onBookClick }: FloatingBookWidgetProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const { whatsappLinkWithGreeting } = useContactConfig();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,7 +64,7 @@ const FloatingBookWidget = ({ price, originalPrice, tourTitle, onBookClick }: Fl
             <Calendar className="w-4 h-4 mr-2" />
             Book Now
           </Button>
-          <a href="https://wa.me/971585725692?text=Hi%21%20I%27m%20interested%20in%20booking%20this%20tour.%20Can%20you%20help%3F" target="_blank" rel="noopener noreferrer">
+          <a href={whatsappLinkWithGreeting(`Hi! I'm interested in booking ${tourTitle}. Can you help?`)} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="icon" className="h-10 w-10">
               <MessageCircle className="w-4 h-4" />
             </Button>
