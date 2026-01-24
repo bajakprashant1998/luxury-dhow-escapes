@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { ArrowRight, ArrowLeft, X, Minus, Plus, CalendarIcon, Check } from "lucide-react";
+import { ArrowRight, ArrowLeft, Minus, Plus, CalendarIcon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { sendBookingEmail } from "@/lib/sendBookingEmail";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -91,7 +92,7 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("bookings").insert({
+      const { data: bookingData, error } = await supabase.from("bookings").insert({
         tour_id: tourId,
         tour_name: tourTitle,
         booking_date: format(date!, "yyyy-MM-dd"),
@@ -104,11 +105,24 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
         special_requests: specialRequests || null,
         total_price: totalPrice,
         status: "pending",
-      });
+      }).select().single();
 
       if (error) throw error;
 
-      toast({ title: "Booking submitted successfully!", description: "We'll contact you shortly to confirm." });
+      // Send confirmation email
+      if (bookingData?.id) {
+        const emailResult = await sendBookingEmail(bookingData.id, "pending");
+        if (emailResult.success) {
+          console.log("Booking confirmation email sent successfully");
+        } else {
+          console.warn("Failed to send booking email:", emailResult.error);
+        }
+      }
+
+      toast({ 
+        title: "Booking submitted successfully!", 
+        description: "Check your email for confirmation details. We'll contact you shortly." 
+      });
       onClose();
       // Reset form
       setCurrentStep(1);

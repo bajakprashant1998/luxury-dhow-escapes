@@ -58,6 +58,7 @@ const AdminBookings = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -158,6 +159,17 @@ const AdminBookings = () => {
         if (error) throw error;
         setBookings(bookings.map((b) => (ids.includes(b.id) ? { ...b, status } : b)));
         toast.success(`Updated ${ids.length} booking(s) to ${status}`);
+        
+        // Send email notifications for bulk actions
+        const emailType = status === "confirmed" ? "confirmation" : "cancelled";
+        let emailsSent = 0;
+        for (const id of ids) {
+          const result = await sendBookingEmail(id, emailType);
+          if (result.success) emailsSent++;
+        }
+        if (emailsSent > 0) {
+          toast.success(`Sent ${emailsSent} email notification(s)`);
+        }
       }
       setSelectedIds(new Set());
     } catch (error) {
@@ -435,6 +447,58 @@ const AdminBookings = () => {
                   <span className="text-2xl font-bold text-secondary">
                     AED {selectedBooking.total_price}
                   </span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isSendingEmail}
+                    onClick={async () => {
+                      setIsSendingEmail(true);
+                      const emailType = selectedBooking.status === "confirmed" 
+                        ? "confirmation" 
+                        : selectedBooking.status === "cancelled"
+                        ? "cancelled"
+                        : "pending";
+                      const result = await sendBookingEmail(selectedBooking.id, emailType);
+                      if (result.success) {
+                        toast.success("Email sent successfully");
+                      } else {
+                        toast.error("Failed to send email: " + result.error);
+                      }
+                      setIsSendingEmail(false);
+                    }}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    {isSendingEmail ? "Sending..." : "Resend Email"}
+                  </Button>
+                  {selectedBooking.status === "pending" && (
+                    <>
+                      <Button
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() => {
+                          updateBookingStatus(selectedBooking.id, "confirmed");
+                          setSelectedBooking(null);
+                        }}
+                      >
+                        <Check className="w-4 h-4 mr-2" />
+                        Confirm
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        onClick={() => {
+                          updateBookingStatus(selectedBooking.id, "cancelled");
+                          setSelectedBooking(null);
+                        }}
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
