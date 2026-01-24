@@ -100,7 +100,7 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "" }:
             {/* Buttons */}
             <div className="flex gap-2">
               <motion.a 
-                href="https://wa.me/971585725692" 
+                href="https://wa.me/971585725692?text=Hi%21%20I%27m%20interested%20in%20booking%20this%20tour.%20Can%20you%20help%3F" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 whileTap={{ scale: 0.95 }}
