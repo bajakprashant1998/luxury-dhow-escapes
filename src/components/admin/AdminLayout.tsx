@@ -27,6 +27,55 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   useEffect(() => {
     let cancelled = false;
 
+    const checkAdminRole = async (userId: string) => {
+      setLoading(true);
+      setAdminGateError(null);
+      try {
+        const { data, error } = await withTimeout(
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userId)
+            .eq("role", "admin")
+            .limit(1),
+          15000,
+          "Role check timed out",
+        );
+
+        if (error) throw error;
+
+        const hasAdminRole = Array.isArray(data) ? data.length > 0 : !!data;
+
+        if (hasAdminRole) {
+          setIsAdmin(true);
+          adminVerifiedRef.current = true;
+        } else {
+          setIsAdmin(false);
+          adminVerifiedRef.current = false;
+          setAdminGateError("You don't have admin privileges.");
+          toast({
+            title: "Access Denied",
+            description: "You don't have admin privileges.",
+            variant: "destructive",
+          });
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error checking admin role:", error);
+        setIsAdmin(false);
+        setAdminGateError(
+          "We couldn't verify admin access right now. Please retry (or sign out/in).",
+        );
+        toast({
+          title: "Admin check failed",
+          description: "Couldn't verify admin access. Please refresh and try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (cancelled) return;
@@ -97,56 +146,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
-
-  const checkAdminRole = async (userId: string) => {
-    setLoading(true);
-    setAdminGateError(null);
-    try {
-      const { data, error } = await withTimeout(
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId)
-          .eq("role", "admin")
-          .limit(1),
-        15000,
-        "Role check timed out",
-      );
-
-      if (error) throw error;
-
-      const hasAdminRole = Array.isArray(data) ? data.length > 0 : !!data;
-
-      if (hasAdminRole) {
-        setIsAdmin(true);
-        adminVerifiedRef.current = true;
-      } else {
-        setIsAdmin(false);
-        adminVerifiedRef.current = false;
-        setAdminGateError("You don't have admin privileges.");
-        toast({
-          title: "Access Denied",
-          description: "You don't have admin privileges.",
-          variant: "destructive",
-        });
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Error checking admin role:", error);
-      setIsAdmin(false);
-      setAdminGateError(
-        "We couldn't verify admin access right now. Please retry (or sign out/in).",
-      );
-      toast({
-        title: "Admin check failed",
-        description: "Couldn't verify admin access. Please refresh and try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [navigate, toast]);
 
   if (loading) {
     return (
