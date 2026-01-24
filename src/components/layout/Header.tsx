@@ -72,9 +72,9 @@ const Header = () => {
       <div className="hidden md:block bg-primary text-primary-foreground py-2">
         <div className="container flex justify-between items-center text-sm">
           <div className="flex items-center gap-6">
-            <a href="tel:+971501234567" className="flex items-center gap-2 hover:text-secondary transition-colors">
+            <a href="tel:+971585725692" className="flex items-center gap-2 hover:text-secondary transition-colors">
               <Phone className="w-4 h-4" />
-              +971 50 123 4567
+              +971 58 572 5692
             </a>
             <a href="mailto:info@rentalyachtdubai.com" className="flex items-center gap-2 hover:text-secondary transition-colors">
               <Mail className="w-4 h-4" />
@@ -168,9 +168,9 @@ const Header = () => {
 
           {/* CTA Button */}
           <div className="hidden lg:flex items-center gap-3">
-            <a href="tel:+971501234567" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a href="tel:+971585725692" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               <Phone className="w-4 h-4" />
-              <span className="hidden xl:inline">+971 50 123 4567</span>
+              <span className="hidden xl:inline">+971 58 572 5692</span>
             </a>
             <Link to="/contact">
               <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold px-6 shadow-md hover:shadow-lg transition-all">
@@ -224,9 +224,9 @@ const Header = () => {
               </div>
 
               <div className="mt-4 pt-4 border-t border-border space-y-3">
-                <a href="tel:+971501234567" className="flex items-center gap-2 text-sm text-muted-foreground px-4">
+                <a href="tel:+971585725692" className="flex items-center gap-2 text-sm text-muted-foreground px-4">
                   <Phone className="w-4 h-4" />
-                  +971 50 123 4567
+                  +971 58 572 5692
                 </a>
                 <Link to="/contact" onClick={() => setIsMenuOpen(false)}>
                   <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-12">

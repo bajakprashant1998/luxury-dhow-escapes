@@ -271,7 +271,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
               Reserve Now
             </Button>
           </motion.div>
-          <a href="https://wa.me/971501234567" target="_blank" rel="noopener noreferrer" className="block">
+          <a href="https://wa.me/971585725692" target="_blank" rel="noopener noreferrer" className="block">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button variant="outline" className="w-full h-12 hover:border-secondary/50">
                 <MessageCircle className="w-5 h-5 mr-2" />
@@ -279,10 +279,10 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
               </Button>
             </motion.div>
           </a>
-          <a href="tel:+971501234567" className="block">
+          <a href="tel:+971585725692" className="block">
             <Button variant="ghost" className="w-full h-12 text-muted-foreground hover:text-foreground">
               <Phone className="w-5 h-5 mr-2" />
-              +971 50 123 4567
+              +971 58 572 5692
             </Button>
           </a>
         </div>

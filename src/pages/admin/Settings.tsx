@@ -40,8 +40,8 @@ const DEFAULT_SITE = {
   siteName: "BetterView Tourism",
   siteDescription: "Premium Dhow Cruise & Yacht Experiences in Dubai",
   contactEmail: "info@betterviewtourism.com",
-  contactPhone: "+971 50 123 4567",
-  whatsappNumber: "+971501234567",
+  contactPhone: "+971 58 572 5692",
+  whatsappNumber: "+971585725692",
   address: "Dubai Marina, Dubai, UAE",
 };
 
