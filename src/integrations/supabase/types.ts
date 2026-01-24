@@ -289,12 +289,18 @@ export type Database = {
           faqs: Json | null
           featured: boolean | null
           gallery: string[] | null
+          gallery_data: Json | null
           highlights: string[] | null
           id: string
+          image_alt: string | null
           image_url: string | null
           included: string[] | null
           itinerary: Json | null
+          location: string | null
           long_description: string | null
+          meta_description: string | null
+          meta_keywords: string[] | null
+          meta_title: string | null
           original_price: number | null
           price: number
           rating: number | null
@@ -316,12 +322,18 @@ export type Database = {
           faqs?: Json | null
           featured?: boolean | null
           gallery?: string[] | null
+          gallery_data?: Json | null
           highlights?: string[] | null
           id?: string
+          image_alt?: string | null
           image_url?: string | null
           included?: string[] | null
           itinerary?: Json | null
+          location?: string | null
           long_description?: string | null
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          meta_title?: string | null
           original_price?: number | null
           price: number
           rating?: number | null
@@ -343,12 +355,18 @@ export type Database = {
           faqs?: Json | null
           featured?: boolean | null
           gallery?: string[] | null
+          gallery_data?: Json | null
           highlights?: string[] | null
           id?: string
+          image_alt?: string | null
           image_url?: string | null
           included?: string[] | null
           itinerary?: Json | null
+          location?: string | null
           long_description?: string | null
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          meta_title?: string | null
           original_price?: number | null
           price?: number
           rating?: number | null
