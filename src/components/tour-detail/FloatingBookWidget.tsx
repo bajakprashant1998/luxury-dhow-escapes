@@ -62,7 +62,7 @@ const FloatingBookWidget = ({ price, originalPrice, tourTitle, onBookClick }: Fl
             <Calendar className="w-4 h-4 mr-2" />
             Book Now
           </Button>
-          <a href="https://wa.me/971501234567" target="_blank" rel="noopener noreferrer">
+          <a href="https://wa.me/971585725692" target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="icon" className="h-10 w-10">
               <MessageCircle className="w-4 h-4" />
             </Button>

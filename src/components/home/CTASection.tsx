@@ -61,10 +61,10 @@ const CTASection = () => {
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <a href="tel:+971501234567">
+            <a href="tel:+971585725692">
               <Button size="lg" variant="outline" className="font-semibold text-lg px-8 h-14 hover:bg-primary hover:text-primary-foreground transition-all duration-300">
                 <Phone className="w-5 h-5 mr-2" />
-                +971 50 123 4567
+                +971 58 572 5692
               </Button>
             </a>
           </motion.div>
