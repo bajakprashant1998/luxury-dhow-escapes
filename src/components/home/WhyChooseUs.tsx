@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
-import { Shield, Clock, Heart, Users, CheckCircle2 } from "lucide-react";
+import { Shield, Clock, Heart, Users, CheckCircle2, LucideIcon } from "lucide-react";
+import { useHomepageContent } from "@/hooks/useHomepageContent";
 
-const whyChooseUs = [
-  { icon: Shield, title: "Best Price Guarantee", description: "Find it cheaper? We'll match it!" },
-  { icon: Clock, title: "Instant Confirmation", description: "Book now, confirmation in seconds" },
-  { icon: Heart, title: "24/7 Support", description: "We're here whenever you need us" },
-  { icon: Users, title: "2M+ Happy Guests", description: "Join our growing family" },
-];
-
-const trustIndicators = ["Free Cancellation", "Secure Payment", "Verified Reviews", "Local Expertise"];
+// Icon mapping for dynamic icons from database
+const iconMap: Record<string, LucideIcon> = {
+  Shield,
+  Clock,
+  Heart,
+  Users,
+};
 
 const container = {
   hidden: { opacity: 0 },
@@ -24,6 +24,8 @@ const item = {
 };
 
 const WhyChooseUs = () => {
+  const { whyChooseUs, trustIndicators } = useHomepageContent();
+
   return (
     <section className="py-24 bg-primary text-primary-foreground overflow-hidden relative">
       {/* Background Pattern */}
@@ -63,25 +65,28 @@ const WhyChooseUs = () => {
           whileInView="show"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {whyChooseUs.map((item, index) => (
-            <motion.div 
-              key={index} 
-              className="text-center group"
-              variants={{
-                hidden: { opacity: 0, y: 30 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-              }}
-            >
+          {whyChooseUs.map((whyItem, index) => {
+            const IconComponent = iconMap[whyItem.icon] || Shield;
+            return (
               <motion.div 
-                className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all duration-300"
-                whileHover={{ scale: 1.1, rotate: 5 }}
+                key={index} 
+                className="text-center group"
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+                }}
               >
-                <item.icon className="w-10 h-10 text-secondary" />
+                <motion.div 
+                  className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all duration-300"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <IconComponent className="w-10 h-10 text-secondary" />
+                </motion.div>
+                <h3 className="font-display text-xl font-semibold mb-3">{whyItem.title}</h3>
+                <p className="text-primary-foreground/70">{whyItem.description}</p>
               </motion.div>
-              <h3 className="font-display text-xl font-semibold mb-3">{item.title}</h3>
-              <p className="text-primary-foreground/70">{item.description}</p>
-            </motion.div>
-          ))}
+            );
+          })}
         </motion.div>
 
         {/* Trust Indicators */}
