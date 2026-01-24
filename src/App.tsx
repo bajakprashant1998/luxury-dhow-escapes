@@ -23,6 +23,7 @@ import AdminLocations from "./pages/admin/Locations";
 import AdminCategories from "./pages/admin/Categories";
 import AdminCustomers from "./pages/admin/Customers";
 import AdminDiscounts from "./pages/admin/Discounts";
+import AdminUploadTourImages from "./pages/admin/UploadTourImages";
 import NotFound from "./pages/NotFound";
 import RequireSession from "./components/admin/RequireSession";
 
@@ -144,6 +145,14 @@ const App = () => (
             element={
               <RequireSession>
                 <AdminDiscounts />
+              </RequireSession>
+            }
+            />
+          <Route
+            path="/admin/upload-images"
+            element={
+              <RequireSession>
+                <AdminUploadTourImages />
               </RequireSession>
             }
           />
