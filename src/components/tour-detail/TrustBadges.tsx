@@ -1,4 +1,18 @@
-import { Shield, Award, CreditCard, Clock, ThumbsUp, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import { Shield, ThumbsUp, Clock, CreditCard, Star } from "lucide-react";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.2 }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, x: -10 },
+  show: { opacity: 1, x: 0 }
+};
 
 const TrustBadges = () => {
   const badges = [
@@ -30,22 +44,34 @@ const TrustBadges = () => {
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-3 md:gap-4">
+    <motion.div 
+      className="flex flex-wrap items-center gap-3 md:gap-4"
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true }}
+    >
       {badges.map((badge, index) => (
-        <div
+        <motion.div
           key={index}
-          className="flex items-center gap-2 px-3 py-2 bg-card rounded-lg border border-border/50 shadow-sm"
+          variants={item}
+          whileHover={{ scale: 1.05, y: -2 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          className="flex items-center gap-2.5 px-4 py-2.5 bg-card rounded-xl border border-border/50 shadow-sm hover:shadow-md hover:border-secondary/30 transition-all duration-300 cursor-default group"
         >
-          <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+          <motion.div 
+            className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors"
+            whileHover={{ rotate: 10 }}
+          >
             <badge.icon className="w-4 h-4 text-secondary" />
-          </div>
+          </motion.div>
           <div className="text-left">
-            <p className="text-xs font-semibold text-foreground leading-tight">{badge.label}</p>
+            <p className="text-xs font-semibold text-foreground leading-tight group-hover:text-secondary transition-colors">{badge.label}</p>
             <p className="text-[10px] text-muted-foreground leading-tight">{badge.sublabel}</p>
           </div>
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };
 

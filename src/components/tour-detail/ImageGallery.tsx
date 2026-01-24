@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, ChevronLeft, ChevronRight, Camera } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ChevronLeft, ChevronRight, Camera, ZoomIn } from "lucide-react";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -56,11 +57,18 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
   return (
     <>
       {/* Gallery Grid */}
-      <div className="grid grid-cols-4 gap-2 md:gap-3">
+      <motion.div 
+        className="grid grid-cols-4 gap-2 md:gap-3"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
         {/* Main Large Image */}
-        <div 
+        <motion.div 
           className="col-span-4 md:col-span-2 row-span-2 cursor-pointer group relative overflow-hidden rounded-xl md:rounded-2xl"
           onClick={() => openLightbox(0)}
+          whileHover={{ scale: 1.01 }}
+          transition={{ duration: 0.3 }}
         >
           {!loadedImages[0] && (
             <Skeleton className="absolute inset-0 w-full h-[280px] md:h-[420px]" />
@@ -70,32 +78,47 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
             alt={title}
             onLoad={() => handleImageLoad(0)}
             className={cn(
-              "w-full h-[280px] md:h-[420px] object-cover transition-all duration-500 group-hover:scale-105",
+              "w-full h-[280px] md:h-[420px] object-cover transition-all duration-700 group-hover:scale-110",
               loadedImages[0] ? "opacity-100" : "opacity-0"
             )}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <button
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Zoom Icon */}
+          <motion.div 
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            whileHover={{ scale: 1.1 }}
+          >
+            <ZoomIn className="w-5 h-5 text-foreground" />
+          </motion.div>
+
+          <motion.button
             onClick={(e) => {
               e.stopPropagation();
               openLightbox(0);
             }}
-            className="absolute bottom-4 right-4 bg-card/90 hover:bg-card px-4 py-2 rounded-lg font-medium text-sm shadow-lg flex items-center gap-2 transition-colors"
+            className="absolute bottom-4 right-4 bg-card/95 backdrop-blur-sm hover:bg-card px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg flex items-center gap-2 transition-all"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.98 }}
           >
             <Camera className="w-4 h-4" />
             View all {images.length} photos
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Smaller Images */}
         {images.slice(1, 5).map((image, index) => (
-          <div
+          <motion.div
             key={index}
             className={cn(
               "cursor-pointer group relative overflow-hidden rounded-lg md:rounded-xl",
               index >= 2 ? "hidden md:block" : ""
             )}
             onClick={() => openLightbox(index + 1)}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 + index * 0.05 }}
+            whileHover={{ scale: 1.03 }}
           >
             {!loadedImages[index + 1] && (
               <Skeleton className="absolute inset-0 w-full h-[100px] md:h-[200px]" />
@@ -106,27 +129,30 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
               loading="lazy"
               onLoad={() => handleImageLoad(index + 1)}
               className={cn(
-                "w-full h-[100px] md:h-[200px] object-cover transition-all duration-500 group-hover:scale-105",
+                "w-full h-[100px] md:h-[200px] object-cover transition-all duration-500 group-hover:scale-110",
                 loadedImages[index + 1] ? "opacity-100" : "opacity-0"
               )}
             />
-            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             
             {/* Show More overlay on last visible image */}
             {index === 3 && images.length > 5 && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <motion.div 
+                className="absolute inset-0 bg-black/60 flex items-center justify-center"
+                whileHover={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+              >
                 <span className="text-white font-semibold text-lg">
                   +{images.length - 5} more
                 </span>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Lightbox Modal */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/98 border-none">
           <div className="relative w-full h-[90vh] flex items-center justify-center">
             {/* Close Button */}
             <DialogClose className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
@@ -134,52 +160,69 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
             </DialogClose>
 
             {/* Navigation Arrows */}
-            <button
+            <motion.button
               onClick={goToPrevious}
               className="absolute left-4 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
               <ChevronLeft className="w-6 h-6 text-white" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={goToNext}
               className="absolute right-4 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
               <ChevronRight className="w-6 h-6 text-white" />
-            </button>
+            </motion.button>
 
-            {/* Main Image */}
-            <img
-              src={images[selectedIndex]}
-              alt={`${title} - ${selectedIndex + 1}`}
-              className="max-w-full max-h-[80vh] object-contain"
-            />
+            {/* Main Image with Animation */}
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={selectedIndex}
+                src={images[selectedIndex]}
+                alt={`${title} - ${selectedIndex + 1}`}
+                className="max-w-full max-h-[80vh] object-contain"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              />
+            </AnimatePresence>
 
             {/* Image Counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-4 py-2 rounded-full">
+            <motion.div 
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               <span className="text-white font-medium">
                 {selectedIndex + 1} / {images.length}
               </span>
-            </div>
+            </motion.div>
 
             {/* Thumbnail Strip */}
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 max-w-[80vw] overflow-x-auto py-2 px-4">
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 max-w-[80vw] overflow-x-auto py-2 px-4 scrollbar-hide">
               {images.map((image, index) => (
-                <button
+                <motion.button
                   key={index}
                   onClick={() => setSelectedIndex(index)}
                   className={cn(
                     "flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden transition-all duration-200",
                     selectedIndex === index
-                      ? "ring-2 ring-secondary opacity-100"
+                      ? "ring-2 ring-secondary opacity-100 scale-110"
                       : "opacity-50 hover:opacity-80"
                   )}
+                  whileHover={{ scale: selectedIndex === index ? 1.1 : 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <img
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>

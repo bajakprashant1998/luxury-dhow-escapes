@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { 
   Star, 
   Clock, 
@@ -172,13 +173,35 @@ const TourDetail = () => {
       <section className="py-6 md:py-8">
         <div className="container">
           {/* Title & Actions Row */}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+          <motion.div 
+            className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <div>
-              <p className="text-secondary font-semibold mb-1">{tour.subtitle}</p>
-              <h1 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-3">
+              <motion.p 
+                className="text-secondary font-semibold mb-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                {tour.subtitle}
+              </motion.p>
+              <motion.h1 
+                className="font-display text-2xl md:text-4xl font-bold text-foreground mb-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
                 {tour.title}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4">
+              </motion.h1>
+              <motion.div 
+                className="flex flex-wrap items-center gap-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
                 <div className="flex items-center gap-1.5">
                   <div className="flex items-center">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -203,21 +226,30 @@ const TourDetail = () => {
                   <MapPin className="w-4 h-4" />
                   <span>Dubai Marina</span>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleSave}>
-                <Heart className={cn("w-4 h-4", isSaved && "fill-destructive text-destructive")} />
-                <span className="hidden sm:inline">{isSaved ? "Saved" : "Save"}</span>
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
-                <Share2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
-            </div>
-          </div>
+            <motion.div 
+              className="flex items-center gap-2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="outline" size="sm" className="gap-2" onClick={handleSave}>
+                  <Heart className={cn("w-4 h-4 transition-all", isSaved && "fill-destructive text-destructive")} />
+                  <span className="hidden sm:inline">{isSaved ? "Saved" : "Save"}</span>
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
+                  <Share2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
 
           {/* Image Gallery */}
           <ImageGallery images={tour.gallery} title={tour.title} />
@@ -241,35 +273,60 @@ const TourDetail = () => {
               <QuickInfoCards duration={tour.duration} capacity={tour.capacity} />
 
               {/* Overview */}
-              <div className="bg-card rounded-xl p-6 shadow-md">
+              <motion.div 
+                className="bg-card rounded-xl p-6 shadow-md"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5 }}
+              >
                 <h2 className="font-display text-2xl font-bold text-foreground mb-4">Overview</h2>
                 <p className="text-muted-foreground leading-relaxed">{tour.longDescription}</p>
-              </div>
+              </motion.div>
 
               {/* Highlights */}
               {tour.highlights.length > 0 && (
-                <div className="bg-card rounded-xl p-6 shadow-md">
+                <motion.div 
+                  className="bg-card rounded-xl p-6 shadow-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5 }}
+                >
                   <h2 className="font-display text-2xl font-bold text-foreground mb-4">Highlights</h2>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {tour.highlights.map((highlight, index) => (
-                      <li key={index} className="flex items-start gap-3">
+                      <motion.li 
+                        key={index} 
+                        className="flex items-start gap-3"
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.05 }}
+                      >
                         <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-4 h-4 text-secondary" />
                         </div>
                         <span className="text-foreground">{highlight}</span>
-                      </li>
+                      </motion.li>
                     ))}
                   </ul>
-                </div>
+                </motion.div>
               )}
 
               {/* Inclusions & Exclusions with Tabs */}
               {(tour.included.length > 0 || tour.excluded.length > 0) && (
-                <div className="bg-card rounded-xl p-6 shadow-md">
+                <motion.div 
+                  className="bg-card rounded-xl p-6 shadow-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5 }}
+                >
                   <Tabs defaultValue="included" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 mb-4">
                       <TabsTrigger value="included" className="gap-2">
-                        <Check className="w-4 h-4 text-green-500" />
+                        <Check className="w-4 h-4 text-secondary" />
                         What's Included
                       </TabsTrigger>
                       <TabsTrigger value="excluded" className="gap-2">
@@ -281,7 +338,7 @@ const TourDetail = () => {
                       <ul className="space-y-3">
                         {tour.included.map((item, index) => (
                           <li key={index} className="flex items-start gap-3">
-                            <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                            <Check className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
                             <span className="text-foreground">{item}</span>
                           </li>
                         ))}
@@ -291,32 +348,54 @@ const TourDetail = () => {
                       <ul className="space-y-3">
                         {tour.excluded.map((item, index) => (
                           <li key={index} className="flex items-start gap-3">
-                            <X className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+                            <X className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                             <span className="text-foreground">{item}</span>
                           </li>
                         ))}
                       </ul>
                     </TabsContent>
                   </Tabs>
-                </div>
+                </motion.div>
               )}
 
               {/* Itinerary */}
               {tour.itinerary.length > 0 && (
-                <div className="bg-card rounded-xl p-6 shadow-md">
+                <motion.div 
+                  className="bg-card rounded-xl p-6 shadow-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5 }}
+                >
                   <h2 className="font-display text-2xl font-bold text-foreground mb-6">Your Experience</h2>
                   <div className="relative">
                     {tour.itinerary.map((item, index) => {
                       const IconComponent = getActivityIcon(item.activity);
                       return (
-                        <div key={index} className="flex gap-4 pb-6 last:pb-0">
+                        <motion.div 
+                          key={index} 
+                          className="flex gap-4 pb-6 last:pb-0"
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: index * 0.1 }}
+                        >
                           {/* Timeline */}
                           <div className="flex flex-col items-center">
-                            <div className="w-12 h-12 rounded-xl bg-secondary/10 border-2 border-secondary flex items-center justify-center">
+                            <motion.div 
+                              className="w-12 h-12 rounded-xl bg-secondary/10 border-2 border-secondary flex items-center justify-center"
+                              whileHover={{ scale: 1.1, rotate: 5 }}
+                            >
                               <IconComponent className="w-5 h-5 text-secondary" />
-                            </div>
+                            </motion.div>
                             {index < tour.itinerary.length - 1 && (
-                              <div className="w-0.5 h-full bg-gradient-to-b from-secondary/50 to-secondary/10 mt-2" />
+                              <motion.div 
+                                className="w-0.5 h-full bg-gradient-to-b from-secondary/50 to-secondary/10 mt-2"
+                                initial={{ scaleY: 0 }}
+                                whileInView={{ scaleY: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 + 0.2 }}
+                              />
                             )}
                           </div>
                           {/* Content */}
@@ -324,11 +403,11 @@ const TourDetail = () => {
                             <p className="text-secondary font-bold text-lg">{item.time}</p>
                             <p className="text-foreground">{item.activity}</p>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {/* Reviews Section */}
@@ -336,14 +415,20 @@ const TourDetail = () => {
 
               {/* FAQs */}
               {tour.faqs.length > 0 && (
-                <div className="bg-card rounded-xl p-6 shadow-md">
+                <motion.div 
+                  className="bg-card rounded-xl p-6 shadow-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5 }}
+                >
                   <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                     Frequently Asked Questions
                   </h2>
                   <Accordion type="single" collapsible className="w-full">
                     {tour.faqs.map((faq, index) => (
                       <AccordionItem key={index} value={`faq-${index}`}>
-                        <AccordionTrigger className="text-left font-medium">
+                        <AccordionTrigger className="text-left font-medium hover:text-secondary transition-colors">
                           {faq.question}
                         </AccordionTrigger>
                         <AccordionContent className="text-muted-foreground">
@@ -352,11 +437,17 @@ const TourDetail = () => {
                       </AccordionItem>
                     ))}
                   </Accordion>
-                </div>
+                </motion.div>
               )}
 
               {/* Important Information */}
-              <div className="bg-card rounded-xl p-6 shadow-md">
+              <motion.div 
+                className="bg-card rounded-xl p-6 shadow-md"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5 }}
+              >
                 <h2 className="font-display text-2xl font-bold text-foreground mb-4">Important Information</h2>
                 <Tabs defaultValue="cancellation" className="w-full">
                   <TabsList className="grid w-full grid-cols-3 mb-4">
@@ -382,7 +473,7 @@ const TourDetail = () => {
                     <p>• Dress code: Smart casual (no shorts/flip-flops)</p>
                   </TabsContent>
                 </Tabs>
-              </div>
+              </motion.div>
             </div>
 
             {/* Sidebar - Booking Card */}
@@ -404,20 +495,44 @@ const TourDetail = () => {
       {relatedTours.length > 0 && (
         <section className="py-12 bg-muted/50">
           <div className="container">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8">
+            <motion.h2 
+              className="font-display text-2xl font-bold text-foreground mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
               You Might Also Like
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedTours.map((relatedTour) => (
-                <TourCard key={relatedTour.id} tour={relatedTour} />
+            </motion.h2>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ staggerChildren: 0.1 }}
+            >
+              {relatedTours.map((relatedTour, index) => (
+                <motion.div
+                  key={relatedTour.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <TourCard tour={relatedTour} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
 
       {/* Mobile Booking Bar */}
-      <MobileBookingBar price={tour.price} originalPrice={tour.originalPrice} />
+      <MobileBookingBar 
+        price={tour.price} 
+        originalPrice={tour.originalPrice}
+        tourTitle={tour.title}
+        tourId={tour.id}
+      />
 
 
       {/* Booking Modal */}
