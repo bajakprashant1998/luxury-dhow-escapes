@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Camera } from "lucide-react";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -53,9 +53,16 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
             )}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-medium">
-            Click to expand
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openLightbox(0);
+            }}
+            className="absolute bottom-4 right-4 bg-card/90 hover:bg-card px-4 py-2 rounded-lg font-medium text-sm shadow-lg flex items-center gap-2 transition-colors"
+          >
+            <Camera className="w-4 h-4" />
+            View all {images.length} photos
+          </button>
         </div>
 
         {/* Smaller Images */}
