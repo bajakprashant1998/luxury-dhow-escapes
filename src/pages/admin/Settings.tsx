@@ -7,16 +7,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Save, Globe, Home, Mail, FileText } from "lucide-react";
+import { Save, Globe, Home, Mail, FileText, Loader2 } from "lucide-react";
+import {
+  useSiteSettings,
+  useBatchUpdateSiteSettings,
+  SiteSettingsValue,
+} from "@/hooks/useSiteSettings";
+import {
+  useEmailTemplates,
+  useUpdateEmailTemplate,
+  useToggleEmailTemplate,
+} from "@/hooks/useEmailTemplates";
+import EmailTemplateEditor from "@/components/admin/EmailTemplateEditor";
 
 type SettingsTab = "site" | "homepage" | "footer" | "email";
 
 const VALID_TABS: SettingsTab[] = ["site", "homepage", "footer", "email"];
 
 function getTabFromPath(pathname: string): SettingsTab {
-  // Supports deep links like:
-  // /admin/settings/email
-  // /admin/settings/homepage
   const parts = pathname.split("/").filter(Boolean);
   const settingsIndex = parts.indexOf("settings");
   const candidate = settingsIndex >= 0 ? parts[settingsIndex + 1] : undefined;
@@ -27,32 +35,46 @@ function getTabFromPath(pathname: string): SettingsTab {
   return "site";
 }
 
+// Default values for settings
+const DEFAULT_SITE = {
+  siteName: "BetterView Tourism",
+  siteDescription: "Premium Dhow Cruise & Yacht Experiences in Dubai",
+  contactEmail: "info@betterviewtourism.com",
+  contactPhone: "+971 50 123 4567",
+  whatsappNumber: "+971501234567",
+  address: "Dubai Marina, Dubai, UAE",
+};
+
+const DEFAULT_HOMEPAGE = {
+  heroTitle: "Experience Dubai's Finest Dhow Cruises",
+  heroSubtitle: "Luxury yacht experiences in the heart of Dubai Marina",
+  featuredToursCount: "6",
+};
+
+const DEFAULT_FOOTER = {
+  copyrightText: "© 2024 BetterView Tourism. All rights reserved.",
+  facebookUrl: "https://facebook.com/betterviewtourism",
+  instagramUrl: "https://instagram.com/betterviewtourism",
+  twitterUrl: "https://twitter.com/betterviewtour",
+};
+
 const AdminSettings = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
-  const [siteSettings, setSiteSettings] = useState({
-    siteName: "BetterView Tourism",
-    siteDescription: "Premium Dhow Cruise & Yacht Experiences in Dubai",
-    contactEmail: "info@betterviewtourism.com",
-    contactPhone: "+971 50 123 4567",
-    whatsappNumber: "+971501234567",
-    address: "Dubai Marina, Dubai, UAE",
-  });
+  // Fetch settings from database
+  const { data: allSettings, isLoading: isLoadingSettings } = useSiteSettings();
+  const batchUpdate = useBatchUpdateSiteSettings();
 
-  const [homepageSettings, setHomepageSettings] = useState({
-    heroTitle: "Experience Dubai's Finest Dhow Cruises",
-    heroSubtitle: "Luxury yacht experiences in the heart of Dubai Marina",
-    featuredToursCount: "6",
-  });
+  // Email templates
+  const { data: emailTemplates = [], isLoading: isLoadingTemplates } = useEmailTemplates();
+  const updateTemplate = useUpdateEmailTemplate();
+  const toggleTemplate = useToggleEmailTemplate();
 
-  const [footerSettings, setFooterSettings] = useState({
-    copyrightText: "© 2024 BetterView Tourism. All rights reserved.",
-    facebookUrl: "https://facebook.com/betterviewtourism",
-    instagramUrl: "https://instagram.com/betterviewtourism",
-    twitterUrl: "https://twitter.com/betterviewtour",
-  });
+  // Local state for form editing
+  const [siteSettings, setSiteSettings] = useState(DEFAULT_SITE);
+  const [homepageSettings, setHomepageSettings] = useState(DEFAULT_HOMEPAGE);
+  const [footerSettings, setFooterSettings] = useState(DEFAULT_FOOTER);
 
   const tabFromUrl = useMemo(() => getTabFromPath(location.pathname), [location.pathname]);
   const [activeTab, setActiveTab] = useState<SettingsTab>(tabFromUrl);
@@ -61,39 +83,48 @@ const AdminSettings = () => {
     setActiveTab(tabFromUrl);
   }, [tabFromUrl]);
 
-  const handleSaveSiteSettings = async () => {
-    setLoading(true);
-    try {
-      // In production, save to database
-      toast.success("Site settings saved successfully");
-    } catch (error) {
-      toast.error("Failed to save settings");
-    } finally {
-      setLoading(false);
+  // Load settings from database when data arrives
+  useEffect(() => {
+    if (allSettings) {
+      const siteData = allSettings.find((s) => s.key === "site");
+      const homepageData = allSettings.find((s) => s.key === "homepage");
+      const footerData = allSettings.find((s) => s.key === "footer");
+
+      if (siteData?.value) {
+        setSiteSettings({ ...DEFAULT_SITE, ...(siteData.value as typeof DEFAULT_SITE) });
+      }
+      if (homepageData?.value) {
+        setHomepageSettings({ ...DEFAULT_HOMEPAGE, ...(homepageData.value as typeof DEFAULT_HOMEPAGE) });
+      }
+      if (footerData?.value) {
+        setFooterSettings({ ...DEFAULT_FOOTER, ...(footerData.value as typeof DEFAULT_FOOTER) });
+      }
     }
+  }, [allSettings]);
+
+  const handleSaveSiteSettings = async () => {
+    batchUpdate.mutate([{ key: "site", value: siteSettings as unknown as SiteSettingsValue }]);
   };
 
   const handleSaveHomepageSettings = async () => {
-    setLoading(true);
-    try {
-      toast.success("Homepage settings saved successfully");
-    } catch (error) {
-      toast.error("Failed to save settings");
-    } finally {
-      setLoading(false);
-    }
+    batchUpdate.mutate([{ key: "homepage", value: homepageSettings as unknown as SiteSettingsValue }]);
   };
 
   const handleSaveFooterSettings = async () => {
-    setLoading(true);
-    try {
-      toast.success("Footer settings saved successfully");
-    } catch (error) {
-      toast.error("Failed to save settings");
-    } finally {
-      setLoading(false);
-    }
+    batchUpdate.mutate([{ key: "footer", value: footerSettings as unknown as SiteSettingsValue }]);
   };
+
+  const isLoading = batchUpdate.isPending;
+
+  if (isLoadingSettings) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -209,8 +240,8 @@ const AdminSettings = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSaveSiteSettings} disabled={loading}>
-                  <Save className="w-4 h-4 mr-2" />
+                <Button onClick={handleSaveSiteSettings} disabled={isLoading}>
+                  {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Save Changes
                 </Button>
               </div>
@@ -262,8 +293,8 @@ const AdminSettings = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSaveHomepageSettings} disabled={loading}>
-                  <Save className="w-4 h-4 mr-2" />
+                <Button onClick={handleSaveHomepageSettings} disabled={isLoading}>
+                  {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Save Changes
                 </Button>
               </div>
@@ -321,8 +352,8 @@ const AdminSettings = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSaveFooterSettings} disabled={loading}>
-                  <Save className="w-4 h-4 mr-2" />
+                <Button onClick={handleSaveFooterSettings} disabled={isLoading}>
+                  {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Save Changes
                 </Button>
               </div>
@@ -331,18 +362,18 @@ const AdminSettings = () => {
 
           {/* Email Settings */}
           <TabsContent value="email">
-            <div className="bg-card rounded-xl border border-border p-6">
-              <div className="text-center py-8">
-                <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                  Email Templates
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Configure email templates for bookings, confirmations, and notifications
-                </p>
-                <Button variant="outline">Coming Soon</Button>
+            {isLoadingTemplates ? (
+              <div className="flex items-center justify-center h-64">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               </div>
-            </div>
+            ) : (
+              <EmailTemplateEditor
+                templates={emailTemplates}
+                onSave={(id, data) => updateTemplate.mutate({ id, ...data })}
+                onToggle={(id, is_active) => toggleTemplate.mutate({ id, is_active })}
+                isSaving={updateTemplate.isPending}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>

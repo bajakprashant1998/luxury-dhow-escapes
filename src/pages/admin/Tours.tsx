@@ -39,6 +39,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import TablePagination from "@/components/admin/TablePagination";
+import { usePagination } from "@/hooks/usePagination";
 
 type Tour = Tables<"tours">;
 
@@ -106,6 +108,9 @@ const AdminTours = () => {
     const matchesCategory = categoryFilter === "all" || tour.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
+
+  // Pagination
+  const pagination = usePagination(filteredTours, 10);
 
   const getCategoryBadge = (category: string) => {
     const colors: Record<string, string> = {
@@ -187,14 +192,14 @@ const AdminTours = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTours.length === 0 ? (
+              {pagination.paginatedItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No tours found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTours.map((tour) => (
+                pagination.paginatedItems.map((tour) => (
                   <TableRow key={tour.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -274,6 +279,18 @@ const AdminTours = () => {
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination */}
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          pageSize={pagination.pageSize}
+          totalItems={pagination.totalItems}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          onPageChange={pagination.goToPage}
+          onPageSizeChange={pagination.setPageSize}
+        />
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -18,14 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Check, X, Calendar, Users } from "lucide-react";
+import { toast } from "sonner";
+import { Search, Eye, Check, X, Calendar, Users, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import TablePagination from "@/components/admin/TablePagination";
+import BulkActionToolbar, { BOOKING_BULK_ACTIONS } from "@/components/admin/BulkActionToolbar";
+import { usePagination } from "@/hooks/usePagination";
+import { exportBookings } from "@/lib/exportCsv";
 
 interface Booking {
   id: string;
@@ -45,12 +50,13 @@ interface Booking {
 }
 
 const AdminBookings = () => {
-  const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -67,11 +73,7 @@ const AdminBookings = () => {
       setBookings(data || []);
     } catch (error) {
       console.error("Error fetching bookings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch bookings",
-        variant: "destructive",
-      });
+      toast.error("Failed to fetch bookings");
     } finally {
       setLoading(false);
     }
@@ -87,17 +89,10 @@ const AdminBookings = () => {
       if (error) throw error;
 
       setBookings(bookings.map((b) => (b.id === id ? { ...b, status } : b)));
-      toast({
-        title: "Success",
-        description: `Booking ${status}`,
-      });
+      toast.success(`Booking ${status}`);
     } catch (error) {
       console.error("Error updating booking:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update booking",
-        variant: "destructive",
-      });
+      toast.error("Failed to update booking");
     }
   };
 
@@ -111,6 +106,65 @@ const AdminBookings = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  // Pagination
+  const pagination = usePagination(filteredBookings, 10);
+
+  // Selection handlers
+  const toggleSelect = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === pagination.paginatedItems.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pagination.paginatedItems.map((b) => b.id)));
+    }
+  };
+
+  const handleBulkAction = async (action: string) => {
+    setIsProcessing(true);
+    const ids = Array.from(selectedIds);
+
+    try {
+      if (action === "delete") {
+        const { error } = await supabase.from("bookings").delete().in("id", ids);
+        if (error) throw error;
+        setBookings(bookings.filter((b) => !ids.includes(b.id)));
+        toast.success(`Deleted ${ids.length} booking(s)`);
+      } else if (action === "confirm" || action === "cancel") {
+        const status = action === "confirm" ? "confirmed" : "cancelled";
+        const { error } = await supabase
+          .from("bookings")
+          .update({ status })
+          .in("id", ids);
+        if (error) throw error;
+        setBookings(bookings.map((b) => (ids.includes(b.id) ? { ...b, status } : b)));
+        toast.success(`Updated ${ids.length} booking(s) to ${status}`);
+      }
+      setSelectedIds(new Set());
+    } catch (error) {
+      console.error("Bulk action error:", error);
+      toast.error("Failed to perform action");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleExport = () => {
+    const toExport = selectedIds.size > 0 
+      ? bookings.filter((b) => selectedIds.has(b.id))
+      : filteredBookings;
+    exportBookings(toExport);
+    toast.success(`Exported ${toExport.length} booking(s)`);
+  };
 
   if (loading) {
     return (
@@ -126,9 +180,15 @@ const AdminBookings = () => {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Bookings</h1>
-          <p className="text-muted-foreground">Manage all tour bookings</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">Bookings</h1>
+            <p className="text-muted-foreground">Manage all tour bookings</p>
+          </div>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Filters */}
@@ -146,7 +206,7 @@ const AdminBookings = () => {
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent className="bg-card">
+            <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="confirmed">Confirmed</SelectItem>
@@ -155,11 +215,30 @@ const AdminBookings = () => {
           </Select>
         </div>
 
+        {/* Bulk Actions */}
+        <BulkActionToolbar
+          selectedCount={selectedIds.size}
+          onClearSelection={() => setSelectedIds(new Set())}
+          onAction={handleBulkAction}
+          actions={BOOKING_BULK_ACTIONS}
+          onExport={handleExport}
+          isProcessing={isProcessing}
+        />
+
         {/* Table */}
         <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={
+                      pagination.paginatedItems.length > 0 &&
+                      selectedIds.size === pagination.paginatedItems.length
+                    }
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Tour</TableHead>
                 <TableHead>Date</TableHead>
@@ -170,15 +249,21 @@ const AdminBookings = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredBookings.length === 0 ? (
+              {pagination.paginatedItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     No bookings found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredBookings.map((booking) => (
+                pagination.paginatedItems.map((booking) => (
                   <TableRow key={booking.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(booking.id)}
+                        onCheckedChange={() => toggleSelect(booking.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{booking.customer_name}</p>
@@ -202,10 +287,10 @@ const AdminBookings = () => {
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
                           booking.status === "confirmed"
-                            ? "bg-emerald-500/10 text-emerald-500"
+                            ? "bg-emerald-500/10 text-emerald-600"
                             : booking.status === "pending"
-                            ? "bg-amber-500/10 text-amber-500"
-                            : "bg-rose-500/10 text-rose-500"
+                            ? "bg-amber-500/10 text-amber-600"
+                            : "bg-rose-500/10 text-rose-600"
                         }`}
                       >
                         {booking.status}
@@ -225,7 +310,7 @@ const AdminBookings = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-emerald-500 hover:text-emerald-600"
+                              className="text-emerald-600 hover:text-emerald-700"
                               onClick={() => updateBookingStatus(booking.id, "confirmed")}
                             >
                               <Check className="w-4 h-4" />
@@ -233,7 +318,7 @@ const AdminBookings = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-rose-500 hover:text-rose-600"
+                              className="text-rose-600 hover:text-rose-700"
                               onClick={() => updateBookingStatus(booking.id, "cancelled")}
                             >
                               <X className="w-4 h-4" />
@@ -248,6 +333,18 @@ const AdminBookings = () => {
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination */}
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          pageSize={pagination.pageSize}
+          totalItems={pagination.totalItems}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          onPageChange={pagination.goToPage}
+          onPageSizeChange={pagination.setPageSize}
+        />
 
         {/* Booking Detail Dialog */}
         <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
@@ -275,10 +372,10 @@ const AdminBookings = () => {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         selectedBooking.status === "confirmed"
-                          ? "bg-emerald-500/10 text-emerald-500"
+                          ? "bg-emerald-500/10 text-emerald-600"
                           : selectedBooking.status === "pending"
-                          ? "bg-amber-500/10 text-amber-500"
-                          : "bg-rose-500/10 text-rose-500"
+                          ? "bg-amber-500/10 text-amber-600"
+                          : "bg-rose-500/10 text-rose-600"
                       }`}
                     >
                       {selectedBooking.status}

@@ -107,6 +107,96 @@ export type Database = {
         }
         Relationships: []
       }
+      discounts: {
+        Row: {
+          applicable_tour_ids: string[] | null
+          code: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          min_order_amount: number | null
+          name: string
+          starts_at: string | null
+          type: string
+          updated_at: string | null
+          used_count: number | null
+          value: number
+        }
+        Insert: {
+          applicable_tour_ids?: string[] | null
+          code: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_order_amount?: number | null
+          name: string
+          starts_at?: string | null
+          type: string
+          updated_at?: string | null
+          used_count?: number | null
+          value: number
+        }
+        Update: {
+          applicable_tour_ids?: string[] | null
+          code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_order_amount?: number | null
+          name?: string
+          starts_at?: string | null
+          type?: string
+          updated_at?: string | null
+          used_count?: number | null
+          value?: number
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string
+          template_key: string
+          updated_at: string | null
+          variables: string[] | null
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject: string
+          template_key: string
+          updated_at?: string | null
+          variables?: string[] | null
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string
+          template_key?: string
+          updated_at?: string | null
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
       gallery: {
         Row: {
           category: string | null

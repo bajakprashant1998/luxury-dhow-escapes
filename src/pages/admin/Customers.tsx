@@ -18,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Search, Users, Eye, Mail, Phone, Calendar, ShoppingBag, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
+import { Search, Users, Eye, Mail, Phone, Calendar, ShoppingBag, TrendingUp, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import TablePagination from "@/components/admin/TablePagination";
+import { usePagination } from "@/hooks/usePagination";
+import { exportCustomers } from "@/lib/exportCsv";
 
 interface Booking {
   id: string;
@@ -58,7 +61,6 @@ interface Customer {
 }
 
 const AdminCustomers = () => {
-  const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -80,11 +82,7 @@ const AdminCustomers = () => {
       setBookings(data || []);
     } catch (error) {
       console.error("Error fetching bookings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch customer data",
-        variant: "destructive",
-      });
+      toast.error("Failed to fetch customer data");
     } finally {
       setLoading(false);
     }
@@ -100,7 +98,6 @@ const AdminCustomers = () => {
         existing.bookingCount += 1;
         existing.totalSpent += Number(booking.total_price);
         existing.bookings.push(booking);
-        // Update name/phone if more recent
         if (new Date(booking.created_at) > new Date(existing.lastBooking)) {
           existing.name = booking.customer_name;
           existing.phone = booking.customer_phone;
@@ -137,7 +134,6 @@ const AdminCustomers = () => {
       );
     });
 
-    // Sort
     result.sort((a, b) => {
       switch (sortBy) {
         case "bookings":
@@ -156,6 +152,9 @@ const AdminCustomers = () => {
     return result;
   }, [customers, searchTerm, sortBy]);
 
+  // Pagination
+  const pagination = usePagination(filteredCustomers, 10);
+
   // Stats
   const stats = useMemo(() => {
     const totalCustomers = customers.length;
@@ -168,14 +167,19 @@ const AdminCustomers = () => {
     return { totalCustomers, repeatCustomers, avgSpent, totalRevenue };
   }, [customers]);
 
+  const handleExport = () => {
+    exportCustomers(filteredCustomers);
+    toast.success(`Exported ${filteredCustomers.length} customer(s)`);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">Confirmed</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20">Confirmed</Badge>;
       case "pending":
-        return <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">Pending</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/20">Pending</Badge>;
       case "cancelled":
-        return <Badge className="bg-rose-500/10 text-rose-500 hover:bg-rose-500/20">Cancelled</Badge>;
+        return <Badge className="bg-rose-500/10 text-rose-600 hover:bg-rose-500/20">Cancelled</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -195,13 +199,19 @@ const AdminCustomers = () => {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">
-            Customers
-          </h1>
-          <p className="text-muted-foreground">
-            View and manage customer information from bookings
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">
+              Customers
+            </h1>
+            <p className="text-muted-foreground">
+              View and manage customer information from bookings
+            </p>
+          </div>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -223,7 +233,7 @@ const AdminCustomers = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-500/10">
-                  <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  <TrendingUp className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Repeat Customers</p>
@@ -236,7 +246,7 @@ const AdminCustomers = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-amber-500/10">
-                  <ShoppingBag className="w-5 h-5 text-amber-500" />
+                  <ShoppingBag className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Avg. Spend</p>
@@ -275,7 +285,7 @@ const AdminCustomers = () => {
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent className="bg-card">
+            <SelectContent>
               <SelectItem value="bookings">Most Bookings</SelectItem>
               <SelectItem value="spent">Highest Spend</SelectItem>
               <SelectItem value="recent">Most Recent</SelectItem>
@@ -298,7 +308,7 @@ const AdminCustomers = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCustomers.length === 0 ? (
+              {pagination.paginatedItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-12">
                     <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -308,7 +318,7 @@ const AdminCustomers = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredCustomers.map((customer) => (
+                pagination.paginatedItems.map((customer) => (
                   <TableRow key={customer.email}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -366,6 +376,18 @@ const AdminCustomers = () => {
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination */}
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          pageSize={pagination.pageSize}
+          totalItems={pagination.totalItems}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          onPageChange={pagination.goToPage}
+          onPageSizeChange={pagination.setPageSize}
+        />
 
         {/* Customer Detail Dialog */}
         <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
@@ -443,9 +465,11 @@ const AdminCustomers = () => {
                               </span>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-foreground">AED {booking.total_price}</p>
-                            <div className="mt-1">{getStatusBadge(booking.status)}</div>
+                          <div className="flex items-center gap-4">
+                            <span className="font-semibold text-foreground">
+                              AED {Number(booking.total_price).toLocaleString()}
+                            </span>
+                            {getStatusBadge(booking.status)}
                           </div>
                         </div>
                       ))}
