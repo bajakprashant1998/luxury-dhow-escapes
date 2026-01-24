@@ -8,6 +8,42 @@ import { Button } from "@/components/ui/button";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopBar from "./AdminTopBar";
 
+// SessionStorage keys for admin caching
+export const ADMIN_CACHE_KEY = "admin_verified";
+export const ADMIN_USER_KEY = "admin_user_id";
+
+// Helper functions for cache management
+export const getAdminCache = (): { userId: string; verified: boolean } | null => {
+  try {
+    const userId = sessionStorage.getItem(ADMIN_USER_KEY);
+    const verified = sessionStorage.getItem(ADMIN_CACHE_KEY);
+    if (userId && verified === "true") {
+      return { userId, verified: true };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+export const setAdminCache = (userId: string) => {
+  try {
+    sessionStorage.setItem(ADMIN_USER_KEY, userId);
+    sessionStorage.setItem(ADMIN_CACHE_KEY, "true");
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+export const clearAdminCache = () => {
+  try {
+    sessionStorage.removeItem(ADMIN_USER_KEY);
+    sessionStorage.removeItem(ADMIN_CACHE_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+};
+
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -49,9 +85,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         if (hasAdminRole) {
           setIsAdmin(true);
           adminVerifiedRef.current = true;
+          setAdminCache(userId);
         } else {
           setIsAdmin(false);
           adminVerifiedRef.current = false;
+          clearAdminCache();
           setAdminGateError("You don't have admin privileges.");
           toast({
             title: "Access Denied",
@@ -63,6 +101,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       } catch (error) {
         console.error("Error checking admin role:", error);
         setIsAdmin(false);
+        clearAdminCache();
         setAdminGateError(
           "We couldn't verify admin access right now. Please retry (or sign out/in).",
         );
@@ -82,6 +121,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
         if (event === "SIGNED_OUT") {
           adminVerifiedRef.current = false;
+          clearAdminCache();
           setUser(null);
           setIsAdmin(false);
           setAdminGateError(null);
@@ -120,6 +160,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         const session = data.session;
         if (!session) {
           setIsAdmin(false);
+          clearAdminCache();
           setAdminGateError(null);
           setLoading(false);
           navigate("/auth");
@@ -127,11 +168,24 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         }
 
         setUser(session.user);
+        
+        // Check sessionStorage cache first for instant load
+        const cache = getAdminCache();
+        if (cache && cache.userId === session.user.id && cache.verified) {
+          setIsAdmin(true);
+          adminVerifiedRef.current = true;
+          setLoading(false);
+          // Still verify in background for security
+          checkAdminRole(session.user.id);
+          return;
+        }
+        
         await checkAdminRole(session.user.id);
       } catch (err) {
         console.error("Error checking auth:", err);
         if (!cancelled) {
           setIsAdmin(false);
+          clearAdminCache();
           setAdminGateError("Couldn't verify your session. Please sign in again.");
           setLoading(false);
           navigate("/auth");

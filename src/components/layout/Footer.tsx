@@ -1,8 +1,89 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import rentalYachtLogo from "@/assets/rental-yacht-logo.png";
+import { supabase } from "@/integrations/supabase/client";
+import { ADMIN_CACHE_KEY, ADMIN_USER_KEY } from "@/components/admin/AdminLayout";
 
 const Footer = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkAdminStatus = async (userId: string) => {
+      try {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .limit(1);
+        
+        if (!cancelled) {
+          setIsAdmin(Array.isArray(data) ? data.length > 0 : !!data);
+        }
+      } catch {
+        if (!cancelled) setIsAdmin(false);
+      }
+    };
+
+    // Check cache first for instant display
+    const checkCache = () => {
+      try {
+        const userId = sessionStorage.getItem(ADMIN_USER_KEY);
+        const verified = sessionStorage.getItem(ADMIN_CACHE_KEY);
+        if (userId && verified === "true") {
+          setIsAdmin(true);
+          return true;
+        }
+      } catch {
+        // Ignore storage errors
+      }
+      return false;
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (cancelled) return;
+        
+        if (event === "SIGNED_OUT") {
+          setIsAdmin(false);
+          return;
+        }
+        
+        if (session?.user) {
+          // Check cache first
+          if (!checkCache()) {
+            // Defer database call
+            setTimeout(() => {
+              checkAdminStatus(session.user.id);
+            }, 0);
+          }
+        } else {
+          setIsAdmin(false);
+        }
+      }
+    );
+
+    // Initial check
+    const init = async () => {
+      // Try cache first
+      if (checkCache()) return;
+      
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user && !cancelled) {
+        checkAdminStatus(data.session.user.id);
+      }
+    };
+
+    init();
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, []);
   return (
     <footer className="bg-primary text-primary-foreground">
       {/* Main Footer */}
@@ -70,6 +151,13 @@ const Footer = () => {
                   Book Now
                 </Link>
               </li>
+              {isAdmin && (
+                <li>
+                  <Link to="/admin" className="text-primary-foreground/80 hover:text-secondary transition-colors text-sm">
+                    Admin Panel
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
