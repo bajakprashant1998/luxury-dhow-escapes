@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { MessageCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,9 +7,10 @@ interface FloatingBookWidgetProps {
   price: number;
   originalPrice: number;
   tourTitle: string;
+  onBookClick?: () => void;
 }
 
-const FloatingBookWidget = ({ price, originalPrice, tourTitle }: FloatingBookWidgetProps) => {
+const FloatingBookWidget = ({ price, originalPrice, tourTitle, onBookClick }: FloatingBookWidgetProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const FloatingBookWidget = ({ price, originalPrice, tourTitle }: FloatingBookWid
   return (
     <div
       className={cn(
-        "fixed bottom-6 right-6 z-50 hidden lg:block transition-all duration-300",
+        "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden lg:block transition-all duration-300",
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-8 pointer-events-none"
@@ -55,12 +55,13 @@ const FloatingBookWidget = ({ price, originalPrice, tourTitle }: FloatingBookWid
 
         {/* CTAs */}
         <div className="flex gap-2">
-          <Link to="/contact" className="flex-1">
-            <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-10">
-              <Calendar className="w-4 h-4 mr-2" />
-              Book Now
-            </Button>
-          </Link>
+          <Button 
+            onClick={onBookClick}
+            className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-10"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Book Now
+          </Button>
           <a href="https://wa.me/971501234567" target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="icon" className="h-10 w-10">
               <MessageCircle className="w-4 h-4" />

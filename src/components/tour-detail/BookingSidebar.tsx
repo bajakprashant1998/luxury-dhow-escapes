@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { 
   Calendar, 
@@ -21,19 +20,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import BookingModal from "./BookingModal";
 
 interface BookingSidebarProps {
   price: number;
   originalPrice: number;
   duration: string;
   reviewCount: number;
+  tourTitle: string;
+  tourId: string;
 }
 
-const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: BookingSidebarProps) => {
+const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle, tourId }: BookingSidebarProps) => {
   const [date, setDate] = useState<Date>();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const discount = Math.round((1 - price / originalPrice) * 100);
   const totalPrice = price * adults + price * 0.7 * children;
@@ -183,11 +186,12 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: Booking
 
         {/* CTAs */}
         <div className="space-y-3">
-          <Link to="/contact" className="block">
-            <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-12 text-lg shadow-lg">
-              Reserve Now
-            </Button>
-          </Link>
+          <Button 
+            onClick={() => setIsBookingModalOpen(true)}
+            className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-12 text-lg shadow-lg"
+          >
+            Reserve Now
+          </Button>
           <a href="https://wa.me/971501234567" target="_blank" rel="noopener noreferrer" className="block">
             <Button variant="outline" className="w-full h-12">
               <MessageCircle className="w-5 h-5 mr-2" />
@@ -230,6 +234,15 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: Booking
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        tourTitle={tourTitle}
+        tourId={tourId}
+        price={price}
+      />
     </div>
   );
 };
