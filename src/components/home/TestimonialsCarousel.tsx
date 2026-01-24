@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { testimonials } from "@/data/testimonials";
+import { useTestimonials, useAverageRating } from "@/hooks/useTestimonials";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TestimonialsCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const displayTestimonials = testimonials.slice(0, 6);
+  
+  const { data: testimonials = [], isLoading } = useTestimonials(6);
+  const { data: ratingData } = useAverageRating();
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -32,24 +35,47 @@ const TestimonialsCarousel = () => {
   };
 
   const paginate = (newDirection: number) => {
+    if (testimonials.length === 0) return;
     setDirection(newDirection);
     setCurrentIndex((prevIndex) => {
       let next = prevIndex + newDirection;
-      if (next < 0) next = displayTestimonials.length - 1;
-      if (next >= displayTestimonials.length) next = 0;
+      if (next < 0) next = testimonials.length - 1;
+      if (next >= testimonials.length) next = 0;
       return next;
     });
   };
 
   // Auto-advance carousel
   useEffect(() => {
+    if (testimonials.length === 0) return;
     const timer = setInterval(() => {
       paginate(1);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [testimonials.length]);
 
-  const currentTestimonial = displayTestimonials[currentIndex];
+  if (isLoading) {
+    return (
+      <section className="py-24 bg-muted/30 overflow-hidden">
+        <div className="container">
+          <div className="text-center mb-16">
+            <Skeleton className="h-6 w-32 mx-auto mb-3" />
+            <Skeleton className="h-12 w-80 mx-auto mb-6" />
+            <Skeleton className="h-6 w-48 mx-auto" />
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <Skeleton className="h-80 w-full rounded-3xl" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (testimonials.length === 0) {
+    return null;
+  }
+
+  const currentTestimonial = testimonials[currentIndex];
 
   return (
     <section className="py-24 bg-muted/30 overflow-hidden">
@@ -73,8 +99,8 @@ const TestimonialsCarousel = () => {
                 <Star key={i} className="w-6 h-6 fill-secondary text-secondary" />
               ))}
             </div>
-            <span className="font-bold text-xl text-foreground">4.9</span>
-            <span className="text-muted-foreground">• 3,245+ reviews</span>
+            <span className="font-bold text-xl text-foreground">{ratingData?.average || 4.9}</span>
+            <span className="text-muted-foreground">• {ratingData?.count || 0}+ reviews</span>
           </div>
         </motion.div>
 
@@ -124,9 +150,11 @@ const TestimonialsCarousel = () => {
                 </div>
 
                 {/* Title */}
-                <h3 className="font-display text-xl md:text-2xl font-bold text-foreground mb-4">
-                  "{currentTestimonial.title}"
-                </h3>
+                {currentTestimonial.title && (
+                  <h3 className="font-display text-xl md:text-2xl font-bold text-foreground mb-4">
+                    "{currentTestimonial.title}"
+                  </h3>
+                )}
 
                 {/* Content */}
                 <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
@@ -140,7 +168,7 @@ const TestimonialsCarousel = () => {
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-foreground">{currentTestimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">{currentTestimonial.location}</p>
+                    <p className="text-sm text-muted-foreground">{currentTestimonial.location || currentTestimonial.date}</p>
                   </div>
                 </div>
               </motion.div>
@@ -160,7 +188,7 @@ const TestimonialsCarousel = () => {
             
             {/* Dots */}
             <div className="flex items-center gap-2">
-              {displayTestimonials.map((_, index) => (
+              {testimonials.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => {

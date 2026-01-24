@@ -2,16 +2,19 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Play, Sparkles, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useHomepageContent } from "@/hooks/useHomepageContent";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
 
-const stats = [
-  { value: "2M+", label: "Happy Guests" },
-  { value: "4.9", label: "Average Rating" },
-  { value: "16+", label: "Tour Options" },
-  { value: "24/7", label: "Support" },
-];
-
 const HeroSection = () => {
+  const { stats } = useHomepageContent();
+
+  const statsDisplay = [
+    { value: stats.guests, label: stats.guestsLabel },
+    { value: stats.rating, label: stats.ratingLabel },
+    { value: stats.experience, label: stats.experienceLabel },
+    { value: stats.support, label: stats.supportLabel },
+  ];
+
   return (
     <section className="relative min-h-[95vh] flex items-center overflow-hidden">
       {/* Background Image with Parallax Effect */}
@@ -124,7 +127,7 @@ const HeroSection = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 1, duration: 0.8 }}
             >
-              {stats.map((stat, index) => (
+              {statsDisplay.map((stat, index) => (
                 <motion.div 
                   key={index} 
                   className="text-center"

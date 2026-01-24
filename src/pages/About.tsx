@@ -2,12 +2,19 @@ import { Link } from "react-router-dom";
 import { Award, Users, Heart, Shield, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
+import { useHomepageStats } from "@/hooks/useHomepageContent";
+import { useSiteSetting } from "@/hooks/useSiteSettings";
 
 const About = () => {
-  const stats = [
-    { value: "8+", label: "Years Experience" },
-    { value: "50K+", label: "Happy Guests" },
-    { value: "4.8", label: "Average Rating" },
+  const stats = useHomepageStats();
+  const { data: siteSettings } = useSiteSetting("site");
+  
+  const siteName = (siteSettings?.siteName as string) || "Rental Yacht Dubai";
+
+  const displayStats = [
+    { value: stats.experience, label: stats.experienceLabel },
+    { value: stats.guests, label: stats.guestsLabel },
+    { value: stats.rating, label: stats.ratingLabel },
     { value: "100%", label: "Commitment" },
   ];
 
@@ -57,7 +64,7 @@ const About = () => {
               Our Story
             </p>
             <h1 className="font-display text-4xl md:text-5xl font-bold mb-6">
-              About BetterView Tourism
+              About {siteName}
             </h1>
             <p className="text-primary-foreground/80 text-lg">
               Since 2015, we've been creating magical moments on the waters of Dubai Marina, 
@@ -71,7 +78,7 @@ const About = () => {
       <section className="py-12 bg-secondary">
         <div className="container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
+            {displayStats.map((stat, index) => (
               <div key={index} className="text-center">
                 <p className="font-display text-4xl font-bold text-secondary-foreground mb-2">
                   {stat.value}
@@ -93,7 +100,7 @@ const About = () => {
               </h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed">
                 <p>
-                  BetterView Tourism was born from a simple dream: to share the breathtaking beauty 
+                  {siteName} was born from a simple dream: to share the breathtaking beauty 
                   of Dubai Marina with visitors from around the world. What started as a single 
                   traditional dhow has grown into one of Dubai's most trusted cruise experiences.
                 </p>
@@ -189,7 +196,7 @@ const About = () => {
         <div className="container">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Ready to Experience the BetterView Difference?
+              Ready to Experience the {siteName} Difference?
             </h2>
             <p className="text-primary-foreground/80 text-lg mb-8">
               Join thousands of satisfied guests who have discovered the magic of Dubai Marina 
