@@ -13,6 +13,7 @@ import {
   CalendarIcon,
   Flame
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
@@ -20,7 +21,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
 interface BookingSidebarProps {
   price: number;
@@ -33,10 +33,17 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: Booking
   const [date, setDate] = useState<Date>();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const discount = Math.round((1 - price / originalPrice) * 100);
   const totalPrice = price * adults + price * 0.7 * children;
-  const spotsLeft = Math.floor(Math.random() * 6) + 3;
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    setDate(selectedDate);
+    if (selectedDate) {
+      setIsCalendarOpen(false);
+    }
+  };
 
   return (
     <div className="sticky top-28 space-y-4">
@@ -46,7 +53,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: Booking
         <div className="flex items-center gap-2 mb-4 p-2 bg-destructive/10 rounded-lg">
           <Flame className="w-4 h-4 text-destructive animate-pulse" />
           <span className="text-sm font-medium text-destructive">
-            Only {spotsLeft} spots left today!
+            Only few spots left today!
           </span>
         </div>
 
@@ -69,7 +76,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: Booking
         {/* Date Picker */}
         <div className="mb-4">
           <label className="text-sm font-medium text-foreground mb-2 block">Select Date</label>
-          <Popover>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -86,7 +93,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: Booking
               <CalendarComponent
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={handleDateSelect}
                 disabled={(date) => date < new Date()}
                 initialFocus
                 className="pointer-events-auto"
@@ -208,12 +215,12 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount }: Booking
       <div className="bg-card rounded-xl p-4 shadow-md border border-border/50">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
-            {[1, 2, 3].map((i) => (
+            {['J', 'M', 'S'].map((initial, i) => (
               <div
                 key={i}
-                className="w-8 h-8 rounded-full bg-secondary/20 border-2 border-card flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary to-primary border-2 border-card flex items-center justify-center text-primary-foreground font-semibold text-xs"
               >
-                <span className="text-xs">👤</span>
+                {initial}
               </div>
             ))}
           </div>

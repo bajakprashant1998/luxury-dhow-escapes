@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { 
   Star, 
@@ -15,6 +16,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import {
   Accordion,
   AccordionContent,
@@ -34,11 +37,60 @@ import { useTour, useRelatedTours } from "@/hooks/useTours";
 
 const TourDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { toast } = useToast();
   const { data: tour, isLoading, error } = useTour(slug || "");
   const { data: relatedTours = [] } = useRelatedTours(
     tour?.category || "",
     tour?.id || ""
   );
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Load saved state from localStorage
+  useEffect(() => {
+    if (tour?.id) {
+      const saved = localStorage.getItem(`saved-tour-${tour.id}`);
+      setIsSaved(!!saved);
+    }
+  }, [tour?.id]);
+
+  const handleSave = () => {
+    if (!tour) return;
+    
+    if (isSaved) {
+      localStorage.removeItem(`saved-tour-${tour.id}`);
+      setIsSaved(false);
+      toast({ title: "Removed from saved tours" });
+    } else {
+      localStorage.setItem(`saved-tour-${tour.id}`, "true");
+      setIsSaved(true);
+      toast({ title: "Tour saved!", description: "You can find this tour in your saved items." });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!tour) return;
+    
+    const shareData = {
+      title: tour.title,
+      text: tour.description,
+      url: window.location.href,
+    };
+    
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({ title: "Link copied!", description: "Share this tour with friends and family." });
+      }
+    } catch (err) {
+      // User cancelled share or error occurred
+      if ((err as Error).name !== 'AbortError') {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({ title: "Link copied to clipboard!" });
+      }
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -153,11 +205,11 @@ const TourDetail = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Heart className="w-4 h-4" />
-                <span className="hidden sm:inline">Save</span>
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleSave}>
+                <Heart className={cn("w-4 h-4", isSaved && "fill-destructive text-destructive")} />
+                <span className="hidden sm:inline">{isSaved ? "Saved" : "Save"}</span>
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
                 <Share2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Share</span>
               </Button>
