@@ -65,40 +65,41 @@ export default function BulkActionToolbar({
 
   return (
     <>
-      <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center justify-between animate-in slide-in-from-top-2">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium">
-            {selectedCount} item{selectedCount !== 1 ? "s" : ""} selected
+      <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 sm:p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 animate-in slide-in-from-top-2">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
+            {selectedCount} selected
           </span>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClearSelection}
-            className="h-7 px-2"
+            className="h-7 px-2 text-xs"
           >
             <X className="w-3 h-3 mr-1" />
-            Clear
+            <span className="hidden xs:inline">Clear</span>
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {onExport && (
             <Button
               variant="outline"
               size="sm"
               onClick={onExport}
               disabled={isProcessing}
+              className="h-8 text-xs sm:text-sm"
             >
-              <Download className="w-4 h-4 mr-1" />
-              Export
+              <Download className="w-3.5 h-3.5 sm:mr-1" />
+              <span className="hidden sm:inline">Export</span>
             </Button>
           )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" disabled={isProcessing}>
-                {isProcessing ? "Processing..." : "Actions"}
-                <ChevronDown className="w-4 h-4 ml-1" />
+              <Button size="sm" disabled={isProcessing} className="h-8 text-xs sm:text-sm">
+                {isProcessing ? "..." : "Actions"}
+                <ChevronDown className="w-3.5 h-3.5 ml-1" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -123,7 +124,7 @@ export default function BulkActionToolbar({
         open={!!confirmAction}
         onOpenChange={() => setConfirmAction(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Action</AlertDialogTitle>
             <AlertDialogDescription>
@@ -131,8 +132,8 @@ export default function BulkActionToolbar({
               item{selectedCount !== 1 ? "s" : ""}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmAndExecute}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

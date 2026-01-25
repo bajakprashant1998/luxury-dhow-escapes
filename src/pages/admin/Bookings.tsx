@@ -20,13 +20,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Search, Eye, Check, X, Calendar, Users, Download, Mail } from "lucide-react";
+import { Search, Eye, Check, X, Calendar, Users, Download, Mail, DollarSign, Clock, CheckCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import TablePagination from "@/components/admin/TablePagination";
 import BulkActionToolbar, { BOOKING_BULK_ACTIONS } from "@/components/admin/BulkActionToolbar";
 import { usePagination } from "@/hooks/usePagination";
@@ -93,7 +94,6 @@ const AdminBookings = () => {
       setBookings(bookings.map((b) => (b.id === id ? { ...b, status } : b)));
       toast.success(`Booking ${status}`);
 
-      // Send email notification
       const emailType = status === "confirmed" ? "confirmation" : status === "cancelled" ? "cancelled" : "pending";
       const emailResult = await sendBookingEmail(id, emailType);
       if (emailResult.success) {
@@ -118,10 +118,16 @@ const AdminBookings = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Pagination
+  // Stats
+  const stats = {
+    total: bookings.length,
+    pending: bookings.filter((b) => b.status === "pending").length,
+    confirmed: bookings.filter((b) => b.status === "confirmed").length,
+    revenue: bookings.filter((b) => b.status === "confirmed").reduce((sum, b) => sum + Number(b.total_price), 0),
+  };
+
   const pagination = usePagination(filteredBookings, 10);
 
-  // Selection handlers
   const toggleSelect = (id: string) => {
     const newSelected = new Set(selectedIds);
     if (newSelected.has(id)) {
@@ -160,7 +166,6 @@ const AdminBookings = () => {
         setBookings(bookings.map((b) => (ids.includes(b.id) ? { ...b, status } : b)));
         toast.success(`Updated ${ids.length} booking(s) to ${status}`);
         
-        // Send email notifications for bulk actions
         const emailType = status === "confirmed" ? "confirmation" : "cancelled";
         let emailsSent = 0;
         for (const id of ids) {
@@ -200,33 +205,89 @@ const AdminBookings = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">Bookings</h1>
-            <p className="text-muted-foreground">Manage all tour bookings</p>
+            <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Bookings</h1>
+            <p className="text-sm text-muted-foreground">Manage all tour bookings</p>
           </div>
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={handleExport} size="sm" className="w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-secondary/10">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.total}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Pending</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.pending}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/10">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Confirmed</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.confirmed}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+                  <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Revenue</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">AED {stats.revenue.toLocaleString()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email, or tour..."
+              placeholder="Search bookings..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-9 sm:pl-10 h-9 sm:h-10"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+            <SelectTrigger className="w-full sm:w-[150px] h-9 sm:h-10">
+              <SelectValue placeholder="Filter status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
@@ -247,113 +308,118 @@ const AdminBookings = () => {
           isProcessing={isProcessing}
         />
 
-        {/* Table */}
+        {/* Table - Responsive */}
         <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={
-                      pagination.paginatedItems.length > 0 &&
-                      selectedIds.size === pagination.paginatedItems.length
-                    }
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Tour</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Guests</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pagination.paginatedItems.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                    No bookings found
-                  </TableCell>
+                  <TableHead className="w-[40px] sm:w-[50px]">
+                    <Checkbox
+                      checked={
+                        pagination.paginatedItems.length > 0 &&
+                        selectedIds.size === pagination.paginatedItems.length
+                      }
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead className="min-w-[150px]">Customer</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell">Tour</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
+                  <TableHead className="hidden lg:table-cell">Guests</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right w-[100px]">Actions</TableHead>
                 </TableRow>
-              ) : (
-                pagination.paginatedItems.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedIds.has(booking.id)}
-                        onCheckedChange={() => toggleSelect(booking.id)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{booking.customer_name}</p>
-                        <p className="text-sm text-muted-foreground">{booking.customer_email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">{booking.tour_name}</TableCell>
-                    <TableCell>
-                      {new Date(booking.booking_date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      {booking.adults} Adults
-                      {booking.children > 0 && `, ${booking.children} Kids`}
-                    </TableCell>
-                    <TableCell className="font-semibold">AED {booking.total_price}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          booking.status === "confirmed"
-                            ? "bg-emerald-500/10 text-emerald-600"
-                            : booking.status === "pending"
-                            ? "bg-amber-500/10 text-amber-600"
-                            : "bg-rose-500/10 text-rose-600"
-                        }`}
-                      >
-                        {booking.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedBooking(booking)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        {booking.status === "pending" && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-emerald-600 hover:text-emerald-700"
-                              onClick={() => updateBookingStatus(booking.id, "confirmed")}
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-rose-600 hover:text-rose-700"
-                              onClick={() => updateBookingStatus(booking.id, "cancelled")}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {pagination.paginatedItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                      No bookings found
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  pagination.paginatedItems.map((booking) => (
+                    <TableRow key={booking.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(booking.id)}
+                          onCheckedChange={() => toggleSelect(booking.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-sm">{booking.customer_name}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[140px]">{booking.customer_email}</p>
+                          {/* Show tour on mobile */}
+                          <p className="text-xs text-muted-foreground md:hidden truncate max-w-[140px] mt-0.5">{booking.tour_name}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <span className="truncate max-w-[180px] block text-sm">{booking.tour_name}</span>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-sm">
+                        {new Date(booking.booking_date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell text-sm">
+                        {booking.adults}A{booking.children > 0 && `, ${booking.children}C`}
+                      </TableCell>
+                      <TableCell className="font-semibold text-sm">AED {booking.total_price}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full whitespace-nowrap ${
+                            booking.status === "confirmed"
+                              ? "bg-emerald-500/10 text-emerald-600"
+                              : booking.status === "pending"
+                              ? "bg-amber-500/10 text-amber-600"
+                              : "bg-rose-500/10 text-rose-600"
+                          }`}
+                        >
+                          {booking.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setSelectedBooking(booking)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          {booking.status === "pending" && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-emerald-600 hover:text-emerald-700"
+                                onClick={() => updateBookingStatus(booking.id, "confirmed")}
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-rose-600 hover:text-rose-700 hidden sm:inline-flex"
+                                onClick={() => updateBookingStatus(booking.id, "cancelled")}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         {/* Pagination */}
@@ -370,20 +436,20 @@ const AdminBookings = () => {
 
         {/* Booking Detail Dialog */}
         <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Booking Details</DialogTitle>
             </DialogHeader>
             {selectedBooking && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Customer</p>
                     <p className="font-medium">{selectedBooking.customer_name}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{selectedBooking.customer_email}</p>
+                    <p className="font-medium text-sm break-all">{selectedBooking.customer_email}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Phone</p>
@@ -412,13 +478,13 @@ const AdminBookings = () => {
                   <p className="font-medium">{selectedBooking.tour_name}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span>
+                    <span className="text-sm">
                       {new Date(selectedBooking.booking_date).toLocaleDateString("en-US", {
-                        weekday: "long",
-                        month: "long",
+                        weekday: "short",
+                        month: "short",
                         day: "numeric",
                         year: "numeric",
                       })}
@@ -426,9 +492,8 @@ const AdminBookings = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-muted-foreground" />
-                    <span>
-                      {selectedBooking.adults} Adults, {selectedBooking.children} Children,{" "}
-                      {selectedBooking.infants} Infants
+                    <span className="text-sm">
+                      {selectedBooking.adults} Adults, {selectedBooking.children} Kids, {selectedBooking.infants} Infants
                     </span>
                   </div>
                 </div>
@@ -436,7 +501,7 @@ const AdminBookings = () => {
                 {selectedBooking.special_requests && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Special Requests</p>
-                    <p className="text-foreground">{selectedBooking.special_requests}</p>
+                    <p className="text-foreground text-sm">{selectedBooking.special_requests}</p>
                   </div>
                 )}
 
@@ -444,13 +509,13 @@ const AdminBookings = () => {
 
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-semibold">Total</span>
-                  <span className="text-2xl font-bold text-secondary">
+                  <span className="text-xl sm:text-2xl font-bold text-secondary">
                     AED {selectedBooking.total_price}
                   </span>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2 pt-4">
+                <div className="flex flex-col sm:flex-row gap-2 pt-4">
                   <Button
                     variant="outline"
                     className="flex-1"
@@ -466,38 +531,25 @@ const AdminBookings = () => {
                       if (result.success) {
                         toast.success("Email sent successfully");
                       } else {
-                        toast.error("Failed to send email: " + result.error);
+                        toast.error("Failed to send email");
                       }
                       setIsSendingEmail(false);
                     }}
                   >
                     <Mail className="w-4 h-4 mr-2" />
-                    {isSendingEmail ? "Sending..." : "Resend Email"}
+                    {isSendingEmail ? "Sending..." : "Send Email"}
                   </Button>
                   {selectedBooking.status === "pending" && (
-                    <>
-                      <Button
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() => {
-                          updateBookingStatus(selectedBooking.id, "confirmed");
-                          setSelectedBooking(null);
-                        }}
-                      >
-                        <Check className="w-4 h-4 mr-2" />
-                        Confirm
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        className="flex-1"
-                        onClick={() => {
-                          updateBookingStatus(selectedBooking.id, "cancelled");
-                          setSelectedBooking(null);
-                        }}
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        Cancel
-                      </Button>
-                    </>
+                    <Button
+                      className="flex-1"
+                      onClick={() => {
+                        updateBookingStatus(selectedBooking.id, "confirmed");
+                        setSelectedBooking(null);
+                      }}
+                    >
+                      <Check className="w-4 h-4 mr-2" />
+                      Confirm Booking
+                    </Button>
                   )}
                 </div>
               </div>

@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Search, Eye, Trash2, Mail, Phone, Download } from "lucide-react";
+import { Search, Eye, Trash2, Mail, Phone, Download, MessageSquare, Inbox, Clock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import TablePagination from "@/components/admin/TablePagination";
 import BulkActionToolbar, { INQUIRY_BULK_ACTIONS } from "@/components/admin/BulkActionToolbar";
 import { usePagination } from "@/hooks/usePagination";
@@ -127,10 +128,16 @@ const AdminInquiries = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Pagination
+  // Stats
+  const stats = {
+    total: inquiries.length,
+    new: inquiries.filter((i) => i.status === "new").length,
+    responded: inquiries.filter((i) => i.status === "responded").length,
+    closed: inquiries.filter((i) => i.status === "closed").length,
+  };
+
   const pagination = usePagination(filteredInquiries, 10);
 
-  // Selection handlers
   const toggleSelect = (id: string) => {
     const newSelected = new Set(selectedIds);
     if (newSelected.has(id)) {
@@ -197,33 +204,89 @@ const AdminInquiries = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">Inquiries</h1>
-            <p className="text-muted-foreground">Manage customer inquiries and messages</p>
+            <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Inquiries</h1>
+            <p className="text-sm text-muted-foreground">Manage customer messages</p>
           </div>
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={handleExport} size="sm" className="w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-secondary/10">
+                  <Inbox className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.total}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10">
+                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">New</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.new}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/10">
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Responded</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.responded}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-muted">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Closed</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.closed}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email, or message..."
+              placeholder="Search inquiries..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-9 sm:pl-10 h-9 sm:h-10"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+            <SelectTrigger className="w-full sm:w-[150px] h-9 sm:h-10">
+              <SelectValue placeholder="Filter status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
@@ -246,95 +309,107 @@ const AdminInquiries = () => {
 
         {/* Table */}
         <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={
-                      pagination.paginatedItems.length > 0 &&
-                      selectedIds.size === pagination.paginatedItems.length
-                    }
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pagination.paginatedItems.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    No inquiries found
-                  </TableCell>
+                  <TableHead className="w-[40px] sm:w-[50px]">
+                    <Checkbox
+                      checked={
+                        pagination.paginatedItems.length > 0 &&
+                        selectedIds.size === pagination.paginatedItems.length
+                      }
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead className="min-w-[150px]">Contact</TableHead>
+                  <TableHead className="hidden md:table-cell">Subject</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[200px]">Message</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right w-[80px]">Actions</TableHead>
                 </TableRow>
-              ) : (
-                pagination.paginatedItems.map((inquiry) => (
-                  <TableRow key={inquiry.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedIds.has(inquiry.id)}
-                        onCheckedChange={() => toggleSelect(inquiry.id)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{inquiry.name}</p>
-                        <p className="text-sm text-muted-foreground">{inquiry.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{inquiry.subject || "-"}</TableCell>
-                    <TableCell className="max-w-[250px] truncate">{inquiry.message}</TableCell>
-                    <TableCell>
-                      {new Date(inquiry.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={inquiry.status}
-                        onValueChange={(value) => updateInquiryStatus(inquiry.id, value)}
-                      >
-                        <SelectTrigger className="w-[120px] h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="responded">Responded</SelectItem>
-                          <SelectItem value="closed">Closed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedInquiry(inquiry)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => setDeleteId(inquiry.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {pagination.paginatedItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                      No inquiries found
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  pagination.paginatedItems.map((inquiry) => (
+                    <TableRow key={inquiry.id} className={inquiry.status === "new" ? "bg-blue-500/5" : ""}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(inquiry.id)}
+                          onCheckedChange={() => toggleSelect(inquiry.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-start gap-2">
+                          {inquiry.status === "new" && (
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 shrink-0" />
+                          )}
+                          <div>
+                            <p className="font-medium text-sm">{inquiry.name}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[130px]">{inquiry.email}</p>
+                            {/* Subject on mobile */}
+                            <p className="text-xs text-muted-foreground md:hidden truncate max-w-[130px] mt-0.5">{inquiry.subject || "No subject"}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-sm">{inquiry.subject || "-"}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">{inquiry.message}</p>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-xs sm:text-sm text-muted-foreground">
+                        {new Date(inquiry.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={inquiry.status}
+                          onValueChange={(value) => updateInquiryStatus(inquiry.id, value)}
+                        >
+                          <SelectTrigger className="w-[90px] sm:w-[110px] h-7 sm:h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="responded">Responded</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setSelectedInquiry(inquiry)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hidden sm:inline-flex"
+                            onClick={() => setDeleteId(inquiry.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
         {/* Pagination */}
@@ -351,7 +426,7 @@ const AdminInquiries = () => {
 
         {/* Inquiry Detail Dialog */}
         <Dialog open={!!selectedInquiry} onOpenChange={() => setSelectedInquiry(null)}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Inquiry Details</DialogTitle>
             </DialogHeader>
@@ -362,13 +437,13 @@ const AdminInquiries = () => {
                   <p className="font-medium text-lg">{selectedInquiry.name}</p>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                   <a
                     href={`mailto:${selectedInquiry.email}`}
                     className="flex items-center gap-2 text-sm text-secondary hover:underline"
                   >
                     <Mail className="w-4 h-4" />
-                    {selectedInquiry.email}
+                    <span className="truncate">{selectedInquiry.email}</span>
                   </a>
                   {selectedInquiry.phone && (
                     <a
@@ -392,23 +467,23 @@ const AdminInquiries = () => {
 
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">Message</p>
-                  <p className="text-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">
+                  <p className="text-foreground text-sm whitespace-pre-wrap bg-muted/50 p-3 sm:p-4 rounded-lg">
                     {selectedInquiry.message}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-4">
-                  <span className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     Received{" "}
                     {new Date(selectedInquiry.created_at).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "long",
+                      weekday: "short",
+                      month: "short",
                       day: "numeric",
                       year: "numeric",
                     })}
                   </span>
-                  <a href={`mailto:${selectedInquiry.email}`}>
-                    <Button>
+                  <a href={`mailto:${selectedInquiry.email}`} className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto">
                       <Mail className="w-4 h-4 mr-2" />
                       Reply
                     </Button>
@@ -421,15 +496,15 @@ const AdminInquiries = () => {
 
         {/* Delete Confirmation */}
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-[calc(100vw-32px)] sm:max-w-lg">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Inquiry?</AlertDialogTitle>
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the inquiry.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => deleteId && deleteInquiry(deleteId)}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
