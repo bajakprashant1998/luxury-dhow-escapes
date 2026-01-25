@@ -3,9 +3,9 @@ import { memo } from "react";
 import { motion } from "framer-motion";
 import { Anchor, Utensils, Music, Camera, ArrowRight, MapPin } from "lucide-react";
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import dubaiMarinaNight from "@/assets/dubai-marina-night.jpg";
-import yachtInterior from "@/assets/yacht-interior.jpg";
-import buffetDining from "@/assets/buffet-dining.jpg";
+import dubaiMarinaNight from "@/assets/dubai-marina-night.webp";
+import yachtInterior from "@/assets/yacht-interior.webp";
+import buffetDining from "@/assets/buffet-dining.webp";
 
 const highlights = [
   { icon: Anchor, title: "Traditional Dhow", description: "Authentic wooden vessel experience" },

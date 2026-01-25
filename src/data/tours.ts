@@ -1,21 +1,21 @@
-// Tour Images
-import dhowCruiseMarina from "@/assets/tours/dhow-cruise-marina.jpg";
-import megayachtBurjKhalifa from "@/assets/tours/megayacht-burj-khalifa.jpg";
-import catamaranBurjAlArab from "@/assets/tours/catamaran-burj-al-arab.jpg";
-import yachtSunsetTour from "@/assets/tours/yacht-sunset-tour.jpg";
+// Tour Images (WebP for better compression)
+import dhowCruiseMarina from "@/assets/tours/dhow-cruise-marina.webp";
+import megayachtBurjKhalifa from "@/assets/tours/megayacht-burj-khalifa.webp";
+import catamaranBurjAlArab from "@/assets/tours/catamaran-burj-al-arab.webp";
+import yachtSunsetTour from "@/assets/tours/yacht-sunset-tour.webp";
 import yachtLunchDaytime from "@/assets/tours/yacht-lunch-daytime.jpg";
-import yachtMoonlight from "@/assets/tours/yacht-moonlight.jpg";
+import yachtMoonlight from "@/assets/tours/yacht-moonlight.webp";
 import privateYacht33ft from "@/assets/tours/private-yacht-33ft.jpg";
-import privateYacht55ft from "@/assets/tours/private-yacht-55ft.jpg";
+import privateYacht55ft from "@/assets/tours/private-yacht-55ft.webp";
 import privateYacht80ft from "@/assets/tours/private-yacht-80ft.jpg";
 import privateYacht100ft from "@/assets/tours/private-yacht-100ft.jpg";
 import yachtBbqExperience from "@/assets/tours/yacht-bbq-experience.jpg";
 import yachtSwimming from "@/assets/tours/yacht-swimming.jpg";
-// Existing assets
-import buffetDining from "@/assets/buffet-dining.jpg";
-import tanuraEntertainment from "@/assets/tanura-entertainment.jpg";
-import dubaiMarinaNight from "@/assets/dubai-marina-night.jpg";
-import yachtInterior from "@/assets/yacht-interior.jpg";
+// Existing assets (WebP versions)
+import buffetDining from "@/assets/buffet-dining.webp";
+import tanuraEntertainment from "@/assets/tanura-entertainment.webp";
+import dubaiMarinaNight from "@/assets/dubai-marina-night.webp";
+import yachtInterior from "@/assets/yacht-interior.webp";
 
 export interface Tour {
   id: string;
