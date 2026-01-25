@@ -5,7 +5,7 @@ import { ArrowRight, Play, Sparkles, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
-import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
+import heroDhowCruise from "@/assets/hero-dhow-cruise.webp";
 
 const HeroSection = memo(() => {
   const { stats } = useHomepageContent();
