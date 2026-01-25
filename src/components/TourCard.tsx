@@ -1,9 +1,8 @@
-import { useState, memo } from "react";
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Star, Clock, Users, ChevronRight, Ship } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Tour } from "@/lib/tourMapper";
 
 interface TourCardProps {
@@ -19,36 +18,29 @@ const categoryLabels: Record<string, string> = {
 };
 
 const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const discount = Math.round((1 - tour.price / tour.originalPrice) * 100);
 
   return (
     <Link to={`/tours/${tour.slug}`} className="group block">
       <div className={`bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col ${featured ? 'lg:flex-row' : ''}`}>
-        {/* Image */}
-        <div className={`relative overflow-hidden ${featured ? 'lg:w-1/2 lg:min-h-[300px]' : 'aspect-[4/3] sm:aspect-[16/10]'}`}>
-          {!imageLoaded && (
-            <Skeleton className="absolute inset-0 w-full h-full" />
-          )}
-          <img
+        {/* Image with WebP support and srcset */}
+        <div className={`relative overflow-hidden ${featured ? 'lg:w-1/2 lg:min-h-[300px]' : ''}`}>
+          <OptimizedImage
             src={tour.image}
             alt={tour.title}
-            loading="lazy"
-            decoding="async"
-            onLoad={() => setImageLoaded(true)}
-            className={cn(
-              "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500",
-              imageLoaded ? "opacity-100" : "opacity-0"
-            )}
+            aspectRatio={featured ? undefined : "4/3"}
+            sizes={featured ? "(max-width: 1024px) 100vw, 50vw" : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
+            className="group-hover:scale-105 transition-transform duration-500"
+            containerClassName={featured ? "h-full min-h-[200px]" : ""}
           />
           {/* Discount Badge */}
           {discount > 0 && (
-            <div className="absolute top-4 left-4 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold">
+            <div className="absolute top-4 left-4 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold z-10">
               {discount}% OFF
             </div>
           )}
           {/* Category Badge */}
-          <div className="absolute bottom-4 left-4 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
+          <div className="absolute bottom-4 left-4 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 z-10">
             <Ship className="w-3 h-3" />
             {categoryLabels[tour.category]}
           </div>

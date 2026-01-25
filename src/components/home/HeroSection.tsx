@@ -3,7 +3,7 @@ import { memo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Play, Sparkles, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.jpg";
 
@@ -20,18 +20,16 @@ const HeroSection = memo(() => {
 
   return (
     <section className="relative min-h-[95vh] flex items-center overflow-hidden">
-      {/* Background Image - Priority loading, no unnecessary animations */}
+      {/* Background Image - Priority loading with optimized component */}
       <div className="absolute inset-0">
-        {!imageLoaded && (
-          <Skeleton className="absolute inset-0 w-full h-full" />
-        )}
-        <img
+        <OptimizedImage
           src={heroDhowCruise}
           alt="Dubai Marina at night"
-          className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          priority
+          objectFit="cover"
+          sizes="100vw"
           onLoad={() => setImageLoaded(true)}
-          fetchPriority="high"
-          decoding="async"
+          containerClassName="w-full h-full"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-primary/50" />
         <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent" />
@@ -49,14 +47,14 @@ const HeroSection = memo(() => {
           <motion.div 
             className="text-primary-foreground"
             initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={imageLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             {/* Badge */}
             <motion.div 
               className="inline-flex items-center gap-2 bg-secondary/20 backdrop-blur-sm text-secondary px-4 py-2 rounded-full mb-6 border border-secondary/30"
               initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              animate={imageLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
               transition={{ delay: 0.2, duration: 0.4 }}
             >
               <Sparkles className="w-4 h-4" />

@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { memo, useState } from "react";
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { Anchor, Utensils, Music, Camera, ArrowRight, MapPin } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import dubaiMarinaNight from "@/assets/dubai-marina-night.jpg";
 import yachtInterior from "@/assets/yacht-interior.jpg";
 import buffetDining from "@/assets/buffet-dining.jpg";
@@ -13,31 +13,6 @@ const highlights = [
   { icon: Music, title: "Live Entertainment", description: "Tanura dance & music shows" },
   { icon: Camera, title: "Stunning Views", description: "Dubai Marina skyline" },
 ];
-
-interface LazyImageProps {
-  src: string;
-  alt: string;
-  className: string;
-}
-
-const LazyImage = memo(({ src, alt, className }: LazyImageProps) => {
-  const [loaded, setLoaded] = useState(false);
-  return (
-    <div className={`relative ${className}`}>
-      {!loaded && <Skeleton className="absolute inset-0 w-full h-full rounded-xl md:rounded-2xl" />}
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        onLoad={() => setLoaded(true)}
-        className={`w-full h-full object-cover rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-      />
-    </div>
-  );
-});
-
-LazyImage.displayName = "LazyImage";
 
 const HighlightsSection = memo(() => {
   return (
@@ -90,21 +65,27 @@ const HighlightsSection = memo(() => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
-              <LazyImage 
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+              <OptimizedImage 
                 src={dubaiMarinaNight} 
-                alt="Dubai Marina Night" 
-                className="h-36 sm:h-48"
+                alt="Dubai Marina Night"
+                aspectRatio="4/3"
+                sizes="(max-width: 768px) 45vw, 25vw"
+                containerClassName="h-36 sm:h-48 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
               />
-              <LazyImage 
+              <OptimizedImage 
                 src={yachtInterior} 
-                alt="Yacht Interior" 
-                className="h-36 sm:h-48 mt-4 md:mt-8"
+                alt="Yacht Interior"
+                aspectRatio="4/3"
+                sizes="(max-width: 768px) 45vw, 25vw"
+                containerClassName="h-36 sm:h-48 mt-4 md:mt-8 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
               />
-              <LazyImage 
+              <OptimizedImage 
                 src={buffetDining} 
-                alt="Buffet Dining" 
-                className="h-36 sm:h-48 -mt-2 md:-mt-4"
+                alt="Buffet Dining"
+                aspectRatio="4/3"
+                sizes="(max-width: 768px) 45vw, 25vw"
+                containerClassName="h-36 sm:h-48 -mt-2 md:-mt-4 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
               />
               <div className="bg-primary rounded-xl md:rounded-2xl p-4 md:p-6 flex flex-col justify-center items-center text-center hover:scale-[1.02] transition-transform duration-300">
                 <p className="text-4xl md:text-5xl font-bold text-secondary mb-1 md:mb-2">10+</p>
