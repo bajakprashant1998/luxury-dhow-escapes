@@ -65,7 +65,7 @@ const HighlightsSection = memo(() => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               <OptimizedImage 
                 src={dubaiMarinaNight} 
                 alt="Dubai Marina Night"
@@ -78,16 +78,16 @@ const HighlightsSection = memo(() => {
                 alt="Yacht Interior"
                 aspectRatio="4/3"
                 sizes="(max-width: 768px) 45vw, 25vw"
-                containerClassName="h-36 sm:h-48 mt-4 md:mt-8 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
+                containerClassName="h-36 sm:h-48 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
               />
               <OptimizedImage 
                 src={buffetDining} 
                 alt="Buffet Dining"
                 aspectRatio="4/3"
                 sizes="(max-width: 768px) 45vw, 25vw"
-                containerClassName="h-36 sm:h-48 -mt-2 md:-mt-4 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
+                containerClassName="h-36 sm:h-48 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
               />
-              <div className="bg-primary rounded-xl md:rounded-2xl p-4 md:p-6 flex flex-col justify-center items-center text-center hover:scale-[1.02] transition-transform duration-300">
+              <div className="h-36 sm:h-48 bg-primary rounded-xl md:rounded-2xl p-4 md:p-6 flex flex-col justify-center items-center text-center hover:scale-[1.02] transition-transform duration-300">
                 <p className="text-4xl md:text-5xl font-bold text-secondary mb-1 md:mb-2">10+</p>
                 <p className="text-primary-foreground text-xs md:text-sm">Years of Excellence</p>
               </div>
