@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Filter, Ship, Anchor, Crown, Users } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Filter, Ship, Anchor, Crown, Users, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/layout/Layout";
@@ -16,21 +17,56 @@ const categoryIcons: Record<string, React.ReactNode> = {
   "megayacht": <Crown className="w-4 h-4" />,
 };
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0, 0, 0.2, 1] as const,
+    },
+  },
+};
+
 const Tours = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState<"popular" | "price-low" | "price-high">("popular");
+  const [showScrollTop, setShowScrollTop] = useState(false);
   
   const { data: tours = [], isLoading: toursLoading, error: toursError } = useTours();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useActiveCategories();
 
+  // Handle scroll to top button visibility
+  if (typeof window !== "undefined") {
+    window.addEventListener("scroll", () => {
+      setShowScrollTop(window.scrollY > 500);
+    });
+  }
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // Build categories array with "All Tours" option
-  const categories: Array<{ id: string; label: string; slug: string; description?: string | null }> = [
-    { id: "all", label: "All Tours", slug: "all" },
+  const categories: Array<{ id: string; label: string; slug: string; description?: string | null; count?: number }> = [
+    { id: "all", label: "All Tours", slug: "all", count: tours.length },
     ...dbCategories.map((cat) => ({
       id: cat.slug,
       label: cat.name,
       slug: cat.slug,
       description: cat.description,
+      count: tours.filter(t => t.category === cat.slug).length,
     })),
   ];
 
@@ -57,30 +93,103 @@ const Tours = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative py-20 bg-primary text-primary-foreground">
-        <div className="absolute inset-0 opacity-20">
+      {/* Hero Section with Parallax Effect */}
+      <section className="relative py-24 md:py-32 bg-primary text-primary-foreground overflow-hidden">
+        {/* Background with parallax */}
+        <motion.div 
+          className="absolute inset-0"
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/60 via-primary/40 to-primary z-10" />
           <img
             src="https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1920"
             alt="Dubai Marina"
             className="w-full h-full object-cover"
           />
+        </motion.div>
+        
+        {/* Floating particles effect */}
+        <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-secondary/30 rounded-full"
+              initial={{ 
+                x: Math.random() * 100 + "%", 
+                y: "100%",
+                opacity: 0 
+              }}
+              animate={{ 
+                y: "-20%",
+                opacity: [0, 0.6, 0],
+              }}
+              transition={{
+                duration: 8 + Math.random() * 4,
+                repeat: Infinity,
+                delay: i * 1.5,
+                ease: "linear",
+              }}
+            />
+          ))}
         </div>
-        <div className="container relative z-10">
-          <div className="max-w-2xl">
-            <p className="text-secondary font-semibold tracking-wider uppercase mb-4">
+
+        <div className="container relative z-20">
+          <motion.div 
+            className="max-w-2xl"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <motion.p 
+              className="text-secondary font-semibold tracking-wider uppercase mb-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
               Explore Our Experiences
-            </p>
-            <h1 className="font-display text-4xl md:text-5xl font-bold mb-6">
+            </motion.p>
+            <motion.h1 
+              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
               Dhow Cruises & Yacht Charters
-            </h1>
-            <p className="text-primary-foreground/80 text-lg">
+            </motion.h1>
+            <motion.p 
+              className="text-primary-foreground/80 text-lg md:text-xl leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
               Choose from our selection of carefully curated cruise experiences. 
               From traditional dhow cruises to luxury private yacht charters, 
               find the perfect voyage for your Dubai adventure.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </div>
+
+        {/* Scroll indicator */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          <motion.div
+            className="w-6 h-10 border-2 border-primary-foreground/40 rounded-full flex items-start justify-center p-1"
+            animate={{ y: [0, 5, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <motion.div 
+              className="w-1.5 h-2.5 bg-secondary rounded-full"
+              animate={{ opacity: [1, 0.3, 1], y: [0, 4, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Category Filter */}
@@ -96,18 +205,37 @@ const Tours = () => {
               </>
             ) : (
               categories.map((category) => (
-                <button
+                <motion.button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-medium transition-all flex-shrink-0 snap-start touch-target text-sm sm:text-base whitespace-nowrap ${
+                  className={`relative flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-medium transition-all flex-shrink-0 snap-start touch-target text-sm sm:text-base whitespace-nowrap ${
                     selectedCategory === category.id
                       ? "bg-primary text-primary-foreground shadow-lg"
                       : "bg-card text-foreground hover:bg-muted border border-border"
                   }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  layout
                 >
                   {categoryIcons[category.id] || <Filter className="w-4 h-4" />}
-                  {category.label}
-                </button>
+                  <span>{category.label}</span>
+                  {category.count !== undefined && category.count > 0 && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      selectedCategory === category.id 
+                        ? "bg-primary-foreground/20" 
+                        : "bg-muted"
+                    }`}>
+                      {category.count}
+                    </span>
+                  )}
+                  {selectedCategory === category.id && (
+                    <motion.div
+                      className="absolute inset-0 bg-primary rounded-full -z-10"
+                      layoutId="categoryBackground"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
               ))
             )}
           </div>
@@ -118,7 +246,12 @@ const Tours = () => {
       <section className="py-8 sm:py-12">
         <div className="container px-4 sm:px-6">
           {/* Stats Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-border">
+          <motion.div 
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-border"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <p className="text-sm sm:text-base text-muted-foreground">
               Showing <span className="font-semibold text-foreground">{sortedTours.length}</span> experiences
             </p>
@@ -127,30 +260,45 @@ const Tours = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="bg-card border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-secondary flex-1 sm:flex-none h-10 touch-target"
+                className="bg-card border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-secondary flex-1 sm:flex-none h-10 touch-target transition-all hover:border-secondary"
               >
                 <option value="popular">Most Popular</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
               </select>
             </div>
-          </div>
+          </motion.div>
 
           {/* Category Description */}
-          {selectedCategory !== "all" && selectedCategoryData?.description && (
-            <div className="mb-8 p-6 bg-cream rounded-xl">
-              <p className="text-muted-foreground">
-                <span className="font-semibold text-foreground">{selectedCategoryData.label}</span> — {selectedCategoryData.description}
-              </p>
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {selectedCategory !== "all" && selectedCategoryData?.description && (
+              <motion.div 
+                key={selectedCategory}
+                className="mb-8 p-6 bg-gradient-to-r from-cream to-cream/50 rounded-xl border border-border/50"
+                initial={{ opacity: 0, y: -10, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -10, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <p className="text-muted-foreground">
+                  <span className="font-semibold text-foreground">{selectedCategoryData.label}</span> — {selectedCategoryData.description}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Loading State */}
           {isLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-card rounded-xl overflow-hidden shadow-md">
-                  <Skeleton className="aspect-[4/3] w-full" />
+                <motion.div 
+                  key={i} 
+                  className="bg-card rounded-xl overflow-hidden shadow-md"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <Skeleton className="aspect-[4/3] w-full shimmer" />
                   <div className="p-5 space-y-3">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-6 w-full" />
@@ -164,40 +312,76 @@ const Tours = () => {
                       <Skeleton className="h-8 w-20" />
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
 
           {/* Error State */}
           {toursError && (
-            <div className="text-center py-12">
+            <motion.div 
+              className="text-center py-12"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
               <p className="text-destructive mb-4">Failed to load tours. Please try again.</p>
               <Button onClick={() => window.location.reload()}>Retry</Button>
-            </div>
+            </motion.div>
           )}
 
-          {/* Tours Grid */}
+          {/* Tours Grid with Staggered Animation */}
           {!isLoading && !toursError && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {sortedTours.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
-              ))}
-            </div>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              key={selectedCategory} // Re-animate when category changes
+            >
+              <AnimatePresence mode="popLayout">
+                {sortedTours.map((tour, index) => (
+                  <motion.div
+                    key={tour.id}
+                    variants={itemVariants}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <TourCard tour={tour} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
 
           {!isLoading && !toursError && sortedTours.length === 0 && (
-            <div className="text-center py-12">
+            <motion.div 
+              className="text-center py-12"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
               <p className="text-muted-foreground">No tours found in this category.</p>
-            </div>
+            </motion.div>
           )}
         </div>
       </section>
 
       {/* Special Requests */}
-      <section className="py-16 bg-cream">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
+      <section className="py-16 bg-cream relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="container relative z-10">
+          <motion.div 
+            className="max-w-3xl mx-auto text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <h2 className="font-display text-3xl font-bold text-foreground mb-4">
               Looking for Something Special?
             </h2>
@@ -206,14 +390,35 @@ const Tours = () => {
               we can create a tailored experience just for you. Contact us to discuss your requirements.
             </p>
             <Link to="/contact">
-              <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold">
+              <Button 
+                size="lg" 
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold group"
+              >
                 Request Custom Package
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            onClick={scrollToTop}
+            className="fixed bottom-24 right-6 z-40 w-12 h-12 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Scroll to top"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </Layout>
   );
 };
