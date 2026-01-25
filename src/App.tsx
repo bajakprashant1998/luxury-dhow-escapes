@@ -35,7 +35,9 @@ const AdminCustomers = lazy(() => import("./pages/admin/Customers"));
 const AdminDiscounts = lazy(() => import("./pages/admin/Discounts"));
 const AdminUploadTourImages = lazy(() => import("./pages/admin/UploadTourImages"));
 const AdminActivityLog = lazy(() => import("./pages/admin/ActivityLog"));
-const RequireSession = lazy(() => import("./components/admin/RequireSession"));
+
+// RequireSession must be loaded synchronously as it's a wrapper component
+import RequireSession from "./components/admin/RequireSession";
 
 // Loading fallback component
 const PageLoader = () => (
