@@ -66,7 +66,7 @@ const HighlightsSection = memo(() => {
             transition={{ duration: 0.5 }}
           >
             <div className="grid grid-cols-2 gap-4 md:gap-5">
-              <div className="overflow-hidden rounded-2xl shadow-lg">
+              <div className="overflow-hidden rounded-xl shadow-lg">
                 <OptimizedImage 
                   src={dubaiMarinaNight} 
                   alt="Dubai Marina Night"
@@ -75,7 +75,7 @@ const HighlightsSection = memo(() => {
                   containerClassName="h-40 sm:h-48 md:h-56 hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <div className="overflow-hidden rounded-2xl shadow-lg">
+              <div className="overflow-hidden rounded-xl shadow-lg">
                 <OptimizedImage 
                   src={yachtInterior} 
                   alt="Yacht Interior"
@@ -84,7 +84,7 @@ const HighlightsSection = memo(() => {
                   containerClassName="h-40 sm:h-48 md:h-56 hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <div className="overflow-hidden rounded-2xl shadow-lg">
+              <div className="overflow-hidden rounded-xl shadow-lg">
                 <OptimizedImage 
                   src={buffetDining} 
                   alt="Buffet Dining"
@@ -93,7 +93,7 @@ const HighlightsSection = memo(() => {
                   containerClassName="h-40 sm:h-48 md:h-56 hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <div className="h-40 sm:h-48 md:h-56 bg-primary rounded-2xl p-5 md:p-6 flex flex-col justify-center items-center text-center shadow-lg">
+              <div className="h-40 sm:h-48 md:h-56 bg-primary rounded-xl p-5 md:p-6 flex flex-col justify-center items-center text-center shadow-lg">
                 <p className="text-5xl md:text-6xl font-bold text-secondary mb-2">10+</p>
                 <p className="text-primary-foreground text-sm md:text-base">Years of Excellence</p>
               </div>
