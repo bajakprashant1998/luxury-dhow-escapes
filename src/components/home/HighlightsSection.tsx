@@ -66,28 +66,34 @@ const HighlightsSection = memo(() => {
             transition={{ duration: 0.5 }}
           >
             <div className="grid grid-cols-2 gap-3 md:gap-4">
-              <OptimizedImage 
-                src={dubaiMarinaNight} 
-                alt="Dubai Marina Night"
-                aspectRatio="4/3"
-                sizes="(max-width: 768px) 45vw, 25vw"
-                containerClassName="h-36 sm:h-48 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
-              />
-              <OptimizedImage 
-                src={yachtInterior} 
-                alt="Yacht Interior"
-                aspectRatio="4/3"
-                sizes="(max-width: 768px) 45vw, 25vw"
-                containerClassName="h-36 sm:h-48 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
-              />
-              <OptimizedImage 
-                src={buffetDining} 
-                alt="Buffet Dining"
-                aspectRatio="4/3"
-                sizes="(max-width: 768px) 45vw, 25vw"
-                containerClassName="h-36 sm:h-48 rounded-xl md:rounded-2xl shadow-lg hover:scale-[1.02] transition-transform duration-300"
-              />
-              <div className="h-36 sm:h-48 bg-primary rounded-xl md:rounded-2xl p-4 md:p-6 flex flex-col justify-center items-center text-center hover:scale-[1.02] transition-transform duration-300">
+              <div className="overflow-hidden rounded-xl md:rounded-2xl">
+                <OptimizedImage 
+                  src={dubaiMarinaNight} 
+                  alt="Dubai Marina Night"
+                  aspectRatio="4/3"
+                  sizes="(max-width: 768px) 45vw, 25vw"
+                  containerClassName="h-36 sm:h-48 shadow-lg hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="overflow-hidden rounded-xl md:rounded-2xl">
+                <OptimizedImage 
+                  src={yachtInterior} 
+                  alt="Yacht Interior"
+                  aspectRatio="4/3"
+                  sizes="(max-width: 768px) 45vw, 25vw"
+                  containerClassName="h-36 sm:h-48 shadow-lg hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="overflow-hidden rounded-xl md:rounded-2xl">
+                <OptimizedImage 
+                  src={buffetDining} 
+                  alt="Buffet Dining"
+                  aspectRatio="4/3"
+                  sizes="(max-width: 768px) 45vw, 25vw"
+                  containerClassName="h-36 sm:h-48 shadow-lg hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="h-36 sm:h-48 bg-primary rounded-xl md:rounded-2xl p-4 md:p-6 flex flex-col justify-center items-center text-center">
                 <p className="text-4xl md:text-5xl font-bold text-secondary mb-1 md:mb-2">10+</p>
                 <p className="text-primary-foreground text-xs md:text-sm">Years of Excellence</p>
               </div>
