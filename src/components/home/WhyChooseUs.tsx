@@ -59,7 +59,7 @@ const WhyChooseUs = () => {
         </motion.div>
 
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+          className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
           variants={container}
           initial="hidden"
           whileInView="show"
@@ -77,13 +77,13 @@ const WhyChooseUs = () => {
                 }}
               >
                 <motion.div 
-                  className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all duration-300"
+                  className="w-14 sm:w-16 lg:w-20 h-14 sm:h-16 lg:h-20 mx-auto mb-3 sm:mb-4 lg:mb-6 rounded-xl sm:rounded-2xl bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all duration-300"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
-                  <IconComponent className="w-10 h-10 text-secondary" />
+                  <IconComponent className="w-7 sm:w-8 lg:w-10 h-7 sm:h-8 lg:h-10 text-secondary" />
                 </motion.div>
-                <h3 className="font-display text-xl font-semibold mb-3">{whyItem.title}</h3>
-                <p className="text-primary-foreground/70">{whyItem.description}</p>
+                <h3 className="font-display text-sm sm:text-base lg:text-xl font-semibold mb-1 sm:mb-2 lg:mb-3">{whyItem.title}</h3>
+                <p className="text-primary-foreground/70 text-xs sm:text-sm lg:text-base line-clamp-2 sm:line-clamp-none">{whyItem.description}</p>
               </motion.div>
             );
           })}
@@ -91,14 +91,14 @@ const WhyChooseUs = () => {
 
         {/* Trust Indicators */}
         <motion.div 
-          className="mt-20 pt-12 border-t border-primary-foreground/10"
+          className="mt-10 sm:mt-16 lg:mt-20 pt-8 sm:pt-10 lg:pt-12 border-t border-primary-foreground/10"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
         >
           <motion.div 
-            className="flex flex-wrap justify-center items-center gap-6 md:gap-12"
+            className="flex overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap justify-start sm:justify-center items-center gap-4 sm:gap-6 md:gap-12 scrollbar-hide snap-x-mandatory"
             variants={container}
             initial="hidden"
             whileInView="show"
@@ -107,11 +107,11 @@ const WhyChooseUs = () => {
             {trustIndicators.map((indicator, index) => (
               <motion.div 
                 key={index} 
-                className="flex items-center gap-2"
+                className="flex-shrink-0 snap-start flex items-center gap-1.5 sm:gap-2"
                 variants={item}
               >
-                <CheckCircle2 className="w-5 h-5 text-secondary" />
-                <span className="font-medium">{indicator}</span>
+                <CheckCircle2 className="w-4 sm:w-5 h-4 sm:h-5 text-secondary" />
+                <span className="font-medium text-sm sm:text-base whitespace-nowrap">{indicator}</span>
               </motion.div>
             ))}
           </motion.div>

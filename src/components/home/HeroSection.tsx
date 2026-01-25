@@ -74,14 +74,14 @@ const HeroSection = () => {
             </motion.div>
 
             <motion.h1 
-              className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] mb-6"
+              className="font-display text-fluid-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] mb-6"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
             >
               Experience Dubai
               <motion.span 
-                className="block text-secondary mt-2"
+                className="block text-shimmer mt-2"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
@@ -99,30 +99,30 @@ const HeroSection = () => {
               Unforgettable dhow cruises, luxury yacht charters, and megayacht dining experiences along Dubai Marina's stunning skyline.
             </motion.p>
 
-            {/* CTAs */}
+            {/* CTAs - Full width on mobile */}
             <motion.div 
-              className="flex flex-wrap gap-4 mb-12"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.6 }}
             >
-              <Link to="/tours">
-                <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold text-lg px-8 h-14 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+              <Link to="/tours" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group touch-target">
                   Explore Tours
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link to="/gallery">
-                <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-semibold text-lg px-8 h-14 backdrop-blur-sm">
+              <Link to="/gallery" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-semibold text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 backdrop-blur-sm touch-target">
                   <Play className="w-5 h-5 mr-2" />
                   View Gallery
                 </Button>
               </Link>
             </motion.div>
 
-            {/* Stats Row */}
+            {/* Stats Row - Responsive Grid */}
             <motion.div 
-              className="flex flex-wrap gap-8"
+              className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1, duration: 0.8 }}
@@ -130,13 +130,14 @@ const HeroSection = () => {
               {statsDisplay.map((stat, index) => (
                 <motion.div 
                   key={index} 
-                  className="text-center"
+                  className="text-center bg-primary-foreground/5 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-primary-foreground/10"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.1 + index * 0.1, duration: 0.5 }}
+                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
-                  <p className="text-3xl md:text-4xl font-bold text-secondary">{stat.value}</p>
-                  <p className="text-xs text-primary-foreground/70 uppercase tracking-wider">{stat.label}</p>
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-secondary">{stat.value}</p>
+                  <p className="text-[10px] sm:text-xs text-primary-foreground/70 uppercase tracking-wider mt-1">{stat.label}</p>
                 </motion.div>
               ))}
             </motion.div>

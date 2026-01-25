@@ -52,20 +52,20 @@ const CTASection = () => {
           </p>
 
           <motion.div 
-            className="flex flex-wrap justify-center gap-4"
+            className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
           >
-            <Link to="/tours">
-              <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold text-lg px-8 h-14 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+            <Link to="/tours" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group touch-target">
                 Browse All Tours
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <a href={`tel:${phone}`}>
-              <Button size="lg" variant="outline" className="font-semibold text-lg px-8 h-14 hover:bg-primary hover:text-primary-foreground transition-all duration-300">
+            <a href={`tel:${phone}`} className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto font-semibold text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 hover:bg-primary hover:text-primary-foreground transition-all duration-300 touch-target">
                 <Phone className="w-5 h-5 mr-2" />
                 {phoneFormatted}
               </Button>

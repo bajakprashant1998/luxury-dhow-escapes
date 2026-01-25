@@ -21,7 +21,7 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "" }:
   return (
     <>
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-2xl lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-2xl lg:hidden pb-safe"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.5 }}
@@ -107,14 +107,14 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "" }:
                 rel="noopener noreferrer"
                 whileTap={{ scale: 0.95 }}
               >
-                <Button variant="outline" size="icon" className="h-11 w-11">
+                <Button variant="outline" size="icon" className="h-11 w-11 touch-target">
                   <MessageCircle className="w-5 h-5" />
                 </Button>
               </motion.a>
               <motion.div whileTap={{ scale: 0.98 }}>
                 <Button 
                   onClick={() => setIsBookingModalOpen(true)}
-                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-11 px-6 shadow-lg"
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-11 px-5 sm:px-6 shadow-lg touch-target animate-pulse-glow"
                 >
                   Book Now
                 </Button>

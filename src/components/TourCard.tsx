@@ -23,10 +23,10 @@ const TourCard = ({ tour, featured = false }: TourCardProps) => {
   };
 
   return (
-    <Link to={`/tours/${tour.slug}`} className="group">
-      <div className={`bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col ${featured ? 'lg:flex-row' : ''}`}>
+    <Link to={`/tours/${tour.slug}`} className="group block">
+      <div className={`bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col ${featured ? 'lg:flex-row' : ''}`}>
         {/* Image */}
-        <div className={`relative overflow-hidden ${featured ? 'lg:w-1/2 lg:min-h-[300px]' : 'aspect-[4/3]'}`}>
+        <div className={`relative overflow-hidden ${featured ? 'lg:w-1/2 lg:min-h-[300px]' : 'aspect-[4/3] sm:aspect-[16/10]'}`}>
           {!imageLoaded && (
             <Skeleton className="absolute inset-0 w-full h-full" />
           )}
@@ -54,19 +54,19 @@ const TourCard = ({ tour, featured = false }: TourCardProps) => {
         </div>
 
         {/* Content */}
-        <div className={`p-5 flex flex-col flex-1 ${featured ? 'lg:w-1/2 lg:p-8' : ''}`}>
+        <div className={`p-4 sm:p-5 flex flex-col flex-1 ${featured ? 'lg:w-1/2 lg:p-8' : ''}`}>
           {/* Title & Subtitle */}
           <div className="flex-1">
-            <p className="text-secondary text-sm font-medium mb-1">{tour.subtitle}</p>
-            <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-secondary transition-colors line-clamp-2">
+            <p className="text-secondary text-xs sm:text-sm font-medium mb-1">{tour.subtitle}</p>
+            <h3 className="font-display text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-secondary transition-colors line-clamp-2">
               {tour.title}
             </h3>
-            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+            <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
               {tour.description}
             </p>
 
             {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs sm:text-sm">
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span>{tour.duration}</span>
@@ -100,27 +100,28 @@ const TourCard = ({ tour, featured = false }: TourCardProps) => {
           </div>
 
           {/* Price & CTA */}
-          <div className={`flex items-end justify-between pt-4 border-t border-border mt-auto`}>
+          <div className={`flex items-end justify-between pt-3 sm:pt-4 border-t border-border mt-auto`}>
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-foreground">AED {tour.price.toLocaleString()}</span>
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
+                <span className="text-lg sm:text-xl font-bold text-foreground">AED {tour.price.toLocaleString()}</span>
                 {tour.originalPrice > tour.price && (
-                  <span className="text-muted-foreground line-through text-sm">
+                  <span className="text-muted-foreground line-through text-xs sm:text-sm">
                     AED {tour.originalPrice.toLocaleString()}
                   </span>
                 )}
               </div>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-[10px] sm:text-xs">
                 {tour.category === "yacht-private" ? "per charter" : "per person"}
               </p>
             </div>
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-secondary hover:text-secondary hover:bg-secondary/10 font-semibold"
+              className="text-secondary hover:text-secondary hover:bg-secondary/10 font-semibold touch-target px-2 sm:px-3"
             >
-              Details
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <span className="hidden sm:inline">Details</span>
+              <span className="sm:hidden">View</span>
+              <ChevronRight className="w-4 h-4 ml-0.5 sm:ml-1" />
             </Button>
           </div>
         </div>

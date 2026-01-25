@@ -56,9 +56,59 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
 
   return (
     <>
-      {/* Gallery Grid */}
+      {/* Mobile Swipe Gallery */}
+      <div className="md:hidden -mx-4">
+        <div className="flex overflow-x-auto snap-x-mandatory scrollbar-hide">
+          {images.map((image, index) => (
+            <motion.div
+              key={index}
+              className="flex-shrink-0 w-full snap-center cursor-pointer relative"
+              onClick={() => openLightbox(index)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+            >
+              {!loadedImages[index] && (
+                <Skeleton className="absolute inset-0 w-full h-[280px]" />
+              )}
+              <img
+                src={image}
+                alt={`${title} - ${index + 1}`}
+                onLoad={() => handleImageLoad(index)}
+                className={cn(
+                  "w-full h-[280px] object-cover",
+                  loadedImages[index] ? "opacity-100" : "opacity-0"
+                )}
+              />
+              {/* Image counter */}
+              <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <span className="text-white text-sm font-medium">
+                  {index + 1} / {images.length}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        {/* Swipe indicator dots */}
+        <div className="flex justify-center gap-1.5 mt-3 px-4">
+          {images.slice(0, Math.min(5, images.length)).map((_, index) => (
+            <div
+              key={index}
+              className={cn(
+                "w-2 h-2 rounded-full transition-all",
+                index === 0 ? "bg-secondary w-4" : "bg-muted-foreground/30"
+              )}
+            />
+          ))}
+          {images.length > 5 && (
+            <span className="text-xs text-muted-foreground ml-1">+{images.length - 5}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop Gallery Grid */}
       <motion.div 
-        className="grid grid-cols-4 gap-2 md:gap-3"
+        className="hidden md:grid grid-cols-4 gap-2 md:gap-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -71,14 +121,14 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
           transition={{ duration: 0.3 }}
         >
           {!loadedImages[0] && (
-            <Skeleton className="absolute inset-0 w-full h-[280px] md:h-[420px]" />
+            <Skeleton className="absolute inset-0 w-full h-[420px]" />
           )}
           <img
             src={images[0]}
             alt={title}
             onLoad={() => handleImageLoad(0)}
             className={cn(
-              "w-full h-[280px] md:h-[420px] object-cover transition-all duration-700 group-hover:scale-110",
+              "w-full h-[420px] object-cover transition-all duration-700 group-hover:scale-110",
               loadedImages[0] ? "opacity-100" : "opacity-0"
             )}
           />
@@ -97,7 +147,7 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
               e.stopPropagation();
               openLightbox(0);
             }}
-            className="absolute bottom-4 right-4 bg-card/95 backdrop-blur-sm hover:bg-card px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg flex items-center gap-2 transition-all"
+            className="absolute bottom-4 right-4 bg-card/95 backdrop-blur-sm hover:bg-card px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg flex items-center gap-2 transition-all touch-target"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -110,10 +160,7 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
         {images.slice(1, 5).map((image, index) => (
           <motion.div
             key={index}
-            className={cn(
-              "cursor-pointer group relative overflow-hidden rounded-lg md:rounded-xl",
-              index >= 2 ? "hidden md:block" : ""
-            )}
+            className="cursor-pointer group relative overflow-hidden rounded-lg md:rounded-xl"
             onClick={() => openLightbox(index + 1)}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -121,7 +168,7 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
             whileHover={{ scale: 1.03 }}
           >
             {!loadedImages[index + 1] && (
-              <Skeleton className="absolute inset-0 w-full h-[100px] md:h-[200px]" />
+              <Skeleton className="absolute inset-0 w-full h-[200px]" />
             )}
             <img
               src={image}
@@ -129,7 +176,7 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
               loading="lazy"
               onLoad={() => handleImageLoad(index + 1)}
               className={cn(
-                "w-full h-[100px] md:h-[200px] object-cover transition-all duration-500 group-hover:scale-110",
+                "w-full h-[200px] object-cover transition-all duration-500 group-hover:scale-110",
                 loadedImages[index + 1] ? "opacity-100" : "opacity-0"
               )}
             />
@@ -159,22 +206,22 @@ const ImageGallery = ({ images, title }: ImageGalleryProps) => {
               <X className="w-5 h-5 text-white" />
             </DialogClose>
 
-            {/* Navigation Arrows */}
+            {/* Navigation Arrows - Larger touch targets on mobile */}
             <motion.button
               onClick={goToPrevious}
-              className="absolute left-4 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="absolute left-2 md:left-4 z-50 w-14 h-14 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors touch-target"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ChevronLeft className="w-6 h-6 text-white" />
+              <ChevronLeft className="w-7 h-7 md:w-6 md:h-6 text-white" />
             </motion.button>
             <motion.button
               onClick={goToNext}
-              className="absolute right-4 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="absolute right-2 md:right-4 z-50 w-14 h-14 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors touch-target"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ChevronRight className="w-6 h-6 text-white" />
+              <ChevronRight className="w-7 h-7 md:w-6 md:h-6 text-white" />
             </motion.button>
 
             {/* Main Image with Animation */}

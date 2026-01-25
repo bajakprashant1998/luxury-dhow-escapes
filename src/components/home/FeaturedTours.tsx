@@ -68,21 +68,56 @@ const FeaturedTours = () => {
           </div>
         )}
 
-        {/* Tours Grid */}
+        {/* Tours Grid - Horizontal scroll on mobile */}
         {!isLoading && featuredTours.length > 0 && (
-          <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-50px" }}
-          >
-            {featuredTours.slice(0, 4).map((tour) => (
-              <motion.div key={tour.id} variants={item}>
-                <TourCard tour={tour} />
+          <>
+            {/* Mobile: Horizontal scroll carousel */}
+            <div className="lg:hidden -mx-4 px-4">
+              <motion.div 
+                className="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory scrollbar-hide"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                {featuredTours.slice(0, 4).map((tour, index) => (
+                  <motion.div 
+                    key={tour.id} 
+                    className="flex-shrink-0 w-[85%] sm:w-[75%] snap-start"
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <TourCard tour={tour} />
+                  </motion.div>
+                ))}
               </motion.div>
-            ))}
-          </motion.div>
+              {/* Scroll indicator */}
+              <div className="flex justify-center gap-1.5 mt-2">
+                {featuredTours.slice(0, 4).map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all ${index === 0 ? 'bg-secondary w-4' : 'bg-muted-foreground/30'}`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            {/* Desktop: Grid layout */}
+            <motion.div 
+              className="hidden lg:grid lg:grid-cols-2 gap-6"
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-50px" }}
+            >
+              {featuredTours.slice(0, 4).map((tour) => (
+                <motion.div key={tour.id} variants={item}>
+                  <TourCard tour={tour} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </>
         )}
 
         {/* Empty State */}

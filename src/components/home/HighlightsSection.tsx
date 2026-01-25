@@ -33,23 +33,23 @@ const HighlightsSection = () => {
               Every element of your cruise has been carefully curated to create memories that last a lifetime. From traditional dhows to luxury megayachts.
             </p>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {highlights.map((item, index) => (
                 <motion.div
                   key={index}
-                  className="flex items-start gap-3 p-4 bg-card rounded-xl border border-border hover:border-secondary/30 hover:shadow-lg transition-all duration-300 group"
+                  className="flex items-start gap-3 p-3 md:p-4 bg-card rounded-xl border border-border hover:border-secondary/30 hover:shadow-lg transition-all duration-300 group touch-target"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   whileHover={{ y: -4 }}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0 group-hover:bg-secondary/20 transition-colors">
-                    <item.icon className="w-6 h-6 text-secondary" />
+                  <div className="w-10 md:w-12 h-10 md:h-12 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0 group-hover:bg-secondary/20 transition-colors">
+                    <item.icon className="w-5 md:w-6 h-5 md:h-6 text-secondary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <h3 className="font-semibold text-foreground text-sm md:text-base">{item.title}</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">{item.description}</p>
                   </div>
                 </motion.div>
               ))}
@@ -69,41 +69,41 @@ const HighlightsSection = () => {
           </motion.div>
 
           <motion.div 
-            className="relative"
+            className="relative mt-8 lg:mt-0"
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               <motion.img 
                 src={dubaiMarinaNight} 
                 alt="Dubai Marina Night" 
-                className="rounded-2xl shadow-lg w-full h-48 object-cover"
+                className="rounded-xl md:rounded-2xl shadow-lg w-full h-36 sm:h-48 object-cover"
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.3 }}
               />
               <motion.img 
                 src={yachtInterior} 
                 alt="Yacht Interior" 
-                className="rounded-2xl shadow-lg w-full h-48 object-cover mt-8"
+                className="rounded-xl md:rounded-2xl shadow-lg w-full h-36 sm:h-48 object-cover mt-4 md:mt-8"
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.3 }}
               />
               <motion.img 
                 src={buffetDining} 
                 alt="Buffet Dining" 
-                className="rounded-2xl shadow-lg w-full h-48 object-cover -mt-4"
+                className="rounded-xl md:rounded-2xl shadow-lg w-full h-36 sm:h-48 object-cover -mt-2 md:-mt-4"
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.3 }}
               />
               <motion.div 
-                className="bg-primary rounded-2xl p-6 flex flex-col justify-center items-center text-center"
+                className="bg-primary rounded-xl md:rounded-2xl p-4 md:p-6 flex flex-col justify-center items-center text-center"
                 whileHover={{ scale: 1.03 }}
                 transition={{ duration: 0.3 }}
               >
                 <motion.p 
-                  className="text-5xl font-bold text-secondary mb-2"
+                  className="text-4xl md:text-5xl font-bold text-secondary mb-1 md:mb-2"
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
                   viewport={{ once: true }}
@@ -111,21 +111,21 @@ const HighlightsSection = () => {
                 >
                   10+
                 </motion.p>
-                <p className="text-primary-foreground text-sm">Years of Excellence</p>
+                <p className="text-primary-foreground text-xs md:text-sm">Years of Excellence</p>
               </motion.div>
             </div>
 
-            {/* Floating Badge */}
+            {/* Floating Badge - Hidden on mobile, repositioned */}
             <motion.div 
-              className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-card rounded-xl shadow-xl px-6 py-4 flex items-center gap-3 border border-border"
+              className="hidden sm:flex absolute -bottom-6 left-1/2 -translate-x-1/2 bg-card rounded-xl shadow-xl px-4 md:px-6 py-3 md:py-4 items-center gap-2 md:gap-3 border border-border"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.6 }}
               whileHover={{ y: -4 }}
             >
-              <MapPin className="w-5 h-5 text-secondary" />
-              <span className="font-medium text-foreground">Dubai Marina</span>
+              <MapPin className="w-4 md:w-5 h-4 md:h-5 text-secondary" />
+              <span className="font-medium text-foreground text-sm md:text-base">Dubai Marina</span>
             </motion.div>
           </motion.div>
         </div>

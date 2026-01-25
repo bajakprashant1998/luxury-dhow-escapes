@@ -113,7 +113,7 @@ const TestimonialsCarousel = () => {
             </div>
           </div>
 
-          <div className="bg-card rounded-3xl shadow-xl p-8 md:p-12 pt-16 relative overflow-hidden min-h-[320px]">
+          <div className="bg-card rounded-2xl sm:rounded-3xl shadow-xl p-5 sm:p-8 md:p-12 pt-12 sm:pt-16 relative overflow-hidden min-h-[280px] sm:min-h-[320px]">
             {/* Background Decoration */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             
@@ -176,18 +176,18 @@ const TestimonialsCarousel = () => {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-center gap-4 mt-8">
+          <div className="flex justify-center gap-3 sm:gap-4 mt-6 sm:mt-8">
             <Button
               variant="outline"
               size="icon"
-              className="rounded-full w-12 h-12 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all"
+              className="rounded-full w-10 h-10 sm:w-12 sm:h-12 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
               onClick={() => paginate(-1)}
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             
             {/* Dots */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
@@ -195,10 +195,10 @@ const TestimonialsCarousel = () => {
                     setDirection(index > currentIndex ? 1 : -1);
                     setCurrentIndex(index);
                   }}
-                  className={`transition-all duration-300 rounded-full ${
+                  className={`transition-all duration-300 rounded-full touch-target ${
                     index === currentIndex 
-                      ? "w-8 h-3 bg-secondary" 
-                      : "w-3 h-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      ? "w-6 sm:w-8 h-2.5 sm:h-3 bg-secondary" 
+                      : "w-2.5 sm:w-3 h-2.5 sm:h-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
                   }`}
                 />
               ))}
@@ -207,10 +207,10 @@ const TestimonialsCarousel = () => {
             <Button
               variant="outline"
               size="icon"
-              className="rounded-full w-12 h-12 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all"
+              className="rounded-full w-10 h-10 sm:w-12 sm:h-12 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
               onClick={() => paginate(1)}
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </div>
         </div>

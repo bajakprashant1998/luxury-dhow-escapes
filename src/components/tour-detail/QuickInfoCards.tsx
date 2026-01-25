@@ -55,7 +55,7 @@ const QuickInfoCards = ({ duration, capacity }: QuickInfoCardsProps) => {
 
   return (
     <motion.div 
-      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"
+      className="flex overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-5 gap-3 scrollbar-hide snap-x-mandatory"
       variants={container}
       initial="hidden"
       whileInView="show"
@@ -67,19 +67,19 @@ const QuickInfoCards = ({ duration, capacity }: QuickInfoCardsProps) => {
           variants={item}
           whileHover={{ y: -4, scale: 1.02 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="flex flex-col items-center p-4 bg-card rounded-xl border border-border/50 shadow-sm text-center hover:shadow-lg hover:border-secondary/30 transition-all duration-300 cursor-default group relative overflow-hidden"
+          className="flex-shrink-0 snap-start w-[140px] md:w-auto flex flex-col items-center p-3 md:p-4 bg-card rounded-xl border border-border/50 shadow-sm text-center hover:shadow-lg hover:border-secondary/30 transition-all duration-300 cursor-default group relative overflow-hidden touch-target"
         >
           {/* Gradient Background on Hover */}
           <div className={`absolute inset-0 bg-gradient-to-br ${infoItem.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
           
           <motion.div 
-            className="relative w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-3 group-hover:bg-secondary/20 transition-colors"
+            className="relative w-10 md:w-12 h-10 md:h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-2 md:mb-3 group-hover:bg-secondary/20 transition-colors"
             whileHover={{ rotate: 5 }}
           >
-            <infoItem.icon className="w-6 h-6 text-secondary" />
+            <infoItem.icon className="w-5 md:w-6 h-5 md:h-6 text-secondary" />
           </motion.div>
-          <p className="relative text-xs text-muted-foreground mb-1">{infoItem.label}</p>
-          <p className="relative text-sm font-semibold text-foreground">{infoItem.value}</p>
+          <p className="relative text-[10px] md:text-xs text-muted-foreground mb-0.5 md:mb-1">{infoItem.label}</p>
+          <p className="relative text-xs md:text-sm font-semibold text-foreground">{infoItem.value}</p>
         </motion.div>
       ))}
     </motion.div>
