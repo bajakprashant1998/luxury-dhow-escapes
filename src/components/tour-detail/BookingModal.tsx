@@ -223,24 +223,24 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
     min?: number; 
     max?: number; 
   }) => (
-    <div className="flex-1 min-w-0 border border-border rounded-xl p-3 sm:p-4 transition-all duration-200 hover:border-secondary/50 hover:shadow-sm">
+    <div className="flex-1 min-w-0 border border-border rounded-2xl p-4 transition-all duration-300 hover:border-secondary/50 hover:shadow-md bg-card/50">
       <div className="flex items-center justify-between sm:block">
-        <div className="sm:mb-3">
-          <p className="font-semibold text-foreground text-sm sm:text-base">{label}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">{sublabel}</p>
+        <div className="sm:mb-4">
+          <p className="font-bold text-foreground text-sm sm:text-base">{label}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{sublabel}</p>
         </div>
-        <div className="flex items-center gap-2 sm:gap-0 sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-0 sm:justify-between">
           <button
             onClick={() => onChange(Math.max(min, value - 1))}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed touch-target"
             disabled={value <= min}
           >
             <Minus className="w-4 h-4" />
           </button>
-          <span className="text-lg sm:text-xl font-bold tabular-nums w-8 text-center">{value}</span>
+          <span className="text-xl sm:text-2xl font-bold tabular-nums w-10 text-center">{value}</span>
           <button
             onClick={() => onChange(Math.min(max, value + 1))}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-border flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -251,34 +251,34 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] md:max-w-[600px] p-0 gap-0 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto rounded-xl sm:rounded-2xl">
-        <DialogHeader className="p-4 sm:p-6 pb-0">
+      <DialogContent className="sm:max-w-[520px] md:max-w-[620px] p-0 gap-0 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto rounded-2xl sm:rounded-3xl border-0 shadow-2xl">
+        <DialogHeader className="p-5 sm:p-8 pb-0">
           <DialogTitle className="sr-only">Book Your Experience</DialogTitle>
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
+          {/* Progress Steps - Enhanced */}
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div
                     className={cn(
-                      "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm border-2 transition-all duration-300",
+                      "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-sm sm:text-base transition-all duration-500",
                       currentStep >= step.number
-                        ? "bg-secondary text-secondary-foreground border-secondary scale-110"
-                        : "bg-muted text-muted-foreground border-border"
+                        ? "bg-secondary text-secondary-foreground shadow-lg shadow-secondary/30 scale-105"
+                        : "bg-muted text-muted-foreground border-2 border-border"
                     )}
                   >
-                    {currentStep > step.number ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step.number}
+                    {currentStep > step.number ? <Check className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={3} /> : step.number}
                   </div>
                   <span className={cn(
-                    "text-[10px] sm:text-xs mt-1 transition-colors hidden sm:block",
-                    currentStep >= step.number ? "text-secondary font-medium" : "text-muted-foreground"
+                    "text-[11px] sm:text-xs mt-2 transition-all duration-300 font-medium",
+                    currentStep >= step.number ? "text-secondary" : "text-muted-foreground"
                   )}>{step.label}</span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="w-8 sm:w-16 md:w-24 h-0.5 mx-1 sm:mx-2 bg-border overflow-hidden">
+                  <div className="w-12 sm:w-20 md:w-28 h-1 mx-2 sm:mx-3 bg-muted rounded-full overflow-hidden">
                     <div 
                       className={cn(
-                        "h-full bg-secondary transition-all duration-500",
+                        "h-full bg-secondary rounded-full transition-all duration-700 ease-out",
                         currentStep > step.number ? "w-full" : "w-0"
                       )}
                     />
@@ -289,27 +289,27 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
           </div>
         </DialogHeader>
 
-        <div className="p-4 sm:p-6 pt-2 sm:pt-4">
+        <div className="p-5 sm:p-8 pt-2 sm:pt-4">
           <div className={cn(
-            "transition-all duration-300",
-            isAnimating ? "opacity-0 translate-x-4" : "opacity-100 translate-x-0"
+            "transition-all duration-400 ease-out",
+            isAnimating ? "opacity-0 translate-x-6" : "opacity-100 translate-x-0"
           )}>
             {/* Step 1: Select Tour */}
             {currentStep === 1 && (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-5 sm:space-y-6">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">Choose Your Experience</h2>
-                  <p className="text-sm sm:text-base text-muted-foreground">Select your preferred cruise and date</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Choose Your Experience</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1">Select your preferred cruise and date</p>
                 </div>
 
                 {/* Tour Selection */}
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block">Select Tour *</label>
+                  <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
                   <Select defaultValue={tourTitle}>
-                    <SelectTrigger className="h-11 sm:h-12">
+                    <SelectTrigger className="h-12 sm:h-14 rounded-xl text-sm sm:text-base border-2 border-border focus:border-secondary">
                       <SelectValue placeholder="Choose your cruise experience" />
                     </SelectTrigger>
-                    <SelectContent className="bg-card z-50">
+                    <SelectContent className="bg-card z-50 rounded-xl">
                       <SelectItem value={tourTitle}>{tourTitle}</SelectItem>
                     </SelectContent>
                   </Select>
@@ -317,29 +317,29 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
 
                 {/* Date Selection */}
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block">Preferred Date *</label>
+                  <label className="text-sm font-bold text-foreground mb-2 block">Preferred Date *</label>
                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal h-11 sm:h-12 transition-all text-sm sm:text-base",
+                          "w-full justify-start text-left font-normal h-12 sm:h-14 transition-all text-sm sm:text-base rounded-xl border-2",
                           !date && "text-muted-foreground",
-                          date && "border-secondary/50"
+                          date ? "border-secondary/50 bg-secondary/5" : "border-border"
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">{date ? format(date, "EEE, MMM d, yyyy") : "Select a date"}</span>
+                        <CalendarIcon className="mr-3 h-5 w-5 flex-shrink-0 text-secondary" />
+                        <span className="truncate">{date ? format(date, "EEEE, MMMM d, yyyy") : "Select a date"}</span>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-50 bg-card" align="center" side="bottom">
+                    <PopoverContent className="w-auto p-0 z-50 bg-card rounded-xl border-2 border-border" align="center" side="bottom">
                       <CalendarComponent
                         mode="single"
                         selected={date}
                         onSelect={handleDateSelect}
                         disabled={(d) => d < new Date()}
                         initialFocus
-                        className="pointer-events-auto"
+                        className="pointer-events-auto p-3"
                       />
                     </PopoverContent>
                   </Popover>
@@ -347,8 +347,8 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
 
                 {/* Guest Counters - Stack on mobile */}
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-3 block">Number of Guests *</label>
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <label className="text-sm font-bold text-foreground mb-3 block">Number of Guests *</label>
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <GuestCounter
                       label="Adults"
                       sublabel="12+ years"
@@ -371,66 +371,66 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
                   </div>
                 </div>
 
-                {/* Quick Price Preview */}
-                <div className="bg-muted/50 rounded-xl p-3 sm:p-4 flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-muted-foreground">Estimated Total</span>
-                  <span className="text-lg sm:text-xl font-bold text-foreground">AED {subtotal.toFixed(0)}</span>
+                {/* Quick Price Preview - Enhanced */}
+                <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+                  <span className="text-sm sm:text-base text-muted-foreground font-medium">Estimated Total</span>
+                  <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {subtotal.toFixed(0)}</span>
                 </div>
               </div>
             )}
 
             {/* Step 2: Your Details */}
             {currentStep === 2 && (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-5 sm:space-y-6">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">Your Details</h2>
-                  <p className="text-sm sm:text-base text-muted-foreground">Enter your contact information</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Your Details</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1">Enter your contact information</p>
                 </div>
 
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-semibold text-foreground mb-2 block">Full Name *</label>
+                    <label className="text-sm font-bold text-foreground mb-2 block">Full Name *</label>
                     <Input
                       placeholder="Enter your full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="h-11 sm:h-12"
+                      className="h-12 sm:h-14 rounded-xl border-2 border-border focus:border-secondary text-sm sm:text-base"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-foreground mb-2 block">Email *</label>
+                    <label className="text-sm font-bold text-foreground mb-2 block">Email *</label>
                     <Input
                       type="email"
                       placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-11 sm:h-12"
+                      className="h-12 sm:h-14 rounded-xl border-2 border-border focus:border-secondary text-sm sm:text-base"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-foreground mb-2 block">Phone Number *</label>
+                    <label className="text-sm font-bold text-foreground mb-2 block">Phone Number *</label>
                     <Input
                       type="tel"
                       placeholder="+971 50 123 4567"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="h-11 sm:h-12"
+                      className="h-12 sm:h-14 rounded-xl border-2 border-border focus:border-secondary text-sm sm:text-base"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-foreground mb-2 block">Special Requests</label>
+                    <label className="text-sm font-bold text-foreground mb-2 block">Special Requests</label>
                     <Textarea
                       placeholder="Any dietary requirements, celebrations, or special needs..."
                       value={specialRequests}
                       onChange={(e) => setSpecialRequests(e.target.value)}
-                      rows={2}
-                      className="min-h-[60px] sm:min-h-[80px]"
+                      rows={3}
+                      className="min-h-[80px] sm:min-h-[100px] rounded-xl border-2 border-border focus:border-secondary"
                     />
                   </div>
                 </div>
 
                 {/* Discount Code */}
-                <div className="pt-1 sm:pt-2">
+                <div className="pt-2">
                   <DiscountCodeInput
                     orderAmount={subtotal}
                     tourId={tourId}
@@ -443,141 +443,138 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
 
             {/* Step 3: Confirm */}
             {currentStep === 3 && (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-5 sm:space-y-6">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground">Confirm Booking</h2>
-                  <p className="text-sm sm:text-base text-muted-foreground">Review your booking details</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Confirm Booking</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1">Review your booking details</p>
                 </div>
 
-                <div className="bg-muted/50 rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
-                  <h3 className="font-semibold text-foreground text-sm sm:text-base line-clamp-2">{tourTitle}</h3>
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Date</p>
-                      <p className="font-medium">{date ? format(date, "EEE, MMM d") : "-"}</p>
+                <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 space-y-3">
+                  <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-2">{tourTitle}</h3>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
+                    <div className="bg-card rounded-xl p-3">
+                      <p className="text-muted-foreground text-xs mb-1">Date</p>
+                      <p className="font-semibold">{date ? format(date, "EEE, MMM d") : "-"}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Guests</p>
-                      <p className="font-medium">
+                    <div className="bg-card rounded-xl p-3">
+                      <p className="text-muted-foreground text-xs mb-1">Guests</p>
+                      <p className="font-semibold">
                         {adults} Adult{adults > 1 ? "s" : ""}
                         {children > 0 && `, ${children} Child`}
                         {infants > 0 && `, ${infants} Infant`}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Name</p>
-                      <p className="font-medium truncate">{name}</p>
+                    <div className="bg-card rounded-xl p-3">
+                      <p className="text-muted-foreground text-xs mb-1">Name</p>
+                      <p className="font-semibold truncate">{name}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Email</p>
-                      <p className="font-medium truncate text-xs">{email}</p>
+                    <div className="bg-card rounded-xl p-3">
+                      <p className="text-muted-foreground text-xs mb-1">Email</p>
+                      <p className="font-semibold truncate text-xs">{email}</p>
                     </div>
-                    <div className="col-span-2 sm:col-span-1">
-                      <p className="text-muted-foreground">Phone</p>
-                      <p className="font-medium">{phone}</p>
+                    <div className="col-span-2 bg-card rounded-xl p-3">
+                      <p className="text-muted-foreground text-xs mb-1">Phone</p>
+                      <p className="font-semibold">{phone}</p>
                     </div>
                   </div>
                   {specialRequests && (
-                    <div className="pt-2 border-t border-border">
-                      <p className="text-muted-foreground text-xs">Special Requests</p>
-                      <p className="text-xs sm:text-sm line-clamp-2">{specialRequests}</p>
+                    <div className="pt-3 border-t border-border">
+                      <p className="text-muted-foreground text-xs mb-1">Special Requests</p>
+                      <p className="text-sm line-clamp-2">{specialRequests}</p>
                     </div>
                   )}
                 </div>
 
-                {/* Price Breakdown */}
-                <div className="bg-secondary/10 rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
-                  <div className="flex justify-between text-xs sm:text-sm">
+                {/* Price Breakdown - Enhanced */}
+                <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 rounded-2xl p-4 sm:p-5 space-y-3">
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
                       {adults} adult{adults > 1 ? "s" : ""} × AED {price}
                     </span>
-                    <span>AED {(price * adults).toFixed(0)}</span>
+                    <span className="font-medium">AED {(price * adults).toFixed(0)}</span>
                   </div>
                   {children > 0 && (
-                    <div className="flex justify-between text-xs sm:text-sm">
+                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
                         {children} child{children > 1 ? "ren" : ""} × AED {(price * 0.5).toFixed(0)}
                       </span>
-                      <span>AED {(price * 0.5 * children).toFixed(0)}</span>
+                      <span className="font-medium">AED {(price * 0.5 * children).toFixed(0)}</span>
                     </div>
                   )}
                   {appliedDiscount && discountAmount > 0 && (
-                    <div className="flex justify-between text-xs sm:text-sm text-secondary font-medium">
-                      <span className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
+                    <div className="flex justify-between text-sm text-secondary font-semibold">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4" />
                         Discount ({appliedDiscount.code})
                       </span>
                       <span>- AED {discountAmount.toFixed(0)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center pt-2 border-t border-border">
-                    <span className="font-semibold text-sm sm:text-base">Total</span>
+                  <div className="flex justify-between items-center pt-3 border-t border-secondary/20">
+                    <span className="font-bold text-base">Total</span>
                     <div className="text-right">
                       {discountAmount > 0 && (
-                        <p className="text-xs sm:text-sm text-muted-foreground line-through">AED {subtotal.toFixed(0)}</p>
+                        <p className="text-sm text-muted-foreground line-through">AED {subtotal.toFixed(0)}</p>
                       )}
-                      <span className="text-xl sm:text-2xl font-bold text-foreground">AED {totalPrice.toFixed(0)}</span>
+                      <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {totalPrice.toFixed(0)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Error display */}
                 {submitError && (
-                  <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-xs sm:text-sm text-destructive">
-                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-sm text-destructive">
+                    <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Unable to complete booking</p>
-                      <p className="text-destructive/80">{submitError}</p>
+                      <p className="font-semibold">Unable to complete booking</p>
+                      <p className="text-destructive/80 mt-0.5">{submitError}</p>
                     </div>
                   </div>
                 )}
 
-                <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
+                <p className="text-xs text-muted-foreground text-center leading-relaxed">
                   By confirming, you agree to our terms and conditions. Free cancellation up to 24 hours before the tour.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex gap-2 sm:gap-3 mt-6 sm:mt-8 pb-safe">
+          {/* Navigation Buttons - Enhanced */}
+          <div className="flex gap-3 sm:gap-4 mt-8 sm:mt-10 pb-safe">
             {currentStep > 1 && (
               <Button 
                 variant="outline" 
                 onClick={handleBack} 
                 disabled={isSubmitting}
-                className="flex-1 h-11 sm:h-12 text-sm sm:text-base"
+                className="flex-1 h-12 sm:h-14 text-sm sm:text-base rounded-xl border-2"
               >
-                <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Back
               </Button>
             )}
             {currentStep < 3 ? (
               <Button 
                 onClick={handleNext} 
-                className="flex-1 h-11 sm:h-12 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base"
+                className="flex-1 h-12 sm:h-14 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base rounded-xl font-semibold shadow-lg shadow-secondary/30 transition-all hover:shadow-xl hover:shadow-secondary/40"
               >
-                <span className="hidden sm:inline">Continue to {currentStep === 1 ? "Details" : "Confirm"}</span>
-                <span className="sm:hidden">Next</span>
-                <ArrowRight className="w-4 h-4 ml-1 sm:ml-2" />
+                Continue to {currentStep === 1 ? "Details" : "Confirm"}
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             ) : (
               <Button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting}
-                className="flex-1 h-11 sm:h-12 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base"
+                className="flex-1 h-12 sm:h-14 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base rounded-xl font-semibold shadow-lg shadow-secondary/30 transition-all hover:shadow-xl hover:shadow-secondary/40"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin" />
-                    <span className="hidden sm:inline">Submitting...</span>
-                    <span className="sm:hidden">...</span>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Submitting...
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">Confirm Booking</span>
-                    <span className="sm:hidden">Confirm</span>
-                    <Check className="w-4 h-4 ml-1 sm:ml-2" />
+                    Confirm Booking
+                    <Check className="w-5 h-5 ml-2" />
                   </>
                 )}
               </Button>
