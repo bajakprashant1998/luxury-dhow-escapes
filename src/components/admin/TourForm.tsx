@@ -16,7 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin, Calendar, Clock, Users, Shield, Flame } from "lucide-react";
+import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin, Calendar, Clock, Users, Shield, Flame, RotateCcw } from "lucide-react";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useActiveCategories } from "@/hooks/useCategories";
 import { useActiveLocations } from "@/hooks/useLocations";
@@ -641,11 +641,27 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
 
           {/* Booking Features */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-secondary" />
                 Booking Sidebar Features
               </CardTitle>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    booking_features: defaultBookingFeatures,
+                  }));
+                  toast.success("Booking features reset to defaults");
+                }}
+                className="h-8 gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset to Defaults
+              </Button>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Urgency Banner */}
