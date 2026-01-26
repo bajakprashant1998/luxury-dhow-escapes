@@ -48,7 +48,6 @@ interface BookingModalProps {
   tourTitle: string;
   tourId: string;
   price: number;
-  bookingType?: "per_person" | "full_yacht";
   fullYachtPrice?: number | null;
   capacity?: string;
 }
@@ -65,10 +64,12 @@ const BookingModal = ({
   tourTitle, 
   tourId, 
   price,
-  bookingType = "per_person",
   fullYachtPrice,
   capacity
 }: BookingModalProps) => {
+  // Derive booking type from tour data - no toggle needed
+  const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
+  const bookingType = isFullYacht ? "full_yacht" : "per_person";
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,7 +92,6 @@ const BookingModal = ({
   // Discount state
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
 
-  const isFullYacht = bookingType === "full_yacht" && fullYachtPrice;
   const subtotal = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
   
   const calculateDiscountAmount = () => {
