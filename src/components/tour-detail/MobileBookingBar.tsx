@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ChevronUp, Ticket, Ship } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { MessageCircle, ChevronUp, Ship } from "lucide-react";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
 
@@ -27,13 +26,14 @@ const MobileBookingBar = ({
 }: MobileBookingBarProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [bookingType, setBookingType] = useState<"per_person" | "full_yacht">("per_person");
   const { whatsappLinkWithGreeting } = useContactConfig();
   const discount = Math.round((1 - price / originalPrice) * 100);
 
-  const showBookingTypeToggle = fullYachtPrice && fullYachtPrice > 0;
-  const displayPrice = bookingType === "full_yacht" && fullYachtPrice ? fullYachtPrice : price;
-  const priceLabel = bookingType === "full_yacht" 
+  // Derive booking type from tour data - no toggle needed
+  const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
+  const bookingType = isFullYacht ? "full_yacht" : "per_person";
+  const displayPrice = isFullYacht ? fullYachtPrice : price;
+  const priceLabel = isFullYacht 
     ? "per yacht" 
     : (pricingType === "per_hour" ? "per hour" : "per person");
 
@@ -56,35 +56,13 @@ const MobileBookingBar = ({
               className="border-b border-border overflow-hidden"
             >
               <div className="p-4 space-y-3 bg-muted/30">
-                {/* Booking Type Toggle */}
-                {showBookingTypeToggle && (
-                  <div className="pb-3 border-b border-border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-2">Booking Type</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setBookingType("per_person")}
-                        className={cn(
-                          "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                          bookingType === "per_person"
-                            ? "bg-secondary text-secondary-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        )}
-                      >
-                        <Ticket className="w-4 h-4" />
-                        Per Person
-                      </button>
-                      <button
-                        onClick={() => setBookingType("full_yacht")}
-                        className={cn(
-                          "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all",
-                          bookingType === "full_yacht"
-                            ? "bg-secondary text-secondary-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        )}
-                      >
-                        <Ship className="w-4 h-4" />
-                        Full Yacht
-                      </button>
+                {/* Show charter info if full yacht */}
+                {isFullYacht && (
+                  <div className="pb-3 border-b border-border flex items-center gap-2">
+                    <Ship className="w-5 h-5 text-secondary" />
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Private Charter</p>
+                      {capacity && <p className="text-xs text-muted-foreground">{capacity}</p>}
                     </div>
                   </div>
                 )}
@@ -132,12 +110,12 @@ const MobileBookingBar = ({
                 >
                   AED {displayPrice.toLocaleString()}
                 </motion.span>
-                {bookingType === "per_person" && originalPrice > price && (
+                {!isFullYacht && originalPrice > price && (
                   <span className="text-sm text-muted-foreground line-through">AED {originalPrice}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {bookingType === "per_person" && discount > 0 && (
+                {!isFullYacht && discount > 0 && (
                   <motion.span 
                     className="text-xs font-semibold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full"
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -147,7 +125,7 @@ const MobileBookingBar = ({
                     {discount}% OFF
                   </motion.span>
                 )}
-                {bookingType === "full_yacht" && (
+                {isFullYacht && (
                   <span className="text-xs font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
                     Private Charter
                   </span>
@@ -188,7 +166,6 @@ const MobileBookingBar = ({
         tourTitle={tourTitle}
         tourId={tourId}
         price={price}
-        bookingType={bookingType}
         fullYachtPrice={fullYachtPrice}
         capacity={capacity}
       />
