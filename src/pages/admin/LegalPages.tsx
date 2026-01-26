@@ -561,6 +561,21 @@ const LegalPages = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Footer Credit */}
+        <div className="pt-6 border-t border-border/50">
+          <p className="text-center text-sm text-muted-foreground">
+            Created and maintained by{" "}
+            <a
+              href="https://www.dibull.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-secondary hover:text-secondary/80 transition-colors font-medium"
+            >
+              Dibull
+            </a>
+          </p>
+        </div>
       </div>
     </AdminLayout>
   );
