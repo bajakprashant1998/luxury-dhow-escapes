@@ -17,6 +17,9 @@ const Gallery = lazy(() => import("./pages/Gallery"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Auth = lazy(() => import("./pages/Auth"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const CancellationPolicy = lazy(() => import("./pages/CancellationPolicy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages - lazy load entire admin section
@@ -35,6 +38,7 @@ const AdminCustomers = lazy(() => import("./pages/admin/Customers"));
 const AdminDiscounts = lazy(() => import("./pages/admin/Discounts"));
 const AdminUploadTourImages = lazy(() => import("./pages/admin/UploadTourImages"));
 const AdminActivityLog = lazy(() => import("./pages/admin/ActivityLog"));
+const AdminLegalPages = lazy(() => import("./pages/admin/LegalPages"));
 
 // RequireSession must be loaded synchronously as it's a wrapper component
 import RequireSession from "./components/admin/RequireSession";
@@ -79,6 +83,9 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/cancellation-policy" element={<CancellationPolicy />} />
             {/* Admin Routes */}
             <Route
               path="/admin"
@@ -197,6 +204,14 @@ const App = () => (
               element={
                 <RequireSession>
                   <AdminActivityLog />
+                </RequireSession>
+              }
+            />
+            <Route
+              path="/admin/legal-pages"
+              element={
+                <RequireSession>
+                  <AdminLegalPages />
                 </RequireSession>
               }
             />

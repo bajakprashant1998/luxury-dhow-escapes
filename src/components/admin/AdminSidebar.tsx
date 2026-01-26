@@ -18,6 +18,7 @@ import {
   Percent,
   Globe,
   History,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +48,7 @@ const navItems: NavItem[] = [
   { title: "Customers", href: "/admin/customers", icon: Users },
   { title: "Discounts", href: "/admin/discounts", icon: Percent },
   { title: "Activity Log", href: "/admin/activity-log", icon: History },
+  { title: "Legal Pages", href: "/admin/legal-pages", icon: Scale },
   {
     title: "Settings",
     icon: Settings,

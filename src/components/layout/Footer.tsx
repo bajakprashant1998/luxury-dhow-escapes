@@ -320,15 +320,15 @@ const Footer = () => {
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
-            <a href="#" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
+            <Link to="/privacy-policy" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
               Privacy Policy
-            </a>
-            <a href="#" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
+            </Link>
+            <Link to="/terms-of-service" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
               Terms of Service
-            </a>
-            <a href="#" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
+            </Link>
+            <Link to="/cancellation-policy" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
               Cancellation
-            </a>
+            </Link>
           </div>
         </div>
       </div>
