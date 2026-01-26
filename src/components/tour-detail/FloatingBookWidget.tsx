@@ -9,9 +9,10 @@ interface FloatingBookWidgetProps {
   originalPrice: number;
   tourTitle: string;
   onBookClick?: () => void;
+  pricingType?: "per_person" | "per_hour";
 }
 
-const FloatingBookWidget = ({ price, originalPrice, tourTitle, onBookClick }: FloatingBookWidgetProps) => {
+const FloatingBookWidget = ({ price, originalPrice, tourTitle, onBookClick, pricingType = "per_person" }: FloatingBookWidgetProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const { whatsappLinkWithGreeting } = useContactConfig();
 

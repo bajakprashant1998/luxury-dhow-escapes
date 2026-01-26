@@ -54,6 +54,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
     long_description: tour?.long_description || "",
     price: tour?.price?.toString() || "",
     original_price: tour?.original_price?.toString() || "",
+    pricing_type: (tour as any)?.pricing_type || "per_person",
     duration: tour?.duration || "",
     capacity: tour?.capacity || "",
     category: tour?.category || "dhow",
@@ -212,6 +213,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
         long_description: formData.long_description || null,
         price: parseFloat(formData.price) || 0,
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
+        pricing_type: formData.pricing_type,
         duration: formData.duration || null,
         capacity: formData.capacity || null,
         category: formData.category,
@@ -327,7 +329,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               <CardTitle>Pricing & Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="price">Price (AED) *</Label>
                   <Input
@@ -348,6 +350,21 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                     onChange={(e) => setFormData((prev) => ({ ...prev, original_price: e.target.value }))}
                     placeholder="0"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pricing Type</Label>
+                  <Select
+                    value={formData.pricing_type}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, pricing_type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select pricing type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="per_person">Per Person</SelectItem>
+                      <SelectItem value="per_hour">Per Hour</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration">Duration</Label>

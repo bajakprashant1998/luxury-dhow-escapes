@@ -32,9 +32,10 @@ interface BookingSidebarProps {
   reviewCount: number;
   tourTitle: string;
   tourId: string;
+  pricingType?: "per_person" | "per_hour";
 }
 
-const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle, tourId }: BookingSidebarProps) => {
+const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle, tourId, pricingType = "per_person" }: BookingSidebarProps) => {
   const [date, setDate] = useState<Date>();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
@@ -116,7 +117,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
               <span className="text-muted-foreground line-through text-lg">AED {originalPrice}</span>
             )}
           </div>
-          <p className="text-muted-foreground text-sm">per person</p>
+          <p className="text-muted-foreground text-sm">{pricingType === "per_hour" ? "per hour" : "per person"}</p>
         </motion.div>
 
         {/* Date Picker */}

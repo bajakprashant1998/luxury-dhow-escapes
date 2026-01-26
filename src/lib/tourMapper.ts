@@ -23,6 +23,7 @@ export interface Tour {
   category: "dhow-cruise" | "yacht-shared" | "yacht-private" | "megayacht";
   capacity?: string;
   featured: boolean;
+  pricingType: "per_person" | "per_hour";
 }
 
 type DbTour = Tables<"tours">;
@@ -51,6 +52,7 @@ export function mapDbTourToTour(dbTour: DbTour): Tour {
     category: dbTour.category as Tour["category"],
     capacity: dbTour.capacity || undefined,
     featured: dbTour.featured || false,
+    pricingType: ((dbTour as any).pricing_type as Tour["pricingType"]) || "per_person",
   };
 }
 

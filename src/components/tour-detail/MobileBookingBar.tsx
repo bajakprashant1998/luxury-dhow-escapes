@@ -10,9 +10,10 @@ interface MobileBookingBarProps {
   originalPrice: number;
   tourTitle?: string;
   tourId?: string;
+  pricingType?: "per_person" | "per_hour";
 }
 
-const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "" }: MobileBookingBarProps) => {
+const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "", pricingType = "per_person" }: MobileBookingBarProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const { whatsappLinkWithGreeting } = useContactConfig();
@@ -95,7 +96,7 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "" }:
                     {discount}% OFF
                   </motion.span>
                 )}
-                <span className="text-xs text-muted-foreground">per person</span>
+                <span className="text-xs text-muted-foreground">{pricingType === "per_hour" ? "per hour" : "per person"}</span>
               </div>
             </div>
 

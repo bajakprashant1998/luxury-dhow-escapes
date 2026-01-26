@@ -485,6 +485,7 @@ const TourDetail = () => {
                 reviewCount={tour.reviewCount}
                 tourTitle={tour.title}
                 tourId={tour.id}
+                pricingType={tour.pricingType}
               />
             </div>
           </div>
@@ -532,6 +533,7 @@ const TourDetail = () => {
         originalPrice={tour.originalPrice}
         tourTitle={tour.title}
         tourId={tour.id}
+        pricingType={tour.pricingType}
       />
 
 

@@ -480,6 +480,7 @@ export type Database = {
           meta_title: string | null
           original_price: number | null
           price: number
+          pricing_type: string | null
           rating: number | null
           review_count: number | null
           slug: string
@@ -513,6 +514,7 @@ export type Database = {
           meta_title?: string | null
           original_price?: number | null
           price: number
+          pricing_type?: string | null
           rating?: number | null
           review_count?: number | null
           slug: string
@@ -546,6 +548,7 @@ export type Database = {
           meta_title?: string | null
           original_price?: number | null
           price?: number
+          pricing_type?: string | null
           rating?: number | null
           review_count?: number | null
           slug?: string

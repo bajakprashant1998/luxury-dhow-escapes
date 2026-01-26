@@ -104,7 +104,7 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
                 )}
               </div>
               <p className="text-muted-foreground text-[10px] sm:text-xs">
-                {tour.category === "yacht-private" ? "per charter" : "per person"}
+                {tour.pricingType === "per_hour" ? "per hour" : "per person"}
               </p>
             </div>
             <Button 
