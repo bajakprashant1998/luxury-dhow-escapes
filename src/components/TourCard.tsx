@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
-import { Star, Clock, Users, ChevronRight, Ship } from "lucide-react";
+import { Star, Clock, Users, ChevronRight, Ship, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Tour } from "@/lib/tourMapper";
@@ -19,6 +19,7 @@ const categoryLabels: Record<string, string> = {
 
 const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
   const discount = Math.round((1 - tour.price / tour.originalPrice) * 100);
+  const isPrivateCharter = tour.fullYachtPrice && tour.fullYachtPrice > 0;
 
   return (
     <Link to={`/tours/${tour.slug}`} className="group block">
@@ -37,6 +38,13 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
           {discount > 0 && (
             <div className="absolute top-4 left-4 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold z-10">
               {discount}% OFF
+            </div>
+          )}
+          {/* Private Charter Badge */}
+          {isPrivateCharter && (
+            <div className="absolute top-4 right-4 bg-secondary text-secondary-foreground px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+              <Ship className="w-3 h-3" />
+              Private
             </div>
           )}
           {/* Category Badge */}
@@ -95,17 +103,32 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
           {/* Price & CTA */}
           <div className={`flex items-end justify-between pt-3 sm:pt-4 border-t border-border mt-auto`}>
             <div>
-              <div className="flex items-baseline gap-1.5 sm:gap-2">
-                <span className="text-lg sm:text-xl font-bold text-foreground">AED {tour.price.toLocaleString()}</span>
-                {tour.originalPrice > tour.price && (
-                  <span className="text-muted-foreground line-through text-xs sm:text-sm">
-                    AED {tour.originalPrice.toLocaleString()}
-                  </span>
-                )}
-              </div>
-              <p className="text-muted-foreground text-[10px] sm:text-xs">
-                {tour.pricingType === "per_hour" ? "per hour" : "per person"}
-              </p>
+              {isPrivateCharter ? (
+                <>
+                  <div className="flex items-baseline gap-1.5 sm:gap-2">
+                    <span className="text-lg sm:text-xl font-bold text-foreground">AED {tour.fullYachtPrice!.toLocaleString()}</span>
+                  </div>
+                  <p className="text-secondary text-[10px] sm:text-xs font-medium flex items-center gap-1">
+                    <Ship className="w-3 h-3" />
+                    per yacht
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-1.5 sm:gap-2">
+                    <span className="text-lg sm:text-xl font-bold text-foreground">AED {tour.price.toLocaleString()}</span>
+                    {tour.originalPrice > tour.price && (
+                      <span className="text-muted-foreground line-through text-xs sm:text-sm">
+                        AED {tour.originalPrice.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground text-[10px] sm:text-xs flex items-center gap-1">
+                    <Ticket className="w-3 h-3" />
+                    {tour.pricingType === "per_hour" ? "per hour" : "per person"}
+                  </p>
+                </>
+              )}
             </div>
             <Button 
               variant="ghost" 
