@@ -66,6 +66,7 @@ export type Database = {
         Row: {
           adults: number
           booking_date: string
+          booking_type: string | null
           children: number
           created_at: string
           customer_email: string
@@ -84,6 +85,7 @@ export type Database = {
         Insert: {
           adults?: number
           booking_date: string
+          booking_type?: string | null
           children?: number
           created_at?: string
           customer_email: string
@@ -102,6 +104,7 @@ export type Database = {
         Update: {
           adults?: number
           booking_date?: string
+          booking_type?: string | null
           children?: number
           created_at?: string
           customer_email?: string
@@ -465,6 +468,7 @@ export type Database = {
           excluded: string[] | null
           faqs: Json | null
           featured: boolean | null
+          full_yacht_price: number | null
           gallery: string[] | null
           gallery_data: Json | null
           highlights: string[] | null
@@ -499,6 +503,7 @@ export type Database = {
           excluded?: string[] | null
           faqs?: Json | null
           featured?: boolean | null
+          full_yacht_price?: number | null
           gallery?: string[] | null
           gallery_data?: Json | null
           highlights?: string[] | null
@@ -533,6 +538,7 @@ export type Database = {
           excluded?: string[] | null
           faqs?: Json | null
           featured?: boolean | null
+          full_yacht_price?: number | null
           gallery?: string[] | null
           gallery_data?: Json | null
           highlights?: string[] | null

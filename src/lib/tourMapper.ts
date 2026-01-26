@@ -24,6 +24,7 @@ export interface Tour {
   capacity?: string;
   featured: boolean;
   pricingType: "per_person" | "per_hour";
+  fullYachtPrice: number | null;
 }
 
 type DbTour = Tables<"tours">;
@@ -53,6 +54,7 @@ export function mapDbTourToTour(dbTour: DbTour): Tour {
     capacity: dbTour.capacity || undefined,
     featured: dbTour.featured || false,
     pricingType: ((dbTour as any).pricing_type as Tour["pricingType"]) || "per_person",
+    fullYachtPrice: (dbTour as any).full_yacht_price ? Number((dbTour as any).full_yacht_price) : null,
   };
 }
 

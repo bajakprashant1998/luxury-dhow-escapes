@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ChevronUp } from "lucide-react";
+import { MessageCircle, ChevronUp, Ticket, Ship } from "lucide-react";
+import { cn } from "@/lib/utils";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
 
@@ -11,13 +12,30 @@ interface MobileBookingBarProps {
   tourTitle?: string;
   tourId?: string;
   pricingType?: "per_person" | "per_hour";
+  fullYachtPrice?: number | null;
+  capacity?: string;
 }
 
-const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "", pricingType = "per_person" }: MobileBookingBarProps) => {
+const MobileBookingBar = ({ 
+  price, 
+  originalPrice, 
+  tourTitle = "", 
+  tourId = "", 
+  pricingType = "per_person",
+  fullYachtPrice,
+  capacity
+}: MobileBookingBarProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [bookingType, setBookingType] = useState<"per_person" | "full_yacht">("per_person");
   const { whatsappLinkWithGreeting } = useContactConfig();
   const discount = Math.round((1 - price / originalPrice) * 100);
+
+  const showBookingTypeToggle = fullYachtPrice && fullYachtPrice > 0;
+  const displayPrice = bookingType === "full_yacht" && fullYachtPrice ? fullYachtPrice : price;
+  const priceLabel = bookingType === "full_yacht" 
+    ? "per yacht" 
+    : (pricingType === "per_hour" ? "per hour" : "per person");
 
   return (
     <>
@@ -38,6 +56,38 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "", p
               className="border-b border-border overflow-hidden"
             >
               <div className="p-4 space-y-3 bg-muted/30">
+                {/* Booking Type Toggle */}
+                {showBookingTypeToggle && (
+                  <div className="pb-3 border-b border-border">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">Booking Type</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setBookingType("per_person")}
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all",
+                          bookingType === "per_person"
+                            ? "bg-secondary text-secondary-foreground"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                      >
+                        <Ticket className="w-4 h-4" />
+                        Per Person
+                      </button>
+                      <button
+                        onClick={() => setBookingType("full_yacht")}
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all",
+                          bookingType === "full_yacht"
+                            ? "bg-secondary text-secondary-foreground"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                      >
+                        <Ship className="w-4 h-4" />
+                        Full Yacht
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <span className="w-2 h-2 rounded-full bg-secondary" />
                   <span className="text-muted-foreground">Instant confirmation</span>
@@ -75,18 +125,19 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "", p
               <div className="flex items-baseline gap-2">
                 <motion.span 
                   className="text-xl font-bold text-foreground"
-                  initial={{ scale: 1 }}
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 0.3, delay: 1 }}
+                  key={displayPrice}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  AED {price}
+                  AED {displayPrice.toLocaleString()}
                 </motion.span>
-                {originalPrice > price && (
+                {bookingType === "per_person" && originalPrice > price && (
                   <span className="text-sm text-muted-foreground line-through">AED {originalPrice}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {discount > 0 && (
+                {bookingType === "per_person" && discount > 0 && (
                   <motion.span 
                     className="text-xs font-semibold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full"
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -96,7 +147,12 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "", p
                     {discount}% OFF
                   </motion.span>
                 )}
-                <span className="text-xs text-muted-foreground">{pricingType === "per_hour" ? "per hour" : "per person"}</span>
+                {bookingType === "full_yacht" && (
+                  <span className="text-xs font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
+                    Private Charter
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">{priceLabel}</span>
               </div>
             </div>
 
@@ -132,6 +188,9 @@ const MobileBookingBar = ({ price, originalPrice, tourTitle = "", tourId = "", p
         tourTitle={tourTitle}
         tourId={tourId}
         price={price}
+        bookingType={bookingType}
+        fullYachtPrice={fullYachtPrice}
+        capacity={capacity}
       />
     </>
   );

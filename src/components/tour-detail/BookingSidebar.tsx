@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { 
   Calendar, 
@@ -12,7 +12,10 @@ import {
   Plus,
   CalendarIcon,
   Flame,
-  Sparkles
+  Sparkles,
+  Ticket,
+  Ship,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
 
@@ -33,18 +37,35 @@ interface BookingSidebarProps {
   tourTitle: string;
   tourId: string;
   pricingType?: "per_person" | "per_hour";
+  fullYachtPrice?: number | null;
+  capacity?: string;
 }
 
-const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle, tourId, pricingType = "per_person" }: BookingSidebarProps) => {
+const BookingSidebar = ({ 
+  price, 
+  originalPrice, 
+  duration, 
+  reviewCount, 
+  tourTitle, 
+  tourId, 
+  pricingType = "per_person",
+  fullYachtPrice,
+  capacity
+}: BookingSidebarProps) => {
   const [date, setDate] = useState<Date>();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [bookingType, setBookingType] = useState<"per_person" | "full_yacht">("per_person");
   const { phone, phoneFormatted, whatsappLinkWithGreeting } = useContactConfig();
 
   const discount = Math.round((1 - price / originalPrice) * 100);
-  const totalPrice = price * adults + price * 0.7 * children;
+  
+  // Calculate total based on booking type
+  const totalPrice = bookingType === "full_yacht" && fullYachtPrice
+    ? fullYachtPrice
+    : price * adults + price * 0.7 * children;
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -52,6 +73,8 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
       setIsCalendarOpen(false);
     }
   };
+
+  const showBookingTypeToggle = fullYachtPrice && fullYachtPrice > 0;
 
   return (
     <motion.div 
@@ -87,6 +110,49 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
           </span>
         </motion.div>
 
+        {/* Booking Type Toggle */}
+        {showBookingTypeToggle && (
+          <motion.div 
+            className="mb-6"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <label className="text-sm font-medium text-foreground mb-3 block">Select Booking Type</label>
+            <ToggleGroup 
+              type="single" 
+              value={bookingType} 
+              onValueChange={(value) => value && setBookingType(value as "per_person" | "full_yacht")}
+              className="grid grid-cols-2 gap-2 w-full"
+            >
+              <ToggleGroupItem 
+                value="per_person" 
+                className={cn(
+                  "flex flex-col items-center gap-1 py-3 px-4 h-auto rounded-xl border-2 transition-all",
+                  bookingType === "per_person" 
+                    ? "border-secondary bg-secondary/10 text-secondary" 
+                    : "border-border hover:border-secondary/50"
+                )}
+              >
+                <Ticket className="w-5 h-5" />
+                <span className="text-xs font-semibold">Per Person</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem 
+                value="full_yacht" 
+                className={cn(
+                  "flex flex-col items-center gap-1 py-3 px-4 h-auto rounded-xl border-2 transition-all",
+                  bookingType === "full_yacht" 
+                    ? "border-secondary bg-secondary/10 text-secondary" 
+                    : "border-border hover:border-secondary/50"
+                )}
+              >
+                <Ship className="w-5 h-5" />
+                <span className="text-xs font-semibold">Full Yacht</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </motion.div>
+        )}
+
         {/* Price */}
         <motion.div 
           className="mb-6 relative"
@@ -94,30 +160,85 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          {discount > 0 && (
-            <motion.span 
-              className="inline-block bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold mb-2"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 400, delay: 0.5 }}
-            >
-              {discount}% OFF
-            </motion.span>
-          )}
-          <div className="flex items-baseline gap-2">
-            <motion.span 
-              className="text-3xl font-bold text-foreground"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              AED {price}
-            </motion.span>
-            {originalPrice > price && (
-              <span className="text-muted-foreground line-through text-lg">AED {originalPrice}</span>
+          <AnimatePresence mode="wait">
+            {bookingType === "full_yacht" && fullYachtPrice ? (
+              <motion.div
+                key="full-yacht-price"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <motion.span 
+                  className="inline-block bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-semibold mb-2"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  Private Charter
+                </motion.span>
+                <div className="flex items-baseline gap-2">
+                  <motion.span 
+                    className="text-3xl font-bold text-foreground"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                  >
+                    AED {fullYachtPrice.toLocaleString()}
+                  </motion.span>
+                </div>
+                <p className="text-muted-foreground text-sm">per yacht (entire charter)</p>
+                {capacity && (
+                  <div className="mt-3 p-3 bg-secondary/10 rounded-xl space-y-1.5">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Users className="w-4 h-4 text-secondary" />
+                      <span className="font-medium">Yacht Capacity: {capacity}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="w-4 h-4 text-secondary" />
+                      <span>Private experience</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="w-4 h-4 text-secondary" />
+                      <span>Exclusive use</span>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="per-person-price"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {discount > 0 && (
+                  <motion.span 
+                    className="inline-block bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold mb-2"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, delay: 0.5 }}
+                  >
+                    {discount}% OFF
+                  </motion.span>
+                )}
+                <div className="flex items-baseline gap-2">
+                  <motion.span 
+                    className="text-3xl font-bold text-foreground"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    AED {price}
+                  </motion.span>
+                  {originalPrice > price && (
+                    <span className="text-muted-foreground line-through text-lg">AED {originalPrice}</span>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-sm">{pricingType === "per_hour" ? "per hour" : "per person"}</p>
+              </motion.div>
             )}
-          </div>
-          <p className="text-muted-foreground text-sm">{pricingType === "per_hour" ? "per hour" : "per person"}</p>
+          </AnimatePresence>
         </motion.div>
 
         {/* Date Picker */}
@@ -149,82 +270,92 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
           </Popover>
         </div>
 
-        {/* Guest Selectors */}
-        <div className="mb-6 space-y-3 relative">
-          <label className="text-sm font-medium text-foreground block">Guests</label>
-          
-          {/* Adults */}
-          <motion.div 
-            className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
-            whileHover={{ scale: 1.01 }}
-          >
-            <div>
-              <p className="font-medium text-sm">Adults</p>
-              <p className="text-xs text-muted-foreground">Age 12+</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <motion.button
-                onClick={() => setAdults(Math.max(1, adults - 1))}
-                className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50"
-                disabled={adults <= 1}
-                whileTap={{ scale: 0.9 }}
+        {/* Guest Selectors - Only show for per_person booking */}
+        <AnimatePresence>
+          {bookingType === "per_person" && (
+            <motion.div 
+              className="mb-6 space-y-3 relative"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <label className="text-sm font-medium text-foreground block">Guests</label>
+              
+              {/* Adults */}
+              <motion.div 
+                className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
+                whileHover={{ scale: 1.01 }}
               >
-                <Minus className="w-4 h-4" />
-              </motion.button>
-              <motion.span 
-                className="w-6 text-center font-semibold"
-                key={adults}
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-              >
-                {adults}
-              </motion.span>
-              <motion.button
-                onClick={() => setAdults(Math.min(10, adults + 1))}
-                className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all"
-                whileTap={{ scale: 0.9 }}
-              >
-                <Plus className="w-4 h-4" />
-              </motion.button>
-            </div>
-          </motion.div>
+                <div>
+                  <p className="font-medium text-sm">Adults</p>
+                  <p className="text-xs text-muted-foreground">Age 12+</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    onClick={() => setAdults(Math.max(1, adults - 1))}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50"
+                    disabled={adults <= 1}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </motion.button>
+                  <motion.span 
+                    className="w-6 text-center font-semibold"
+                    key={adults}
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                  >
+                    {adults}
+                  </motion.span>
+                  <motion.button
+                    onClick={() => setAdults(Math.min(10, adults + 1))}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all"
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
 
-          {/* Children */}
-          <motion.div 
-            className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
-            whileHover={{ scale: 1.01 }}
-          >
-            <div>
-              <p className="font-medium text-sm">Children</p>
-              <p className="text-xs text-muted-foreground">Age 2-11 (30% off)</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <motion.button
-                onClick={() => setChildren(Math.max(0, children - 1))}
-                className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50"
-                disabled={children <= 0}
-                whileTap={{ scale: 0.9 }}
+              {/* Children */}
+              <motion.div 
+                className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
+                whileHover={{ scale: 1.01 }}
               >
-                <Minus className="w-4 h-4" />
-              </motion.button>
-              <motion.span 
-                className="w-6 text-center font-semibold"
-                key={children}
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-              >
-                {children}
-              </motion.span>
-              <motion.button
-                onClick={() => setChildren(Math.min(6, children + 1))}
-                className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all"
-                whileTap={{ scale: 0.9 }}
-              >
-                <Plus className="w-4 h-4" />
-              </motion.button>
-            </div>
-          </motion.div>
-        </div>
+                <div>
+                  <p className="font-medium text-sm">Children</p>
+                  <p className="text-xs text-muted-foreground">Age 2-11 (30% off)</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    onClick={() => setChildren(Math.max(0, children - 1))}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50"
+                    disabled={children <= 0}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </motion.button>
+                  <motion.span 
+                    className="w-6 text-center font-semibold"
+                    key={children}
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                  >
+                    {children}
+                  </motion.span>
+                  <motion.button
+                    onClick={() => setChildren(Math.min(6, children + 1))}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all"
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Total Price */}
         <motion.div 
@@ -238,7 +369,7 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
           >
-            AED {totalPrice.toFixed(0)}
+            AED {totalPrice.toLocaleString()}
           </motion.span>
         </motion.div>
 
@@ -340,6 +471,9 @@ const BookingSidebar = ({ price, originalPrice, duration, reviewCount, tourTitle
         tourTitle={tourTitle}
         tourId={tourId}
         price={price}
+        bookingType={bookingType}
+        fullYachtPrice={fullYachtPrice}
+        capacity={capacity}
       />
     </motion.div>
   );

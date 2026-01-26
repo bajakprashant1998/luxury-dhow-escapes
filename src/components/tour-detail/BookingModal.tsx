@@ -9,7 +9,9 @@ import {
   Check, 
   Loader2,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Ship,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +48,9 @@ interface BookingModalProps {
   tourTitle: string;
   tourId: string;
   price: number;
+  bookingType?: "per_person" | "full_yacht";
+  fullYachtPrice?: number | null;
+  capacity?: string;
 }
 
 const steps = [
@@ -54,7 +59,16 @@ const steps = [
   { number: 3, label: "Confirm" },
 ];
 
-const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModalProps) => {
+const BookingModal = ({ 
+  isOpen, 
+  onClose, 
+  tourTitle, 
+  tourId, 
+  price,
+  bookingType = "per_person",
+  fullYachtPrice,
+  capacity
+}: BookingModalProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +91,8 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
   // Discount state
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
 
-  const subtotal = price * adults + price * 0.5 * children;
+  const isFullYacht = bookingType === "full_yacht" && fullYachtPrice;
+  const subtotal = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
   
   const calculateDiscountAmount = () => {
     if (!appliedDiscount) return 0;
@@ -156,20 +171,25 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
     setSubmitError(null);
     
     try {
-      const { data: bookingData, error } = await supabase.from("bookings").insert({
+      const bookingData: any = {
         tour_id: tourId,
         tour_name: tourTitle,
         booking_date: format(date!, "yyyy-MM-dd"),
-        adults,
-        children,
-        infants,
+        adults: isFullYacht ? 0 : adults,
+        children: isFullYacht ? 0 : children,
+        infants: isFullYacht ? 0 : infants,
         customer_name: name.trim(),
         customer_email: email.trim(),
         customer_phone: phone.trim(),
-        special_requests: specialRequests.trim() || null,
+        special_requests: isFullYacht 
+          ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}] ${specialRequests.trim() || ''}`
+          : (specialRequests.trim() || null),
         total_price: totalPrice,
         status: "pending",
-      }).select().single();
+        booking_type: bookingType,
+      };
+
+      const { data: savedBooking, error } = await supabase.from("bookings").insert(bookingData).select().single();
 
       if (error) {
         console.error("Booking error:", error);
@@ -180,8 +200,8 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
       }
 
       // Send confirmation email (don't block on failure)
-      if (bookingData?.id) {
-        sendBookingEmail(bookingData.id, "pending")
+      if (savedBooking?.id) {
+        sendBookingEmail(savedBooking.id, "pending")
           .then(result => {
             if (!result.success) {
               console.warn("Email notification failed, but booking was created");
@@ -302,6 +322,21 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
                   <p className="text-sm sm:text-base text-muted-foreground mt-1">Select your preferred cruise and date</p>
                 </div>
 
+                {/* Full Yacht Badge */}
+                {isFullYacht && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/10 border border-secondary/30 rounded-2xl">
+                    <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
+                      <Ship className="w-6 h-6 text-secondary" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground">Full Yacht Charter</p>
+                      <p className="text-sm text-muted-foreground">
+                        Private experience {capacity && `• ${capacity}`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Tour Selection */}
                 <div>
                   <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
@@ -345,36 +380,40 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
                   </Popover>
                 </div>
 
-                {/* Guest Counters - Stack on mobile */}
-                <div>
-                  <label className="text-sm font-bold text-foreground mb-3 block">Number of Guests *</label>
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <GuestCounter
-                      label="Adults"
-                      sublabel="12+ years"
-                      value={adults}
-                      onChange={setAdults}
-                      min={1}
-                    />
-                    <GuestCounter
-                      label="Children"
-                      sublabel="4-11 yrs • 50% off"
-                      value={children}
-                      onChange={setChildren}
-                    />
-                    <GuestCounter
-                      label="Infants"
-                      sublabel="0-3 yrs • Free"
-                      value={infants}
-                      onChange={setInfants}
-                    />
+                {/* Guest Counters - Only for per_person */}
+                {!isFullYacht && (
+                  <div>
+                    <label className="text-sm font-bold text-foreground mb-3 block">Number of Guests *</label>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <GuestCounter
+                        label="Adults"
+                        sublabel="12+ years"
+                        value={adults}
+                        onChange={setAdults}
+                        min={1}
+                      />
+                      <GuestCounter
+                        label="Children"
+                        sublabel="4-11 yrs • 50% off"
+                        value={children}
+                        onChange={setChildren}
+                      />
+                      <GuestCounter
+                        label="Infants"
+                        sublabel="0-3 yrs • Free"
+                        value={infants}
+                        onChange={setInfants}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Quick Price Preview - Enhanced */}
                 <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-muted-foreground font-medium">Estimated Total</span>
-                  <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {subtotal.toFixed(0)}</span>
+                  <span className="text-sm sm:text-base text-muted-foreground font-medium">
+                    {isFullYacht ? "Charter Price" : "Estimated Total"}
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {subtotal.toLocaleString()}</span>
                 </div>
               </div>
             )}
@@ -451,17 +490,34 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
 
                 <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 space-y-3">
                   <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-2">{tourTitle}</h3>
+                  
+                  {/* Full Yacht Badge in Summary */}
+                  {isFullYacht && (
+                    <div className="flex items-center gap-2 p-2 bg-secondary/10 rounded-xl w-fit">
+                      <Ship className="w-4 h-4 text-secondary" />
+                      <span className="text-sm font-semibold text-secondary">Full Yacht Charter</span>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
                     <div className="bg-card rounded-xl p-3">
                       <p className="text-muted-foreground text-xs mb-1">Date</p>
                       <p className="font-semibold">{date ? format(date, "EEE, MMM d") : "-"}</p>
                     </div>
                     <div className="bg-card rounded-xl p-3">
-                      <p className="text-muted-foreground text-xs mb-1">Guests</p>
+                      <p className="text-muted-foreground text-xs mb-1">
+                        {isFullYacht ? "Type" : "Guests"}
+                      </p>
                       <p className="font-semibold">
-                        {adults} Adult{adults > 1 ? "s" : ""}
-                        {children > 0 && `, ${children} Child`}
-                        {infants > 0 && `, ${infants} Infant`}
+                        {isFullYacht ? (
+                          <>Private Charter{capacity && ` (${capacity})`}</>
+                        ) : (
+                          <>
+                            {adults} Adult{adults > 1 ? "s" : ""}
+                            {children > 0 && `, ${children} Child`}
+                            {infants > 0 && `, ${infants} Infant`}
+                          </>
+                        )}
                       </p>
                     </div>
                     <div className="bg-card rounded-xl p-3">
@@ -487,19 +543,31 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
 
                 {/* Price Breakdown - Enhanced */}
                 <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 rounded-2xl p-4 sm:p-5 space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {adults} adult{adults > 1 ? "s" : ""} × AED {price}
-                    </span>
-                    <span className="font-medium">AED {(price * adults).toFixed(0)}</span>
-                  </div>
-                  {children > 0 && (
+                  {isFullYacht ? (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {children} child{children > 1 ? "ren" : ""} × AED {(price * 0.5).toFixed(0)}
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        <Ship className="w-4 h-4" />
+                        Full Yacht Charter
                       </span>
-                      <span className="font-medium">AED {(price * 0.5 * children).toFixed(0)}</span>
+                      <span className="font-medium">AED {fullYachtPrice?.toLocaleString()}</span>
                     </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {adults} adult{adults > 1 ? "s" : ""} × AED {price}
+                        </span>
+                        <span className="font-medium">AED {(price * adults).toFixed(0)}</span>
+                      </div>
+                      {children > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {children} child{children > 1 ? "ren" : ""} × AED {(price * 0.5).toFixed(0)}
+                          </span>
+                          <span className="font-medium">AED {(price * 0.5 * children).toFixed(0)}</span>
+                        </div>
+                      )}
+                    </>
                   )}
                   {appliedDiscount && discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-secondary font-semibold">
@@ -514,9 +582,9 @@ const BookingModal = ({ isOpen, onClose, tourTitle, tourId, price }: BookingModa
                     <span className="font-bold text-base">Total</span>
                     <div className="text-right">
                       {discountAmount > 0 && (
-                        <p className="text-sm text-muted-foreground line-through">AED {subtotal.toFixed(0)}</p>
+                        <p className="text-sm text-muted-foreground line-through">AED {subtotal.toLocaleString()}</p>
                       )}
-                      <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {totalPrice.toFixed(0)}</span>
+                      <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {totalPrice.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

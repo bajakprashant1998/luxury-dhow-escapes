@@ -55,6 +55,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
     price: tour?.price?.toString() || "",
     original_price: tour?.original_price?.toString() || "",
     pricing_type: (tour as any)?.pricing_type || "per_person",
+    full_yacht_price: (tour as any)?.full_yacht_price?.toString() || "",
     duration: tour?.duration || "",
     capacity: tour?.capacity || "",
     category: tour?.category || "dhow",
@@ -214,6 +215,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
         price: parseFloat(formData.price) || 0,
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         pricing_type: formData.pricing_type,
+        full_yacht_price: formData.full_yacht_price ? parseFloat(formData.full_yacht_price) : null,
         duration: formData.duration || null,
         capacity: formData.capacity || null,
         category: formData.category,
@@ -329,7 +331,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               <CardTitle>Pricing & Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="price">Price (AED) *</Label>
                   <Input
@@ -365,6 +367,20 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                       <SelectItem value="per_hour">Per Hour</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full_yacht_price">Full Yacht Price (AED)</Label>
+                  <Input
+                    id="full_yacht_price"
+                    type="number"
+                    value={formData.full_yacht_price}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, full_yacht_price: e.target.value }))}
+                    placeholder="Leave empty if not available"
+                  />
+                  <p className="text-xs text-muted-foreground">Private charter price for entire yacht</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration">Duration</Label>

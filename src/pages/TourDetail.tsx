@@ -486,6 +486,8 @@ const TourDetail = () => {
                 tourTitle={tour.title}
                 tourId={tour.id}
                 pricingType={tour.pricingType}
+                fullYachtPrice={tour.fullYachtPrice}
+                capacity={tour.capacity}
               />
             </div>
           </div>
@@ -534,6 +536,8 @@ const TourDetail = () => {
         tourTitle={tour.title}
         tourId={tour.id}
         pricingType={tour.pricingType}
+        fullYachtPrice={tour.fullYachtPrice}
+        capacity={tour.capacity}
       />
 
 
