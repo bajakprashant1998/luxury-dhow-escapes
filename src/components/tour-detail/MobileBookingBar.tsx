@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, ChevronUp, Ship } from "lucide-react";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
+import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
 
 interface MobileBookingBarProps {
   price: number;
@@ -13,6 +14,7 @@ interface MobileBookingBarProps {
   pricingType?: "per_person" | "per_hour";
   fullYachtPrice?: number | null;
   capacity?: string;
+  bookingFeatures?: BookingFeatures;
 }
 
 const MobileBookingBar = ({ 
@@ -22,7 +24,8 @@ const MobileBookingBar = ({
   tourId = "", 
   pricingType = "per_person",
   fullYachtPrice,
-  capacity
+  capacity,
+  bookingFeatures = defaultBookingFeatures
 }: MobileBookingBarProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -58,12 +61,20 @@ const MobileBookingBar = ({
               <div className="p-4 space-y-3 bg-muted/30">
                 {/* Show charter info if full yacht */}
                 {isFullYacht && (
-                  <div className="pb-3 border-b border-border flex items-center gap-2">
-                    <Ship className="w-5 h-5 text-secondary" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Private Charter</p>
-                      {capacity && <p className="text-xs text-muted-foreground">{capacity}</p>}
+                  <div className="pb-3 border-b border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Ship className="w-5 h-5 text-secondary" />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Private Charter</p>
+                        {capacity && <p className="text-xs text-muted-foreground">{capacity}</p>}
+                      </div>
                     </div>
+                    {bookingFeatures.charter_features.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm ml-7">
+                        <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-sm">
@@ -72,7 +83,7 @@ const MobileBookingBar = ({
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="w-2 h-2 rounded-full bg-secondary" />
-                  <span className="text-muted-foreground">Free cancellation up to 24h</span>
+                  <span className="text-muted-foreground">{bookingFeatures.cancellation_text}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="w-2 h-2 rounded-full bg-secondary" />
