@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getVisitorId, getCurrentPage, ChatConversation, ChatMessage, AdminPresence } from "@/lib/chatUtils";
+import { getVisitorId, getCurrentPage, ChatConversation, ChatMessage } from "@/lib/chatUtils";
 import { useToast } from "@/hooks/use-toast";
+import { withTimeout } from "@/lib/withTimeout";
 
 export function useChat() {
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
@@ -15,13 +16,21 @@ export function useChat() {
 
   // Check if any admin is online
   const checkAdminPresence = useCallback(async () => {
-    const { data } = await supabase
-      .from("admin_presence")
-      .select("*")
-      .eq("is_online", true)
-      .limit(1);
-    
-    setIsAgentOnline((data && data.length > 0) || false);
+    try {
+      const { data } = await withTimeout(
+        supabase
+          .from("admin_presence")
+          .select("*")
+          .eq("is_online", true)
+          .limit(1),
+        5000,
+        "Failed to check admin presence"
+      );
+      setIsAgentOnline((data && data.length > 0) || false);
+    } catch (error) {
+      console.error("Error checking admin presence:", error);
+      setIsAgentOnline(false);
+    }
   }, []);
 
   // Initialize or resume conversation
@@ -29,35 +38,47 @@ export function useChat() {
     setIsLoading(true);
     try {
       // Check for existing active conversation
-      const { data: existing } = await supabase
-        .from("chat_conversations")
-        .select("*")
-        .eq("visitor_id", visitorId)
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1);
+      const { data: existing } = await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .select("*")
+          .eq("visitor_id", visitorId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1),
+        5000,
+        "Failed to check existing conversation"
+      );
 
       if (existing && existing.length > 0) {
         setConversation(existing[0] as ChatConversation);
         
         // Load messages
-        const { data: msgs } = await supabase
-          .from("chat_messages")
-          .select("*")
-          .eq("conversation_id", existing[0].id)
-          .order("created_at", { ascending: true });
+        const { data: msgs } = await withTimeout(
+          supabase
+            .from("chat_messages")
+            .select("*")
+            .eq("conversation_id", existing[0].id)
+            .order("created_at", { ascending: true }),
+          5000,
+          "Failed to load messages"
+        );
         
         setMessages((msgs || []) as ChatMessage[]);
       } else {
         // Create new conversation
-        const { data: newConv, error } = await supabase
-          .from("chat_conversations")
-          .insert({
-            visitor_id: visitorId,
-            current_page: getCurrentPage(),
-          })
-          .select()
-          .single();
+        const { data: newConv, error } = await withTimeout(
+          supabase
+            .from("chat_conversations")
+            .insert({
+              visitor_id: visitorId,
+              current_page: getCurrentPage(),
+            })
+            .select()
+            .single(),
+          5000,
+          "Failed to create conversation"
+        );
 
         if (error) throw error;
         setConversation(newConv as ChatConversation);
@@ -71,11 +92,15 @@ export function useChat() {
           metadata: { isWelcome: true },
         };
         
-        const { data: welcomeMsg } = await supabase
-          .from("chat_messages")
-          .insert(welcomeMessage)
-          .select()
-          .single();
+        const { data: welcomeMsg } = await withTimeout(
+          supabase
+            .from("chat_messages")
+            .insert(welcomeMessage)
+            .select()
+            .single(),
+          5000,
+          "Failed to send welcome message"
+        );
         
         if (welcomeMsg) {
           setMessages([welcomeMsg as ChatMessage]);
@@ -116,11 +141,15 @@ export function useChat() {
 
     try {
       // Insert visitor message
-      const { data: savedMsg, error: msgError } = await supabase
-        .from("chat_messages")
-        .insert(visitorMessage)
-        .select()
-        .single();
+      const { data: savedMsg, error: msgError } = await withTimeout(
+        supabase
+          .from("chat_messages")
+          .insert(visitorMessage)
+          .select()
+          .single(),
+        5000,
+        "Failed to send message"
+      );
 
       if (msgError) throw msgError;
 
@@ -129,11 +158,14 @@ export function useChat() {
         prev.map((m) => (m.id === tempId ? (savedMsg as ChatMessage) : m))
       );
 
-      // Update conversation page
-      await supabase
-        .from("chat_conversations")
-        .update({ current_page: getCurrentPage(), updated_at: new Date().toISOString() })
-        .eq("id", conversation.id);
+      // Update conversation page (fire and forget with timeout)
+      withTimeout(
+        supabase
+          .from("chat_conversations")
+          .update({ current_page: getCurrentPage(), updated_at: new Date().toISOString() })
+          .eq("id", conversation.id),
+        5000
+      ).catch(console.error);
 
       // If agent is connected, don't call bot
       if (conversation.is_agent_connected) return;
@@ -177,16 +209,20 @@ export function useChat() {
     if (!conversation) return;
 
     try {
-      const { error } = await supabase
-        .from("chat_conversations")
-        .update({
-          visitor_name: details.name,
-          visitor_email: details.email,
-          visitor_phone: details.phone,
-          travel_date: details.travel_date,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", conversation.id);
+      const { error } = await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .update({
+            visitor_name: details.name,
+            visitor_email: details.email,
+            visitor_phone: details.phone,
+            travel_date: details.travel_date,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", conversation.id),
+        5000,
+        "Failed to update visitor details"
+      );
 
       if (error) throw error;
 
@@ -194,13 +230,17 @@ export function useChat() {
 
       // Create lead
       if (details.email) {
-        await supabase.from("chat_leads").insert({
-          conversation_id: conversation.id,
-          name: details.name || "",
-          email: details.email,
-          phone: details.phone,
-          travel_date: details.travel_date,
-        });
+        await withTimeout(
+          supabase.from("chat_leads").insert({
+            conversation_id: conversation.id,
+            name: details.name || "",
+            email: details.email,
+            phone: details.phone,
+            travel_date: details.travel_date,
+          }),
+          5000,
+          "Failed to create lead"
+        );
       }
 
       toast({
@@ -217,23 +257,31 @@ export function useChat() {
     if (!conversation) return;
 
     try {
-      await supabase
-        .from("chat_conversations")
-        .update({ status: "waiting_agent", updated_at: new Date().toISOString() })
-        .eq("id", conversation.id);
+      await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .update({ status: "waiting_agent", updated_at: new Date().toISOString() })
+          .eq("id", conversation.id),
+        5000,
+        "Failed to request agent"
+      );
 
       // Add system message
-      await supabase.from("chat_messages").insert({
-        conversation_id: conversation.id,
-        sender_type: "bot",
-        sender_name: "System",
-        content: "Please wait, connecting you to our support team…",
-        metadata: { isSystem: true },
-      });
+      await withTimeout(
+        supabase.from("chat_messages").insert({
+          conversation_id: conversation.id,
+          sender_type: "bot",
+          sender_name: "System",
+          content: "Please wait, connecting you to our support team…",
+          metadata: { isSystem: true },
+        }),
+        5000,
+        "Failed to add system message"
+      );
 
       setConversation((prev) => prev ? { ...prev, status: "waiting_agent" } : null);
 
-      // Notify admins via email
+      // Notify admins via email (fire and forget)
       supabase.functions.invoke("notify-agent-request", {
         body: {
           conversationId: conversation.id,

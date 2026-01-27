@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { withTimeout } from "@/lib/withTimeout";
 
 export interface CannedResponse {
   id: string;
@@ -22,11 +23,15 @@ export function useCannedResponses() {
   const fetchResponses = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("canned_responses")
-        .select("*")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
+      const { data, error } = await withTimeout(
+        supabase
+          .from("canned_responses")
+          .select("*")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true }),
+        5000,
+        "Failed to load canned responses"
+      );
 
       if (error) throw error;
       setResponses(data || []);
@@ -40,11 +45,15 @@ export function useCannedResponses() {
   const createResponse = useCallback(
     async (response: Omit<CannedResponse, "id" | "created_at" | "updated_at">) => {
       try {
-        const { data, error } = await supabase
-          .from("canned_responses")
-          .insert(response)
-          .select()
-          .single();
+        const { data, error } = await withTimeout(
+          supabase
+            .from("canned_responses")
+            .insert(response)
+            .select()
+            .single(),
+          5000,
+          "Failed to create canned response"
+        );
 
         if (error) throw error;
 
@@ -66,12 +75,16 @@ export function useCannedResponses() {
   const updateResponse = useCallback(
     async (id: string, updates: Partial<CannedResponse>) => {
       try {
-        const { data, error } = await supabase
-          .from("canned_responses")
-          .update(updates)
-          .eq("id", id)
-          .select()
-          .single();
+        const { data, error } = await withTimeout(
+          supabase
+            .from("canned_responses")
+            .update(updates)
+            .eq("id", id)
+            .select()
+            .single(),
+          5000,
+          "Failed to update canned response"
+        );
 
         if (error) throw error;
 
@@ -93,10 +106,14 @@ export function useCannedResponses() {
   const deleteResponse = useCallback(
     async (id: string) => {
       try {
-        const { error } = await supabase
-          .from("canned_responses")
-          .delete()
-          .eq("id", id);
+        const { error } = await withTimeout(
+          supabase
+            .from("canned_responses")
+            .delete()
+            .eq("id", id),
+          5000,
+          "Failed to delete canned response"
+        );
 
         if (error) throw error;
 

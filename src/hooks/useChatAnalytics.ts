@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, subDays, format, parseISO, differenceInSeconds } from "date-fns";
+import { withTimeout } from "@/lib/withTimeout";
 
 export type TimePeriod = "today" | "7days" | "30days" | "all";
 
@@ -67,37 +68,56 @@ export function useChatAnalytics(period: TimePeriod = "7days") {
       const endISO = end.toISOString();
       const todayISO = startOfDay(new Date()).toISOString();
 
-      // Fetch conversations
-      const { data: conversations, error: convError } = await supabase
-        .from("chat_conversations")
-        .select("id, created_at, is_agent_connected, status")
-        .gte("created_at", startISO)
-        .lte("created_at", endISO);
+      // Fetch conversations with limit for performance
+      const { data: conversations, error: convError } = await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .select("id, created_at, is_agent_connected, status")
+          .gte("created_at", startISO)
+          .lte("created_at", endISO)
+          .limit(1000),
+        8000,
+        "Failed to load conversations"
+      );
 
       if (convError) throw convError;
 
-      // Fetch conversations today
-      const { count: todayCount } = await supabase
-        .from("chat_conversations")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", todayISO);
+      // Fetch conversations today (count only)
+      const { count: todayCount } = await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", todayISO),
+        5000,
+        "Failed to count today's conversations"
+      );
 
-      // Fetch leads
-      const { data: leads, error: leadsError } = await supabase
-        .from("chat_leads")
-        .select("id, created_at")
-        .gte("created_at", startISO)
-        .lte("created_at", endISO);
+      // Fetch leads with limit
+      const { data: leads, error: leadsError } = await withTimeout(
+        supabase
+          .from("chat_leads")
+          .select("id, created_at")
+          .gte("created_at", startISO)
+          .lte("created_at", endISO)
+          .limit(1000),
+        5000,
+        "Failed to load leads"
+      );
 
       if (leadsError) throw leadsError;
 
-      // Fetch messages for response time calculation
-      const { data: messages, error: msgsError } = await supabase
-        .from("chat_messages")
-        .select("conversation_id, sender_type, created_at")
-        .gte("created_at", startISO)
-        .lte("created_at", endISO)
-        .order("created_at", { ascending: true });
+      // Fetch messages for response time calculation - limit to recent for performance
+      const { data: messages, error: msgsError } = await withTimeout(
+        supabase
+          .from("chat_messages")
+          .select("conversation_id, sender_type, created_at")
+          .gte("created_at", startISO)
+          .lte("created_at", endISO)
+          .order("created_at", { ascending: true })
+          .limit(1000),
+        8000,
+        "Failed to load messages"
+      );
 
       if (msgsError) throw msgsError;
 

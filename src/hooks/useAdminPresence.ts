@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { withTimeout } from "@/lib/withTimeout";
 
 export function useAdminPresence() {
   const [isOnline, setIsOnline] = useState(false);
@@ -8,17 +9,25 @@ export function useAdminPresence() {
   // Get current user
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        // Check existing presence
-        const { data } = await supabase
-          .from("admin_presence")
-          .select("is_online")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        
-        setIsOnline(data?.is_online || false);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+          // Check existing presence
+          const { data } = await withTimeout(
+            supabase
+              .from("admin_presence")
+              .select("is_online")
+              .eq("user_id", user.id)
+              .maybeSingle(),
+            5000,
+            "Failed to check presence"
+          );
+          
+          setIsOnline(data?.is_online || false);
+        }
+      } catch (error) {
+        console.error("Error getting user presence:", error);
       }
     };
     getUser();
@@ -31,26 +40,38 @@ export function useAdminPresence() {
     const newStatus = !isOnline;
 
     try {
-      const { data: existing } = await supabase
-        .from("admin_presence")
-        .select("user_id")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const { data: existing } = await withTimeout(
+        supabase
+          .from("admin_presence")
+          .select("user_id")
+          .eq("user_id", userId)
+          .maybeSingle(),
+        5000,
+        "Failed to check existing presence"
+      );
 
       if (existing) {
-        await supabase
-          .from("admin_presence")
-          .update({
+        await withTimeout(
+          supabase
+            .from("admin_presence")
+            .update({
+              is_online: newStatus,
+              last_seen: new Date().toISOString(),
+            })
+            .eq("user_id", userId),
+          5000,
+          "Failed to update presence"
+        );
+      } else {
+        await withTimeout(
+          supabase.from("admin_presence").insert({
+            user_id: userId,
             is_online: newStatus,
             last_seen: new Date().toISOString(),
-          })
-          .eq("user_id", userId);
-      } else {
-        await supabase.from("admin_presence").insert({
-          user_id: userId,
-          is_online: newStatus,
-          last_seen: new Date().toISOString(),
-        });
+          }),
+          5000,
+          "Failed to create presence"
+        );
       }
 
       setIsOnline(newStatus);
@@ -64,10 +85,18 @@ export function useAdminPresence() {
     if (!userId || !isOnline) return;
 
     const interval = setInterval(async () => {
-      await supabase
-        .from("admin_presence")
-        .update({ last_seen: new Date().toISOString() })
-        .eq("user_id", userId);
+      try {
+        await withTimeout(
+          supabase
+            .from("admin_presence")
+            .update({ last_seen: new Date().toISOString() })
+            .eq("user_id", userId),
+          5000,
+          "Failed to update last seen"
+        );
+      } catch (error) {
+        console.error("Error updating last seen:", error);
+      }
     }, 30000);
 
     return () => clearInterval(interval);

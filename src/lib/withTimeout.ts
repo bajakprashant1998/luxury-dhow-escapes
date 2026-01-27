@@ -1,6 +1,6 @@
 export async function withTimeout<T>(
   promise: PromiseLike<T>,
-  ms = 8000,
+  ms = 5000,
   message = "Request timed out",
 ): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;

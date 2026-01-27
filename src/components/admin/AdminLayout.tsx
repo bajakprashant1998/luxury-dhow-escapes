@@ -43,7 +43,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
       // Create a timeout promise that doesn't throw but returns a special flag
       const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
-        setTimeout(() => resolve({ timeout: true }), 15000);
+        setTimeout(() => resolve({ timeout: true }), 8000);
       });
 
       const queryPromise = supabase

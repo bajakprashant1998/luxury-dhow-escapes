@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatConversation, ChatMessage } from "@/lib/chatUtils";
+import { withTimeout } from "@/lib/withTimeout";
 
 export function useConversations() {
   const [conversations, setConversations] = useState<(ChatConversation & { lastMessage?: string })[]>([]);
@@ -8,34 +9,54 @@ export function useConversations() {
   const [selectedConversation, setSelectedConversation] = useState<ChatConversation | null>(null);
   const [selectedMessages, setSelectedMessages] = useState<ChatMessage[]>([]);
 
-  // Fetch all active conversations
+  // Fetch all active conversations with optimized query
   const fetchConversations = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data: convs, error } = await supabase
-        .from("chat_conversations")
-        .select("*")
-        .in("status", ["active", "waiting_agent"])
-        .order("updated_at", { ascending: false });
+      // Fetch conversations
+      const { data: convs, error } = await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .select("*")
+          .in("status", ["active", "waiting_agent"])
+          .order("updated_at", { ascending: false }),
+        5000,
+        "Failed to load conversations"
+      );
 
       if (error) throw error;
 
-      // Fetch last message for each conversation
-      const convsWithMessages = await Promise.all(
-        (convs || []).map(async (conv) => {
-          const { data: msgs } = await supabase
-            .from("chat_messages")
-            .select("content")
-            .eq("conversation_id", conv.id)
-            .order("created_at", { ascending: false })
-            .limit(1);
+      if (!convs || convs.length === 0) {
+        setConversations([]);
+        return;
+      }
 
-          return {
-            ...conv,
-            lastMessage: msgs?.[0]?.content || "No messages",
-          } as ChatConversation & { lastMessage?: string };
-        })
+      // Fetch last message for ALL conversations in ONE query
+      const convIds = convs.map((c) => c.id);
+      
+      const { data: allMessages } = await withTimeout(
+        supabase
+          .from("chat_messages")
+          .select("conversation_id, content, created_at")
+          .in("conversation_id", convIds)
+          .order("created_at", { ascending: false }),
+        5000,
+        "Failed to load messages"
       );
+
+      // Group messages by conversation_id and take the first (most recent)
+      const lastMessageMap = new Map<string, string>();
+      (allMessages || []).forEach((msg) => {
+        if (!lastMessageMap.has(msg.conversation_id)) {
+          lastMessageMap.set(msg.conversation_id, msg.content);
+        }
+      });
+
+      // Merge conversations with their last message
+      const convsWithMessages = convs.map((conv) => ({
+        ...conv,
+        lastMessage: lastMessageMap.get(conv.id) || "No messages",
+      })) as (ChatConversation & { lastMessage?: string })[];
 
       setConversations(convsWithMessages);
     } catch (error) {
@@ -49,36 +70,53 @@ export function useConversations() {
   const selectConversation = useCallback(async (conv: ChatConversation) => {
     setSelectedConversation(conv);
     
-    const { data: msgs } = await supabase
-      .from("chat_messages")
-      .select("*")
-      .eq("conversation_id", conv.id)
-      .order("created_at", { ascending: true });
+    try {
+      const { data: msgs } = await withTimeout(
+        supabase
+          .from("chat_messages")
+          .select("*")
+          .eq("conversation_id", conv.id)
+          .order("created_at", { ascending: true }),
+        5000,
+        "Failed to load conversation messages"
+      );
 
-    setSelectedMessages((msgs || []) as ChatMessage[]);
+      setSelectedMessages((msgs || []) as ChatMessage[]);
+    } catch (error) {
+      console.error("Error loading conversation messages:", error);
+      setSelectedMessages([]);
+    }
   }, []);
 
   // Join conversation as agent
   const joinConversation = useCallback(async (conversationId: string, userId: string) => {
     try {
-      await supabase
-        .from("chat_conversations")
-        .update({
-          is_agent_connected: true,
-          agent_id: userId,
-          status: "active",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", conversationId);
+      await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .update({
+            is_agent_connected: true,
+            agent_id: userId,
+            status: "active",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", conversationId),
+        5000,
+        "Failed to join conversation"
+      );
 
       // Send system message
-      await supabase.from("chat_messages").insert({
-        conversation_id: conversationId,
-        sender_type: "bot",
-        sender_name: "System",
-        content: "You are now connected with a live agent.",
-        metadata: { isSystem: true },
-      });
+      await withTimeout(
+        supabase.from("chat_messages").insert({
+          conversation_id: conversationId,
+          sender_type: "bot",
+          sender_name: "System",
+          content: "You are now connected with a live agent.",
+          metadata: { isSystem: true },
+        }),
+        5000,
+        "Failed to send system message"
+      );
 
       setSelectedConversation((prev) =>
         prev ? { ...prev, is_agent_connected: true } : null
@@ -91,24 +129,31 @@ export function useConversations() {
   // Send message as agent
   const sendAgentMessage = useCallback(async (conversationId: string, content: string, agentName: string) => {
     try {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .insert({
-          conversation_id: conversationId,
-          sender_type: "agent",
-          sender_name: agentName || "Support Agent",
-          content,
-        })
-        .select()
-        .single();
+      const { data, error } = await withTimeout(
+        supabase
+          .from("chat_messages")
+          .insert({
+            conversation_id: conversationId,
+            sender_type: "agent",
+            sender_name: agentName || "Support Agent",
+            content,
+          })
+          .select()
+          .single(),
+        5000,
+        "Failed to send message"
+      );
 
       if (error) throw error;
 
-      // Update conversation timestamp
-      await supabase
-        .from("chat_conversations")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", conversationId);
+      // Update conversation timestamp (fire and forget)
+      withTimeout(
+        supabase
+          .from("chat_conversations")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", conversationId),
+        5000
+      ).catch(console.error);
 
       return data;
     } catch (error) {
@@ -120,14 +165,18 @@ export function useConversations() {
   // Close conversation
   const closeConversation = useCallback(async (conversationId: string) => {
     try {
-      await supabase
-        .from("chat_conversations")
-        .update({
-          status: "closed",
-          closed_at: new Date().toISOString(),
-          is_agent_connected: false,
-        })
-        .eq("id", conversationId);
+      await withTimeout(
+        supabase
+          .from("chat_conversations")
+          .update({
+            status: "closed",
+            closed_at: new Date().toISOString(),
+            is_agent_connected: false,
+          })
+          .eq("id", conversationId),
+        5000,
+        "Failed to close conversation"
+      );
 
       // Remove from list
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
