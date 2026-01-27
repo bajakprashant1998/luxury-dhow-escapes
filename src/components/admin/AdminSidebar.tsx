@@ -19,6 +19,7 @@ import {
   Globe,
   History,
   Scale,
+  Headset,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { title: "Bookings", href: "/admin/bookings", icon: Calendar },
+  { title: "Live Chat", href: "/admin/live-chat", icon: Headset },
   { title: "Locations", href: "/admin/locations", icon: MapPin },
   {
     title: "Tours",

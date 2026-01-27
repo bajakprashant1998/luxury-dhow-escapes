@@ -62,6 +62,24 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_presence: {
+        Row: {
+          is_online: boolean | null
+          last_seen: string | null
+          user_id: string
+        }
+        Insert: {
+          is_online?: boolean | null
+          last_seen?: string | null
+          user_id: string
+        }
+        Update: {
+          is_online?: boolean | null
+          last_seen?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           adults: number
@@ -157,6 +175,136 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      chat_conversations: {
+        Row: {
+          agent_id: string | null
+          closed_at: string | null
+          created_at: string
+          current_page: string | null
+          id: string
+          is_agent_connected: boolean | null
+          status: string
+          travel_date: string | null
+          updated_at: string
+          visitor_email: string | null
+          visitor_id: string
+          visitor_name: string | null
+          visitor_phone: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          current_page?: string | null
+          id?: string
+          is_agent_connected?: boolean | null
+          status?: string
+          travel_date?: string | null
+          updated_at?: string
+          visitor_email?: string | null
+          visitor_id: string
+          visitor_name?: string | null
+          visitor_phone?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          current_page?: string | null
+          id?: string
+          is_agent_connected?: boolean | null
+          status?: string
+          travel_date?: string | null
+          updated_at?: string
+          visitor_email?: string | null
+          visitor_id?: string
+          visitor_name?: string | null
+          visitor_phone?: string | null
+        }
+        Relationships: []
+      }
+      chat_leads: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          source: string | null
+          travel_date: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          source?: string | null
+          travel_date?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          source?: string | null
+          travel_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_leads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          sender_name: string | null
+          sender_type: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sender_name?: string | null
+          sender_type: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sender_name?: string | null
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       discounts: {
         Row: {
