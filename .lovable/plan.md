@@ -1,362 +1,249 @@
 
 
-# Real-Time Customer Support Chatbot - Implementation Plan
+# Chat Enhancements: Push Notifications, Analytics Dashboard & Canned Responses
 
 ## Overview
 
-A comprehensive customer support system featuring:
-- **Floating chat widget** for website visitors
-- **AI-powered chatbot** for automated responses using Lovable AI
-- **Real-time admin dashboard** for live human support
-- **Lead capture** with database persistence
-- **Luxury-themed UI** matching the brand (dark navy, gold accents)
+Implementing three major enhancements to the live chat system:
+1. **Browser Push Notifications** - Instant alerts for admins when visitors request support
+2. **Chat Analytics Dashboard** - Comprehensive metrics for conversation performance
+3. **Canned Responses** - Pre-defined templates for quick agent replies
 
 ---
 
-## Architecture Overview
+## 1. Browser Push Notifications
 
+### How It Works
+
+When a visitor requests a live agent, admins who are online will receive a browser push notification with a sound alert. This works alongside the existing email notifications.
+
+### Implementation
+
+**New Hook: `src/hooks/usePushNotifications.ts`**
+- Request notification permission from browser
+- Play notification sound when new conversations arrive
+- Show desktop notifications with visitor info and quick action button
+- Track permission status (granted/denied/default)
+
+**Updates to LiveChatDashboard**
+- Integrate push notification hook
+- Show permission request button if not granted
+- Subscribe to realtime `chat_conversations` changes for `waiting_agent` status
+
+**Notification Flow:**
 ```text
-+------------------+       +-------------------+       +------------------+
-|  Chat Widget     | <---> |  Supabase         | <---> |  Admin Dashboard |
-|  (Frontend)      |       |  (Realtime + DB)  |       |  (Live Support)  |
-+------------------+       +-------------------+       +------------------+
-         |                          |
-         v                          v
-+------------------+       +-------------------+
-|  Chat Bot Edge   |       |  Database Tables  |
-|  Function        |       |  (Conversations,  |
-|  (Lovable AI)    |       |   Messages, Leads)|
-+------------------+       +-------------------+
+Visitor requests agent
+        |
+        v
+Database updates status = 'waiting_agent'
+        |
+        v
+Realtime subscription triggers in admin dashboard
+        |
+        v
+If admin online + notifications enabled:
+  - Play notification sound
+  - Show browser notification with visitor name
+  - Clicking notification focuses the chat window
+```
+
+**Browser Notification API Usage:**
+```typescript
+new Notification("New Chat Request", {
+  body: `${visitorName} is waiting for support`,
+  icon: "/logo.jpeg",
+  tag: conversationId, // Prevents duplicate notifications
+  requireInteraction: true
+});
 ```
 
 ---
 
-## Database Schema
+## 2. Chat Analytics Dashboard
 
-### New Tables Required
+### Metrics to Display
 
-**1. `chat_conversations`**
+| Metric | Description | Data Source |
+|--------|-------------|-------------|
+| Total Conversations | All-time chat sessions | `chat_conversations` count |
+| Conversations Today | Sessions started today | `chat_conversations` filtered by date |
+| Average Response Time | Time from visitor message to agent reply | Calculated from `chat_messages` timestamps |
+| Lead Conversion Rate | % of chats that captured lead data | `chat_leads` / `chat_conversations` |
+| Agent vs Bot Handled | Split of who resolved chats | `is_agent_connected` field |
+| Messages per Conversation | Average message count | `chat_messages` aggregation |
+| Active Hours | Peak chat activity times | `chat_messages.created_at` distribution |
+
+### New Components
+
+**`src/components/admin/chat/ChatAnalytics.tsx`** - Main analytics container with:
+- Stat cards for key metrics
+- Time period selector (Today, 7 Days, 30 Days, All Time)
+- Recharts visualizations
+
+**`src/components/admin/chat/ConversationVolumeChart.tsx`**
+- Line chart showing conversations over time
+- Compare bot vs agent handled
+
+**`src/components/admin/chat/ResponseTimeChart.tsx`**
+- Bar chart showing average response times by day
+- Target line for performance benchmarks
+
+**`src/components/admin/chat/LeadConversionCard.tsx`**
+- Circular progress showing conversion percentage
+- Comparison with previous period
+
+**`src/components/admin/chat/PeakHoursChart.tsx`**
+- Heatmap or bar chart of activity by hour
+
+### New Hook
+
+**`src/hooks/useChatAnalytics.ts`**
+```typescript
+interface ChatAnalytics {
+  totalConversations: number;
+  conversationsToday: number;
+  avgResponseTime: number; // in seconds
+  leadConversionRate: number; // percentage
+  agentHandledCount: number;
+  botHandledCount: number;
+  messagesPerConversation: number;
+  hourlyDistribution: { hour: number; count: number }[];
+  dailyTrend: { date: string; conversations: number; leads: number }[];
+}
+```
+
+### Dashboard Integration
+
+Add a new "Analytics" tab to the LiveChat page, or create a dedicated `/admin/chat-analytics` page accessible from the sidebar.
+
+---
+
+## 3. Canned Responses / Quick Reply Templates
+
+### Database Schema
+
+**New Table: `canned_responses`**
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key |
-| visitor_id | TEXT | Anonymous visitor identifier |
-| visitor_name | TEXT | Collected name (nullable) |
-| visitor_email | TEXT | Collected email (nullable) |
-| visitor_phone | TEXT | Collected phone (nullable) |
-| travel_date | DATE | Collected travel date (nullable) |
-| status | TEXT | 'active', 'closed', 'waiting_agent' |
-| is_agent_connected | BOOLEAN | If live agent has joined |
-| agent_id | UUID | FK to auth.users (nullable) |
-| current_page | TEXT | Page visitor is on |
-| created_at | TIMESTAMPTZ | Creation timestamp |
-| updated_at | TIMESTAMPTZ | Last activity |
-| closed_at | TIMESTAMPTZ | When conversation ended |
-
-**2. `chat_messages`**
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| conversation_id | UUID | FK to chat_conversations |
-| sender_type | TEXT | 'visitor', 'bot', 'agent' |
-| sender_name | TEXT | Display name |
-| content | TEXT | Message text |
-| metadata | JSONB | Extra data (quick replies, etc.) |
+| title | TEXT | Short label (e.g., "Greeting") |
+| content | TEXT | Full response text |
+| category | TEXT | Grouping (e.g., "Welcome", "Pricing", "Booking") |
+| shortcut | TEXT | Keyboard shortcut (e.g., "/greet") |
+| is_active | BOOLEAN | Enable/disable |
+| sort_order | INTEGER | Display order |
 | created_at | TIMESTAMPTZ | Timestamp |
+| updated_at | TIMESTAMPTZ | Timestamp |
 
-**3. `chat_leads`**
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| conversation_id | UUID | FK to chat_conversations |
-| name | TEXT | Lead name |
-| email | TEXT | Lead email |
-| phone | TEXT | Lead phone |
-| travel_date | DATE | Intended travel date |
-| message | TEXT | Initial inquiry |
-| source | TEXT | 'chatbot' |
-| created_at | TIMESTAMPTZ | Timestamp |
+**RLS Policies:**
+- Only admins can read/write canned responses
 
-**4. `admin_presence`** (for online status)
-| Column | Type | Description |
-|--------|------|-------------|
-| user_id | UUID | FK to auth.users |
-| is_online | BOOLEAN | Online status |
-| last_seen | TIMESTAMPTZ | Last activity |
+### Components
 
-### Realtime Configuration
-Enable realtime for `chat_messages`, `chat_conversations`, and `admin_presence` tables.
+**`src/components/admin/chat/CannedResponsePicker.tsx`**
+- Dropdown/popover with search functionality
+- Grouped by category
+- Triggered by clicking button or typing `/` in chat input
+- Shows shortcut hints
 
-### RLS Policies
-- Visitors can insert messages and create conversations (anonymous access)
-- Visitors can only read their own conversation (matched by visitor_id)
-- Admins can read/write all conversations and messages
-- Admin presence: admins can update their own presence, all can read
+**`src/components/admin/chat/CannedResponseManager.tsx`**
+- CRUD interface for managing responses
+- Category management
+- Drag-and-drop reordering
+- Import/export functionality
 
----
+### Integration with Admin Chat Input
 
-## Component Structure
+Modify `AdminChatInput.tsx`:
+- Add canned response button next to send
+- Detect `/` prefix to show autocomplete
+- Insert selected response into input
+- Support variable substitution (e.g., `{visitor_name}`)
 
-### Frontend Components
+### Default Templates
 
+Pre-populate with common responses:
 ```text
-src/components/chat/
-├── ChatWidget.tsx           # Floating icon + expandable window
-├── ChatWindow.tsx           # Main chat interface
-├── ChatMessage.tsx          # Individual message bubble
-├── ChatInput.tsx            # Message input with send button
-├── ChatHeader.tsx           # Header with minimize/close
-├── ChatWelcome.tsx          # Welcome screen with quick actions
-├── LeadCaptureForm.tsx      # Name/email/phone/date form
-├── QuickReplyButtons.tsx    # Predefined response buttons
-└── TypingIndicator.tsx      # Bot/agent typing animation
+/greet - "Hello! Thank you for reaching out. How can I assist you today?"
+/wait - "Please give me a moment while I look into this for you."
+/booking - "I'd be happy to help you with a booking. Could you share your preferred date and number of guests?"
+/pricing - "Our packages start from AED X. You can view all options at [Tours Page]."
+/thanks - "Thank you for choosing Luxury Dhow Escapes! Have a wonderful day."
+/offline - "Our team is currently offline. Please leave your contact details and we'll get back to you shortly."
 ```
-
-### Admin Dashboard Components
-
-```text
-src/components/admin/chat/
-├── LiveChatDashboard.tsx    # Main admin chat view
-├── ConversationList.tsx     # Active conversations sidebar
-├── ConversationItem.tsx     # Single conversation preview
-├── AdminChatWindow.tsx      # Admin's chat interface
-├── AdminChatInput.tsx       # Admin message input
-├── VisitorInfo.tsx          # Visitor details panel
-└── OnlineStatusToggle.tsx   # Admin online/offline toggle
-```
-
-### New Admin Page
-
-```text
-src/pages/admin/LiveChat.tsx # Admin live chat management page
-```
-
----
-
-## Backend Edge Functions
-
-### 1. `chat-bot` Edge Function
-
-Handles automated responses using Lovable AI (Gemini 3 Flash).
-
-**Responsibilities:**
-- Process visitor messages
-- Query tours, pricing, locations from database
-- Generate contextual responses about:
-  - Dhow cruises and yacht experiences
-  - Booking process
-  - Prices and packages (fetched from `tours` table)
-  - Locations (fetched from `locations` table)
-  - Contact details (fetched from `site_settings`)
-- Identify when to collect lead information
-- Detect when human handoff is needed
-
-**System Prompt Context:**
-```text
-You are a luxury concierge for Luxury Dhow Escapes in Dubai. 
-You help visitors with:
-- Information about dhow cruises and yacht charters
-- Pricing and package details
-- Booking assistance
-- Location and timing information
-- Contact details
-
-When appropriate, collect visitor details (name, email, phone, travel date).
-If a query requires human assistance, politely offer to connect them with a live agent.
-```
-
-### 2. `admin-presence` Edge Function
-
-Manages admin online/offline status for smart routing.
-
----
-
-## Smart Behavior Logic
-
-### Message Flow
-
-```text
-1. Visitor opens chat
-   └─> Show welcome message + quick action buttons
-
-2. Visitor sends message
-   └─> Check admin_presence table
-       ├─> If any admin online AND conversation marked for handoff
-       │   └─> Notify admin, show "Connecting to agent..."
-       └─> Else
-           └─> Send to chat-bot edge function
-               └─> AI processes and responds
-
-3. Admin joins conversation
-   └─> Update is_agent_connected = true
-   └─> Send "You are now connected with a live agent" message
-   └─> All future messages go to admin (bypass bot)
-
-4. Admin closes conversation
-   └─> Update status = 'closed'
-   └─> Optional: show feedback request
-```
-
-### Handoff Triggers
-- Visitor explicitly requests human support
-- Bot detects complex query it cannot handle
-- Visitor shows frustration or repeats question
-- Booking-related inquiries after lead capture
-
----
-
-## UI Design Specifications
-
-### Chat Widget Styling
-
-**Colors (matching brand):**
-- Primary: `hsl(220, 50%, 20%)` - Dark Navy
-- Accent: `hsl(45, 60%, 65%)` - Gold
-- Background: `hsl(220, 55%, 8%)` - Dark background
-- Text: `hsl(45, 30%, 95%)` - Light cream
-
-**Widget Icon:**
-- Position: Bottom-right corner (same as current WhatsApp)
-- Size: 56px x 56px
-- Animation: Gentle pulse effect
-- Z-index: Higher than WhatsApp widget (z-50)
-
-**Chat Window:**
-- Width: 380px (desktop), 100% - 16px (mobile)
-- Height: 520px (desktop), 70vh (mobile)
-- Border-radius: 16px
-- Shadow: Luxury drop shadow
-- Animations: Smooth slide-up on open (Framer Motion)
-
-**Message Bubbles:**
-- Visitor: Gold background, dark text
-- Bot/Agent: Navy background, light text
-- Rounded corners with tail indicator
-- Timestamp below message
-
-### Mobile Responsiveness
-- Full-width on mobile with bottom sheet behavior
-- Safe area padding for notched devices
-- Touch-friendly 44px minimum tap targets
-- Swipe-down to minimize
 
 ---
 
 ## File Changes Summary
 
-### New Files to Create
+### New Files
 
 | File | Purpose |
 |------|---------|
-| `src/components/chat/ChatWidget.tsx` | Main floating widget component |
-| `src/components/chat/ChatWindow.tsx` | Chat interface container |
-| `src/components/chat/ChatMessage.tsx` | Message bubble component |
-| `src/components/chat/ChatInput.tsx` | Message input component |
-| `src/components/chat/ChatHeader.tsx` | Chat window header |
-| `src/components/chat/ChatWelcome.tsx` | Welcome screen |
-| `src/components/chat/LeadCaptureForm.tsx` | Lead collection form |
-| `src/components/chat/QuickReplyButtons.tsx` | Quick action buttons |
-| `src/components/chat/TypingIndicator.tsx` | Typing animation |
-| `src/components/admin/chat/LiveChatDashboard.tsx` | Admin chat view |
-| `src/components/admin/chat/ConversationList.tsx` | Conversations sidebar |
-| `src/components/admin/chat/ConversationItem.tsx` | Conversation preview |
-| `src/components/admin/chat/AdminChatWindow.tsx` | Admin chat interface |
-| `src/components/admin/chat/AdminChatInput.tsx` | Admin input |
-| `src/components/admin/chat/VisitorInfo.tsx` | Visitor details |
-| `src/components/admin/chat/OnlineStatusToggle.tsx` | Online toggle |
-| `src/pages/admin/LiveChat.tsx` | Admin live chat page |
-| `src/hooks/useChat.ts` | Chat state management |
-| `src/hooks/useChatMessages.ts` | Realtime messages hook |
-| `src/hooks/useAdminPresence.ts` | Admin status hook |
-| `src/hooks/useConversations.ts` | Admin conversations hook |
-| `src/lib/chatUtils.ts` | Chat utility functions |
-| `supabase/functions/chat-bot/index.ts` | AI chatbot edge function |
+| `src/hooks/usePushNotifications.ts` | Browser notification logic |
+| `src/hooks/useChatAnalytics.ts` | Analytics data fetching |
+| `src/components/admin/chat/ChatAnalytics.tsx` | Analytics dashboard container |
+| `src/components/admin/chat/ConversationVolumeChart.tsx` | Conversations over time |
+| `src/components/admin/chat/ResponseTimeChart.tsx` | Response time visualization |
+| `src/components/admin/chat/LeadConversionCard.tsx` | Conversion metric card |
+| `src/components/admin/chat/PeakHoursChart.tsx` | Activity by hour |
+| `src/components/admin/chat/CannedResponsePicker.tsx` | Response selector popup |
+| `src/components/admin/chat/CannedResponseManager.tsx` | CRUD for templates |
 
-### Files to Modify
+### Modified Files
 
-| File | Change |
-|------|--------|
-| `src/App.tsx` | Add admin LiveChat route |
-| `src/components/layout/Layout.tsx` | Add ChatWidget component |
-| `src/components/admin/AdminSidebar.tsx` | Add Live Chat nav item |
-| `supabase/config.toml` | Add chat-bot function config |
-| `src/lib/exportCsv.ts` | Add chat leads export function |
+| File | Changes |
+|------|---------|
+| `src/components/admin/chat/LiveChatDashboard.tsx` | Add tabs for Conversations/Analytics, integrate notifications |
+| `src/components/admin/chat/AdminChatInput.tsx` | Add canned response button and `/` detection |
+| `src/components/admin/AdminSidebar.tsx` | Optional: Add Chat Analytics link |
+
+### Database Migration
+
+Create `canned_responses` table with RLS policies for admin access.
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Database Setup
-- Create chat tables with migrations
-- Enable realtime
-- Set up RLS policies
+### Phase 1: Browser Push Notifications
+1. Create `usePushNotifications` hook
+2. Add notification permission UI to LiveChatDashboard
+3. Subscribe to realtime for new waiting conversations
+4. Trigger notifications with sound
 
-### Phase 2: Chat Widget (Visitor Side)
-- ChatWidget with floating icon
-- ChatWindow with message display
-- ChatInput and message sending
-- Local storage for visitor_id persistence
-- Welcome screen and quick replies
+### Phase 2: Canned Responses
+1. Create database migration for `canned_responses` table
+2. Build CannedResponseManager CRUD interface
+3. Create CannedResponsePicker component
+4. Integrate with AdminChatInput
+5. Seed default templates
 
-### Phase 3: AI Chatbot Integration
-- Create chat-bot edge function
-- Connect to Lovable AI (Gemini 3 Flash)
-- Implement knowledge base from tours/locations/settings
-- Add lead capture detection
-
-### Phase 4: Lead Capture
-- LeadCaptureForm component
-- Save to chat_leads table
-- Update conversation with visitor details
-
-### Phase 5: Admin Dashboard
-- LiveChat admin page
-- ConversationList with realtime updates
-- AdminChatWindow for responding
-- Online status toggle
-
-### Phase 6: Live Agent Handoff
-- Admin presence tracking
-- "Connecting to agent" message flow
-- Agent join notification to visitor
-- Seamless bot-to-human transition
-
-### Phase 7: Export & Polish
-- Export chats/leads to CSV
-- Animations and polish
-- Mobile optimization
-- Testing
+### Phase 3: Chat Analytics
+1. Create `useChatAnalytics` hook with data aggregation queries
+2. Build individual chart components
+3. Create ChatAnalytics container with period selector
+4. Add Analytics tab to LiveChatDashboard
 
 ---
 
-## Technical Notes
+## Technical Considerations
 
-### Visitor Identification
-- Generate UUID on first visit, store in localStorage
-- Use this ID to track conversations across sessions
-- Allow visitors to continue previous conversations
+### Push Notification Permissions
+- Request permission on first online toggle
+- Store preference in localStorage to avoid repeated prompts
+- Gracefully handle denied permissions
 
-### Realtime Subscriptions
-```typescript
-// Messages subscription
-supabase
-  .channel('chat_messages')
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'chat_messages',
-    filter: `conversation_id=eq.${conversationId}`
-  }, handleNewMessage)
-  .subscribe()
-```
+### Analytics Performance
+- Use database aggregation queries (GROUP BY) instead of fetching all records
+- Cache results with React Query (5-minute stale time)
+- Limit date range to prevent large data fetches
 
-### Rate Limiting
-- Implement client-side rate limiting (max 1 message/second)
-- Handle 429 errors from Lovable AI gracefully
-- Show "Please wait..." for bot responses
+### Canned Response Variables
+Support dynamic placeholders:
+- `{visitor_name}` - From conversation data
+- `{date}` - Current date
+- `{agent_name}` - Current admin name
 
-### Security Considerations
-- Visitor can only access their own conversation (via visitor_id)
-- Admin role required for dashboard access
-- No sensitive data exposed in bot responses
-- RLS policies enforce data isolation
+These get replaced when response is selected.
 
