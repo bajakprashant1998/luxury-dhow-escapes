@@ -24,7 +24,7 @@ const CTASection = () => {
       </div>
 
       <div className="container relative">
-        <motion.div 
+        <motion.div
           className="max-w-4xl mx-auto text-center"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -47,11 +47,11 @@ const CTASection = () => {
             Ready for an Unforgettable Experience?
           </h2>
           <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-2xl mx-auto">
-            Book your dhow cruise today and create memories that will last a lifetime. 
+            Book your dhow cruise today and create memories that will last a lifetime.
             Instant confirmation, best price guaranteed.
           </p>
 
-          <motion.div 
+          <motion.div
             className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

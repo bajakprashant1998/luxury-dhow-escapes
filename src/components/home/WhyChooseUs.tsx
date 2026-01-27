@@ -30,12 +30,12 @@ const WhyChooseUs = () => {
     <section className="py-24 bg-primary text-primary-foreground overflow-hidden relative">
       {/* Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div 
+        <motion.div
           className="absolute top-0 left-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
           animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.15, 0.1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div 
+        <motion.div
           className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"
           animate={{ scale: [1.2, 1, 1.2], opacity: [0.1, 0.15, 0.1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
@@ -43,7 +43,7 @@ const WhyChooseUs = () => {
       </div>
 
       <div className="container relative">
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ const WhyChooseUs = () => {
           </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
           variants={container}
           initial="hidden"
@@ -68,15 +68,15 @@ const WhyChooseUs = () => {
           {whyChooseUs.map((whyItem, index) => {
             const IconComponent = iconMap[whyItem.icon] || Shield;
             return (
-              <motion.div 
-                key={index} 
+              <motion.div
+                key={index}
                 className="text-center group"
                 variants={{
                   hidden: { opacity: 0, y: 30 },
                   show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
                 }}
               >
-                <motion.div 
+                <motion.div
                   className="w-14 sm:w-16 lg:w-20 h-14 sm:h-16 lg:h-20 mx-auto mb-3 sm:mb-4 lg:mb-6 rounded-xl sm:rounded-2xl bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all duration-300"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
@@ -90,14 +90,14 @@ const WhyChooseUs = () => {
         </motion.div>
 
         {/* Trust Indicators */}
-        <motion.div 
+        <motion.div
           className="mt-10 sm:mt-16 lg:mt-20 pt-8 sm:pt-10 lg:pt-12 border-t border-primary-foreground/10"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
         >
-          <motion.div 
+          <motion.div
             className="flex overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap justify-start sm:justify-center items-center gap-4 sm:gap-6 md:gap-12 scrollbar-hide snap-x-mandatory"
             variants={container}
             initial="hidden"
@@ -105,8 +105,8 @@ const WhyChooseUs = () => {
             viewport={{ once: true }}
           >
             {trustIndicators.map((indicator, index) => (
-              <motion.div 
-                key={index} 
+              <motion.div
+                key={index}
                 className="flex-shrink-0 snap-start flex items-center gap-1.5 sm:gap-2"
                 variants={item}
               >

@@ -13,7 +13,7 @@ const FeaturedTours = memo(() => {
   return (
     <section className="py-24">
       <div className="container">
-        <motion.div 
+        <motion.div
           className="flex flex-col md:flex-row md:items-end justify-between mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -63,8 +63,8 @@ const FeaturedTours = memo(() => {
             <div className="lg:hidden -mx-4 px-4">
               <div className="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory scrollbar-hide">
                 {featuredTours.slice(0, 4).map((tour, index) => (
-                  <div 
-                    key={tour.id} 
+                  <div
+                    key={tour.id}
                     className="flex-shrink-0 w-[85%] sm:w-[75%] snap-start"
                   >
                     <TourCard tour={tour} />
@@ -81,9 +81,9 @@ const FeaturedTours = memo(() => {
                 ))}
               </div>
             </div>
-            
+
             {/* Desktop: Grid layout */}
-            <motion.div 
+            <motion.div
               className="hidden lg:grid lg:grid-cols-2 gap-6"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}

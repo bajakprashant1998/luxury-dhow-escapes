@@ -4,33 +4,33 @@ import { motion } from "framer-motion";
 import { Ship, Users, Anchor, Crown } from "lucide-react";
 
 const experienceCategories = [
-  { 
-    icon: Ship, 
-    title: "Dhow Cruises", 
+  {
+    icon: Ship,
+    title: "Dhow Cruises",
     description: "Traditional dining experience",
     link: "/tours?category=dhow-cruise",
     gradient: "from-blue-500/20 to-cyan-500/20",
     iconColor: "text-blue-500"
   },
-  { 
-    icon: Users, 
-    title: "Shared Yacht", 
+  {
+    icon: Users,
+    title: "Shared Yacht",
     description: "Live BBQ on the water",
     link: "/tours?category=yacht-shared",
     gradient: "from-orange-500/20 to-amber-500/20",
     iconColor: "text-orange-500"
   },
-  { 
-    icon: Anchor, 
-    title: "Private Charter", 
+  {
+    icon: Anchor,
+    title: "Private Charter",
     description: "Exclusive yacht rental",
     link: "/tours?category=yacht-private",
     gradient: "from-emerald-500/20 to-teal-500/20",
     iconColor: "text-emerald-500"
   },
-  { 
-    icon: Crown, 
-    title: "Megayacht", 
+  {
+    icon: Crown,
+    title: "Megayacht",
     description: "Premium luxury cruise",
     link: "/tours?category=megayacht",
     gradient: "from-purple-500/20 to-pink-500/20",
@@ -42,7 +42,7 @@ const ExperienceCategories = memo(() => {
   return (
     <section className="py-6 sm:py-8 -mt-16 sm:-mt-20 relative z-20">
       <div className="container">
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -57,7 +57,7 @@ const ExperienceCategories = memo(() => {
             >
               {/* Background Gradient */}
               <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-              
+
               <div className="relative">
                 <div className="w-10 sm:w-14 h-10 sm:h-14 rounded-lg sm:rounded-xl bg-muted/50 flex items-center justify-center mb-2.5 sm:mb-4 group-hover:scale-110 group-hover:bg-secondary/20 transition-all duration-300">
                   <category.icon className={`w-5 sm:w-7 h-5 sm:h-7 ${category.iconColor} group-hover:text-secondary transition-colors`} />

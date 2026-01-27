@@ -53,12 +53,12 @@ const HighlightsSection = memo(() => {
             </div>
 
             <Link to="/about" className="inline-flex items-center gap-2 mt-10 text-secondary font-semibold hover:gap-3 transition-all group">
-              Learn More About Us 
+              Learn More About Us
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="relative mt-8 lg:mt-0"
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -67,8 +67,8 @@ const HighlightsSection = memo(() => {
           >
             <div className="grid grid-cols-2 gap-4 md:gap-5">
               <div className="overflow-hidden rounded-xl shadow-lg border border-border/50">
-                <OptimizedImage 
-                  src={dubaiMarinaNight} 
+                <OptimizedImage
+                  src={dubaiMarinaNight}
                   alt="Dubai Marina Night"
                   aspectRatio="4/3"
                   sizes="(max-width: 768px) 45vw, 25vw"
@@ -76,8 +76,8 @@ const HighlightsSection = memo(() => {
                 />
               </div>
               <div className="overflow-hidden rounded-xl shadow-lg border border-border/50">
-                <OptimizedImage 
-                  src={yachtInterior} 
+                <OptimizedImage
+                  src={yachtInterior}
                   alt="Yacht Interior"
                   aspectRatio="4/3"
                   sizes="(max-width: 768px) 45vw, 25vw"
@@ -85,8 +85,8 @@ const HighlightsSection = memo(() => {
                 />
               </div>
               <div className="overflow-hidden rounded-xl shadow-lg border border-border/50">
-                <OptimizedImage 
-                  src={buffetDining} 
+                <OptimizedImage
+                  src={buffetDining}
                   alt="Buffet Dining"
                   aspectRatio="4/3"
                   sizes="(max-width: 768px) 45vw, 25vw"

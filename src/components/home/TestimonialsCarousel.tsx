@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const TestimonialsCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  
+
   const { data: testimonials = [], isLoading } = useTestimonials(6);
   const { data: ratingData } = useAverageRating();
 
@@ -80,7 +80,7 @@ const TestimonialsCarousel = () => {
   return (
     <section className="py-24 bg-muted/30 overflow-hidden">
       <div className="container">
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -116,7 +116,7 @@ const TestimonialsCarousel = () => {
           <div className="bg-card rounded-2xl sm:rounded-3xl shadow-xl p-5 sm:p-8 md:p-12 pt-12 sm:pt-16 relative overflow-hidden min-h-[280px] sm:min-h-[320px]">
             {/* Background Decoration */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            
+
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
                 key={currentIndex}
@@ -185,7 +185,7 @@ const TestimonialsCarousel = () => {
             >
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            
+
             {/* Dots */}
             <div className="flex items-center gap-1.5 sm:gap-2">
               {testimonials.map((_, index) => (
@@ -195,11 +195,10 @@ const TestimonialsCarousel = () => {
                     setDirection(index > currentIndex ? 1 : -1);
                     setCurrentIndex(index);
                   }}
-                  className={`transition-all duration-300 rounded-full touch-target ${
-                    index === currentIndex 
-                      ? "w-6 sm:w-8 h-2.5 sm:h-3 bg-secondary" 
+                  className={`transition-all duration-300 rounded-full touch-target ${index === currentIndex
+                      ? "w-6 sm:w-8 h-2.5 sm:h-3 bg-secondary"
                       : "w-2.5 sm:w-3 h-2.5 sm:h-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                  }`}
+                    }`}
                 />
               ))}
             </div>

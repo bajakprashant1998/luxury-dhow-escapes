@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import ScrollToTop from "./components/ScrollToTop";
+
 // Critical path - load immediately
 import Home from "./pages/Home";
 
@@ -74,6 +76,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -195,7 +198,7 @@ const App = () => (
                   <AdminDiscounts />
                 </RequireSession>
               }
-              />
+            />
             <Route
               path="/admin/upload-images"
               element={
