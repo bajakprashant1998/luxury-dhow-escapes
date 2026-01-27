@@ -232,6 +232,16 @@ export function useChat() {
       });
 
       setConversation((prev) => prev ? { ...prev, status: "waiting_agent" } : null);
+
+      // Notify admins via email
+      supabase.functions.invoke("notify-agent-request", {
+        body: {
+          conversationId: conversation.id,
+          visitorName: conversation.visitor_name,
+          visitorEmail: conversation.visitor_email,
+          currentPage: getCurrentPage(),
+        },
+      }).catch((err) => console.error("Failed to notify admins:", err));
     } catch (error) {
       console.error("Error requesting agent:", error);
     }

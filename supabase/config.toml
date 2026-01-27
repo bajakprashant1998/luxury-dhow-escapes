@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.chat-bot]
 verify_jwt = false
+
+[functions.notify-agent-request]
+verify_jwt = false
