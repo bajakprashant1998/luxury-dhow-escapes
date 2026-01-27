@@ -35,8 +35,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   useEffect(() => {
     let cancelled = false;
 
-    const checkAdminRole = async (userId: string) => {
-      setLoading(true);
+    const checkAdminRole = async (userId: string, background: boolean = false) => {
+      if (!background) {
+        setLoading(true);
+      }
       setAdminGateError(null);
 
       // Create a timeout promise that doesn't throw but returns a special flag
@@ -98,7 +100,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        if (!background) {
+          setLoading(false);
+        }
       }
     };
 
@@ -127,7 +131,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
           // Only verify on meaningful auth events
           if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-            await checkAdminRole(session.user.id);
+            // Check in background if we think we are already verified (e.g. from cache or previous run)
+            // But usually these events mean we should check. 
+            // If it's INITIAL_SESSION, we might already be checking in init().
+            // If it's SIGNED_IN (e.g. from another tab), we want to verify but not necessarily show spinner if we are already admin.
+            const isBackground = adminVerifiedRef.current;
+            await checkAdminRole(session.user.id, isBackground);
           }
         }
       },
@@ -160,7 +169,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           adminVerifiedRef.current = true;
           setLoading(false);
           // Still verify in background for security
-          checkAdminRole(session.user.id);
+          checkAdminRole(session.user.id, true);
           return;
         }
 
