@@ -181,3 +181,26 @@ export function exportReviews(reviews: Array<{
     { key: "created_at", label: "Created At" },
   ]);
 }
+
+/**
+ * Export chat leads data
+ */
+export function exportChatLeads(leads: Array<{
+  name: string;
+  email: string;
+  phone: string | null;
+  travel_date: string | null;
+  message: string | null;
+  source: string;
+  created_at: string;
+}>) {
+  exportToCsv(leads, `chat-leads-${new Date().toISOString().split("T")[0]}`, [
+    { key: "name", label: "Name" },
+    { key: "email", label: "Email" },
+    { key: "phone", label: "Phone" },
+    { key: "travel_date", label: "Travel Date" },
+    { key: "message", label: "Message" },
+    { key: "source", label: "Source" },
+    { key: "created_at", label: "Created At" },
+  ]);
+}
