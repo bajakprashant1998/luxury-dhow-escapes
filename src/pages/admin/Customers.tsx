@@ -192,8 +192,53 @@ const AdminCustomers = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
+        <div className="space-y-6 animate-fade-in">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+            </div>
+            <div className="h-9 w-28 bg-muted rounded animate-pulse" />
+          </div>
+
+          {/* Stats Skeleton */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-xl p-4 border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-muted rounded-lg animate-pulse" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+                    <div className="h-6 w-12 bg-muted rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Filters Skeleton */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="h-10 flex-1 bg-muted rounded animate-pulse" />
+            <div className="h-10 w-[150px] bg-muted rounded animate-pulse" />
+          </div>
+
+          {/* Table Skeleton */}
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div className="divide-y divide-border">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="p-4 flex gap-4 items-center">
+                  <div className="w-10 h-10 bg-muted rounded-full animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                    <div className="h-3 w-48 bg-muted rounded animate-pulse" />
+                  </div>
+                  <div className="h-5 w-16 bg-muted rounded animate-pulse" />
+                  <div className="h-5 w-20 bg-muted rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </AdminLayout>
     );

@@ -10,6 +10,8 @@ import ToursTable from "@/components/admin/ToursTable";
 import RevenueChart from "@/components/admin/RevenueChart";
 import DiscountUsageChart from "@/components/admin/DiscountUsageChart";
 import CustomerRetentionChart from "@/components/admin/CustomerRetentionChart";
+import ActivityFeed from "@/components/admin/ActivityFeed";
+import { DashboardStatsSkeleton, ChartSkeleton, TableSkeleton } from "@/components/admin/AdminSkeletons";
 import { withTimeout } from "@/lib/withTimeout";
 import {
   Users,
@@ -96,8 +98,29 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="space-y-1">
+            <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-64 bg-muted rounded animate-pulse" />
+          </div>
+
+          {/* Stats Skeleton */}
+          <DashboardStatsSkeleton />
+
+          {/* Charts Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </div>
+
+          {/* Table Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <TableSkeleton rows={4} columns={5} />
+            </div>
+            <ChartSkeleton />
+          </div>
         </div>
       </AdminLayout>
     );
@@ -107,7 +130,7 @@ const AdminDashboard = () => {
     <AdminLayout>
       <div className="space-y-6">
         {loadError && (
-          <div className="bg-card rounded-xl border border-border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="bg-card rounded-xl border border-border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in">
             <div>
               <p className="font-medium text-foreground">Dashboard data unavailable</p>
               <p className="text-sm text-muted-foreground">{loadError}</p>
@@ -119,7 +142,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Header */}
-        <div>
+        <div className="animate-fade-in">
           <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">
             Dashboard
           </h1>
@@ -138,6 +161,7 @@ const AdminDashboard = () => {
             changeType="positive"
             subtitle="Since last week"
             viewReportLink="/admin/analytics"
+            animationDelay={0}
           />
           <StatCard
             title="Total Bookings"
@@ -147,6 +171,7 @@ const AdminDashboard = () => {
             changeType="positive"
             subtitle="Since last month"
             viewReportLink="/admin/bookings"
+            animationDelay={50}
           />
           <StatCard
             title="Conversion Rate"
@@ -156,6 +181,7 @@ const AdminDashboard = () => {
             changeType="positive"
             subtitle="Since last week"
             viewReportLink="/admin/analytics"
+            animationDelay={100}
           />
           <StatCard
             title="Total Revenue"
@@ -165,6 +191,7 @@ const AdminDashboard = () => {
             changeType="positive"
             subtitle="Since last month"
             viewReportLink="/admin/bookings"
+            animationDelay={150}
           />
         </div>
 
@@ -188,7 +215,10 @@ const AdminDashboard = () => {
           <div className="lg:col-span-2">
             <ToursTable />
           </div>
-          <OverviewCard />
+          <div className="space-y-6">
+            <ActivityFeed />
+            <OverviewCard />
+          </div>
         </div>
 
         {/* Quick Stats Row */}
@@ -199,6 +229,7 @@ const AdminDashboard = () => {
             icon={Calendar}
             change={stats.pendingBookings > 0 ? "Action needed" : "All clear"}
             changeType={stats.pendingBookings > 0 ? "negative" : "positive"}
+            animationDelay={0}
           />
           <StatCard
             title="Total Inquiries"
@@ -206,6 +237,7 @@ const AdminDashboard = () => {
             icon={MessageSquare}
             change={`${stats.newInquiries} new`}
             changeType={stats.newInquiries > 0 ? "negative" : "neutral"}
+            animationDelay={50}
           />
           <StatCard
             title="Active Customers"
@@ -214,6 +246,7 @@ const AdminDashboard = () => {
             change="+5.4%"
             changeType="positive"
             subtitle="Since last month"
+            animationDelay={100}
           />
         </div>
       </div>

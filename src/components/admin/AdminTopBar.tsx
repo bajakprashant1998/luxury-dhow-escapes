@@ -30,10 +30,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AdminTopBarProps {
   onMenuClick: () => void;
+  onSearchClick?: () => void;
   user: any;
 }
 
-const AdminTopBar = ({ onMenuClick, user }: AdminTopBarProps) => {
+const AdminTopBar = ({ onMenuClick, onSearchClick, user }: AdminTopBarProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
@@ -96,19 +97,19 @@ const AdminTopBar = ({ onMenuClick, user }: AdminTopBarProps) => {
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="hidden md:flex">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search bookings, tours..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-48 lg:w-64 xl:w-80 bg-muted/50 h-9"
-              />
-            </div>
-          </form>
+          {/* Search - Opens command palette */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden md:flex items-center gap-2 px-3 h-9 bg-muted/50 hover:bg-muted text-muted-foreground"
+            onClick={onSearchClick}
+          >
+            <Search className="h-4 w-4" />
+            <span className="text-sm">Search...</span>
+            <kbd className="hidden lg:inline-flex ml-2 pointer-events-none h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
         </div>
 
         {/* Right side */}

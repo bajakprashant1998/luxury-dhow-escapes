@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopBar from "./AdminTopBar";
+import MobileBottomNav from "./MobileBottomNav";
+import CommandPalette from "./CommandPalette";
 
 import {
   ADMIN_CACHE_KEY,
@@ -28,9 +30,23 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [loading, setLoading] = useState(true);
   const [adminGateError, setAdminGateError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
 
   // Track if admin has been verified to prevent re-checking on token refresh
   const adminVerifiedRef = useRef(false);
+
+  // Command palette keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandOpen((open) => !open);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -198,7 +214,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground animate-pulse">Loading admin panel...</p>
+        </div>
       </div>
     );
   }
@@ -206,7 +225,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 space-y-4">
+        <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 space-y-4 animate-fade-in">
           <div className="space-y-1">
             <h1 className="font-display text-xl font-bold text-foreground">
               Admin access
@@ -239,12 +258,19 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
         <AdminTopBar
           onMenuClick={() => setSidebarOpen(true)}
+          onSearchClick={() => setCommandOpen(true)}
           user={user}
         />
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-auto pb-20 lg:pb-6">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav onMenuClick={() => setSidebarOpen(true)} />
+
+      {/* Command Palette */}
+      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
     </div>
   );
 };
