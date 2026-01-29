@@ -22,7 +22,7 @@ const ChatWidget = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8">
+    <div className="fixed bottom-24 right-4 z-50 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8">
       <AnimatePresence mode="wait">
         {isOpen && !isMinimized ? (
           <motion.div
