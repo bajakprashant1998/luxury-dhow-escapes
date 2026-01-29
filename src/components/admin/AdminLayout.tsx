@@ -148,19 +148,17 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         if (session?.user) {
           setUser(session.user);
 
-          // Skip role check if already verified and just a token refresh
-          if (adminVerifiedRef.current && event === "TOKEN_REFRESHED") {
+          // Critical Fix for Session Timeout:
+          // If we are already verified as admin, we TRUST the session.
+          // We do NOT re-verify on TOKEN_REFRESHED, SIGNED_IN, or any other event while the page is open.
+          // This prevents background network checks (e.g. after sleep/tab switch) from ever failing and logging you out.
+          if (adminVerifiedRef.current) {
             return;
           }
 
-          // Only verify on meaningful auth events
+          // Only verify on meaningful auth events if we haven't verified yet
           if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-            // Check in background if we think we are already verified (e.g. from cache or previous run)
-            // But usually these events mean we should check. 
-            // If it's INITIAL_SESSION, we might already be checking in init().
-            // If it's SIGNED_IN (e.g. from another tab), we want to verify but not necessarily show spinner if we are already admin.
-            const isBackground = adminVerifiedRef.current;
-            await checkAdminRole(session.user.id, isBackground);
+            await checkAdminRole(session.user.id, false);
           }
         }
       },
