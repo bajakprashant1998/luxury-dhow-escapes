@@ -1,322 +1,244 @@
 
-# Admin Panel Enhancement Plan
+# AI Content Generation & WebP Image Conversion System
 
-This plan provides a comprehensive overhaul of the admin panel covering visual design, new features, performance optimizations, and mobile experience improvements.
-
----
-
-## Overview
-
-The enhancements will transform the admin panel into a more modern, performant, and user-friendly interface while maintaining consistency with the existing design system.
+This plan covers two major enhancements: AI-powered content generation for premium tour descriptions and automatic WebP image conversion for all uploads.
 
 ---
 
-## Phase 1: Visual Design and UI Improvements
+## Feature 1: AI-Powered Content Generation
 
-### 1.1 Loading Skeleton Components
+### Overview
 
-Create reusable skeleton components to replace spinner loaders for better perceived performance.
+Add an "AI Generate" button to the RichTextEditor that uses Lovable AI to auto-write premium, luxurious tour descriptions based on the tour title, category, and location.
 
-**New File: `src/components/admin/Skeleton.tsx`**
+### Implementation
 
-| Component | Usage |
-|-----------|-------|
-| `TableSkeleton` | For data tables (Bookings, Tours, Customers, etc.) |
-| `StatCardSkeleton` | For stat cards at the top of each page |
-| `ChartSkeleton` | For dashboard charts |
-| `FormSkeleton` | For tour form and settings pages |
+#### 1.1 New Edge Function: `generate-tour-content`
 
-### 1.2 Enhanced Card Animations
+Create a new edge function that calls Lovable AI Gateway to generate premium content.
 
-Add subtle entrance animations to stat cards and table rows:
-- Staggered fade-in for stat cards
-- Row hover effects with subtle scale
-- Smooth transitions on status changes
+| Parameter | Description |
+|-----------|-------------|
+| `title` | Tour title (e.g., "55ft Luxury Yacht Charter") |
+| `category` | Tour category (yacht-private, dhow-cruise, etc.) |
+| `location` | Tour location (Dubai Marina, etc.) |
+| `type` | "short" or "long" description |
 
-**Files to modify:**
-- `src/components/admin/StatCard.tsx` - Add hover effects and entrance animation
-- All admin pages - Add staggered animation delays to stat cards
+**AI Prompt Strategy:**
+- Use a detailed system prompt that enforces the luxury writing style
+- Include markdown formatting instructions (headings, bold, italic)
+- Request internal links to /tours, /contact, etc.
+- Ensure scannable, conversion-focused content
 
-### 1.3 Improved Color Scheme for Status Badges
+#### 1.2 Update RichTextEditor Component
 
-Enhance the status badge system with more distinctive colors and icons:
+Add a new "AI Generate" button to the toolbar:
+- Shows a sparkle icon with loading state
+- Accepts context props: `tourTitle`, `tourCategory`, `tourLocation`
+- Calls the edge function and streams/inserts generated content
+- Shows toast on success/error
 
-| Status | Current | Enhanced |
-|--------|---------|----------|
-| Pending | Amber background | Amber with pulse dot |
-| Confirmed | Green background | Green with check icon |
-| Cancelled | Red background | Red with X icon |
-| New | Blue background | Blue with notification dot |
+#### 1.3 Update TourForm Integration
 
-### 1.4 Enhanced Dashboard Cards
-
-Modernize the dashboard stat cards:
-- Add sparkline mini-charts showing 7-day trends
-- Add tooltips with more detailed information
-- Improve icon styling with gradient backgrounds
+Pass the current form values (title, category, location) to the RichTextEditor so the AI has context for generation.
 
 ---
 
-## Phase 2: New Features and Functionality
+## Feature 2: Automatic WebP Image Conversion
 
-### 2.1 Global Admin Search (Command Palette)
+### Overview
 
-Add a keyboard-accessible command palette (Cmd/Ctrl+K) for quick navigation and search.
+Create a complete image processing pipeline that converts all uploaded JPG/PNG images to WebP format with configurable quality settings.
 
-**New File: `src/components/admin/CommandPalette.tsx`**
-
-Features:
-- Search across bookings, tours, customers, and inquiries
-- Quick navigation to any admin page
-- Recent searches history
-- Keyboard shortcuts display
-
-### 2.2 Quick Actions Menu
-
-Add a floating quick actions button for common tasks:
-
-| Action | Description |
-|--------|-------------|
-| Add Tour | Quick link to tour creation |
-| View Pending | Filter to pending bookings |
-| Export Data | Quick export current page data |
-| Toggle Theme | Switch between light/dark modes |
-
-### 2.3 Enhanced Filters with Date Range Picker
-
-Add date range filtering to Bookings, Inquiries, and Reviews pages:
-- Preset options: Today, This Week, This Month, Last 30 Days
-- Custom date range picker
-- Save filter preferences
-
-**Files to modify:**
-- `src/pages/admin/Bookings.tsx`
-- `src/pages/admin/Inquiries.tsx`
-- `src/pages/admin/Reviews.tsx`
-
-### 2.4 Inline Editing for Tables
-
-Enable inline editing for quick updates without opening dialogs:
-- Click-to-edit status dropdown
-- Quick notes field
-- Inline price/quantity adjustments
-
-### 2.5 Dashboard Activity Feed
-
-Add a real-time activity feed widget showing recent actions:
-- New bookings
-- Status changes
-- New inquiries
-- Review submissions
-
-**New File: `src/components/admin/ActivityFeed.tsx`**
-
----
-
-## Phase 3: Performance and Loading Improvements
-
-### 3.1 Skeleton Loaders Implementation
-
-Replace all spinner loaders with contextual skeleton screens:
+### Architecture
 
 ```text
-Before: [Spinner]
-After:  [████████████]
-        [██████]
-        [████████████████]
+┌─────────────────────┐     ┌──────────────────────────┐     ┌─────────────────┐
+│  Admin Uploads      │────▶│  convert-image-webp      │────▶│  Storage Bucket │
+│  JPG / PNG          │     │  Edge Function           │     │  /webp/ folder  │
+└─────────────────────┘     │  (using sharp via Deno)  │     └─────────────────┘
+                            └──────────────────────────┘
 ```
 
-### 3.2 Optimistic Updates
+### Implementation
 
-Implement optimistic updates for status changes:
-- Update UI immediately
-- Show subtle indicator during save
-- Rollback on error with toast notification
+#### 2.1 New Edge Function: `convert-image-webp`
 
-**Files to modify:**
-- `src/pages/admin/Bookings.tsx` - Status updates
-- `src/pages/admin/Inquiries.tsx` - Status updates
-- `src/pages/admin/Reviews.tsx` - Approve/reject actions
+Create an edge function that:
+1. Receives image file as base64 or form-data
+2. Validates file type (only JPG, JPEG, PNG allowed)
+3. Converts to WebP using quality settings
+4. Removes EXIF metadata
+5. Uploads to Supabase Storage in `/webp/` folder
+6. Returns the WebP public URL
 
-### 3.3 Data Prefetching
+**Technical Details:**
+- Use Deno's image manipulation capabilities or a Wasm-based solution
+- Quality: 75-85% (configurable)
+- Preserve aspect ratio
+- Max width: 1920px (configurable)
+- Strip metadata for privacy/size
 
-Prefetch data for adjacent pages on hover:
-- Dashboard prefetches Bookings and Tours data
-- Sidebar links prefetch on hover
-- Related content prefetching
+#### 2.2 New Reusable Upload Hook: `useImageUpload`
 
-### 3.4 Virtualized Tables
+Create a centralized hook for all image uploads:
 
-Implement virtual scrolling for large datasets:
-- Only render visible rows
-- Smooth scrolling performance
-- Maintain selection state
+| Feature | Description |
+|---------|-------------|
+| File validation | Only accept JPG, JPEG, PNG |
+| Size limit | Max 5MB |
+| Auto-conversion | Call edge function for WebP |
+| Progress tracking | Show upload progress |
+| Preview | Generate local preview before upload |
 
-**New dependency: Consider using `@tanstack/react-virtual`**
+#### 2.3 Update Upload Components
 
-### 3.5 Image Lazy Loading
+Modify all image upload components to use the new hook:
 
-Optimize tour images in admin tables:
-- Lazy load images below the fold
-- Use thumbnail versions in table views
-- Progressive image loading
+| Component | Changes |
+|-----------|---------|
+| `TourForm.tsx` | Main image + gallery uploads |
+| `GalleryUploadDialog.tsx` | Gallery image uploads |
+| Any future upload components | Use shared hook |
+
+#### 2.4 New Admin Settings: Image Conversion
+
+Add image settings to the Settings page:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| WebP Quality | 80% | Compression quality (75-95) |
+| Max Width | 1920px | Maximum image width |
+| Enable WebP | true | Toggle WebP conversion |
+
+Store these in `site_settings` table.
+
+#### 2.5 Update OptimizedImage Component
+
+Enhance the component to use `<picture>` tag with WebP fallback:
+
+```html
+<picture>
+  <source srcset="image.webp" type="image/webp">
+  <img src="image.jpg" alt="...">
+</picture>
+```
+
+**Logic:**
+- If URL ends in `.webp`, serve directly
+- If legacy URL (jpg/png), attempt to find WebP version
+- Fallback gracefully if WebP doesn't exist
 
 ---
 
-## Phase 4: Mobile Experience Improvements
-
-### 4.1 Responsive Sidebar
-
-Enhance the mobile sidebar experience:
-- Bottom sheet style on mobile
-- Gesture-based open/close (swipe)
-- Quick access toolbar at bottom
-
-### 4.2 Mobile-Optimized Tables
-
-Transform tables into card layouts on mobile:
+## Storage Structure
 
 ```text
-Desktop: [Col1] [Col2] [Col3] [Col4] [Actions]
-
-Mobile:  ┌─────────────────────────┐
-         │ Customer Name      [★★★]│
-         │ tour@email.com          │
-         │ ────────────────────────│
-         │ Date: Jan 28  |  $2,500 │
-         │ [Confirm] [View] [More] │
-         └─────────────────────────┘
+tour-images/
+  ├── main/
+  │   └── webp/
+  │       └── 1234567890-abc123.webp
+  ├── gallery/
+  │   └── webp/
+  │       └── 1234567890-xyz789.webp
+  └── legacy/  (optional - keep originals)
 ```
-
-**Files to modify:**
-- `src/pages/admin/Bookings.tsx`
-- `src/pages/admin/Customers.tsx`
-- `src/pages/admin/Tours.tsx`
-- `src/pages/admin/Inquiries.tsx`
-- `src/pages/admin/Reviews.tsx`
-
-### 4.3 Touch-Friendly Actions
-
-Increase touch targets and add swipe actions:
-- Swipe left to reveal quick actions
-- Long press for context menu
-- Pull-to-refresh on mobile
-- Larger checkboxes and buttons (minimum 44x44px)
-
-### 4.4 Mobile Bottom Navigation
-
-Add a fixed bottom navigation bar on mobile with key actions:
-- Dashboard
-- Bookings
-- Live Chat
-- Notifications
-- More (opens menu)
-
-**New File: `src/components/admin/MobileBottomNav.tsx`**
-
-### 4.5 Collapsible Filters
-
-Convert filter sections to collapsible panels on mobile:
-- Filters collapsed by default
-- "X filters active" badge indicator
-- Full-screen filter modal option
 
 ---
 
-## Implementation Files
-
-### New Files to Create
+## Files to Create
 
 | File | Purpose |
 |------|---------|
-| `src/components/admin/Skeleton.tsx` | Skeleton loader components |
-| `src/components/admin/CommandPalette.tsx` | Global search command palette |
-| `src/components/admin/ActivityFeed.tsx` | Real-time activity widget |
-| `src/components/admin/MobileBottomNav.tsx` | Mobile bottom navigation |
-| `src/components/admin/DateRangePicker.tsx` | Date range filter component |
-| `src/components/admin/MobileTableCard.tsx` | Card layout for mobile tables |
+| `supabase/functions/generate-tour-content/index.ts` | AI content generation |
+| `supabase/functions/convert-image-webp/index.ts` | WebP conversion |
+| `src/hooks/useImageUpload.ts` | Centralized upload hook |
 
-### Files to Modify
+## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/admin/AdminLayout.tsx` | Add command palette, mobile nav |
-| `src/components/admin/AdminSidebar.tsx` | Mobile gesture support |
-| `src/components/admin/StatCard.tsx` | Animations, sparklines |
-| `src/pages/admin/Dashboard.tsx` | Activity feed, skeleton loading |
-| `src/pages/admin/Bookings.tsx` | Mobile cards, date filters, skeletons |
-| `src/pages/admin/Tours.tsx` | Mobile cards, optimistic updates |
-| `src/pages/admin/Customers.tsx` | Mobile cards, skeleton loading |
-| `src/pages/admin/Inquiries.tsx` | Mobile cards, date filters |
-| `src/pages/admin/Reviews.tsx` | Mobile cards, inline actions |
-| `src/pages/admin/Settings.tsx` | Touch-friendly inputs |
-| `tailwind.config.ts` | Add new animation keyframes |
+| `src/components/admin/RichTextEditor.tsx` | Add AI generate button |
+| `src/components/admin/TourForm.tsx` | Pass context to RichTextEditor, use new upload hook |
+| `src/components/admin/GalleryUploadDialog.tsx` | Use new upload hook |
+| `src/components/ui/optimized-image.tsx` | Add picture tag for WebP fallback |
+| `src/pages/admin/Settings.tsx` | Add image settings section |
+| `supabase/config.toml` | Register new edge functions |
 
 ---
 
-## Technical Implementation Details
+## Technical Details
 
-### Skeleton Component Structure
+### AI Content Generation Prompt
 
-```typescript
-// TableSkeleton - renders rows of animated placeholders
-// StatCardSkeleton - mimics stat card shape
-// Each skeleton uses animate-pulse with varying widths
+The edge function will use a carefully crafted prompt:
+
+```text
+You are a luxury copywriter for a premium yacht charter company in Dubai.
+
+Write a {type} description for: {title}
+Category: {category}
+Location: {location}
+
+Requirements:
+- Use markdown: ## headings, **bold** for key features, *italic* for experiences
+- Include 2-3 internal links: [text](/tours), [text](/contact)
+- Tone: Luxurious, inviting, aspirational
+- Focus on: Experiences, exclusivity, Dubai landmarks
+- Make content scannable with bullet points
+- End with a subtle call-to-action
 ```
 
-### Command Palette Integration
+### WebP Conversion Approach
 
-```typescript
-// Keyboard shortcut: Cmd/Ctrl + K
-// Uses cmdk library (already installed)
-// Searches: tours, bookings, customers, pages
-// Recent items stored in localStorage
-```
+Since Deno doesn't have native sharp support, we'll use one of these approaches:
 
-### Mobile Card Layout Detection
+**Option A: Browser-compatible Canvas API (Recommended)**
+- Use Deno's web APIs to decode/encode images
+- Leverage `ImageBitmap` and `OffscreenCanvas`
+- Works without external dependencies
 
-```typescript
-// Use useIsMobile() hook for breakpoint detection
-// Conditionally render Table vs CardList
-// Maintain same data structure, different presentation
-```
+**Option B: External Service Call**
+- Call a lightweight image processing service
+- Return the processed image
 
-### Optimistic Update Pattern
+### Upload Flow
 
-```typescript
-// 1. Update local state immediately
-// 2. Show subtle saving indicator
-// 3. Make API call in background
-// 4. On success: clear indicator
-// 5. On error: rollback state, show toast
+```text
+1. User selects file
+2. Validate: JPG/PNG only, max 5MB
+3. Generate local preview
+4. Send to edge function
+5. Edge function:
+   a. Decode image
+   b. Resize if > 1920px
+   c. Convert to WebP at 80% quality
+   d. Upload to Storage
+   e. Return WebP URL
+6. Update form with new URL
+7. Show success toast with file size comparison
 ```
 
 ---
 
-## Priority Order
+## Security Considerations
 
-1. **High Priority** (Immediate impact)
-   - Skeleton loaders for all pages
-   - Mobile card layouts for tables
-   - Enhanced stat card animations
-
-2. **Medium Priority** (User experience)
-   - Command palette (Cmd+K search)
-   - Date range filters
-   - Optimistic updates
-
-3. **Lower Priority** (Polish)
-   - Activity feed widget
-   - Swipe gestures
-   - Sparkline mini-charts
-   - Mobile bottom navigation
+- Sanitize file names (remove special chars, generate unique ID)
+- Validate file signatures (magic bytes), not just extension
+- Rate limit uploads per user
+- Max file size enforced both client and server side
 
 ---
 
 ## Expected Outcomes
 
-- 40% improvement in perceived loading speed through skeleton screens
-- Significantly better mobile usability with card layouts
-- Faster task completion with command palette and inline editing
-- More engaging visual experience with animations and modern styling
-- Reduced user frustration with optimistic updates
+**AI Content Generation:**
+- 80% faster content creation for new tours
+- Consistent premium tone across all descriptions
+- Proper markdown formatting for SEO
+
+**WebP Conversion:**
+- 25-40% smaller file sizes
+- Improved Core Web Vitals (LCP)
+- Automatic optimization without manual effort
+- Backwards compatible with fallback images
