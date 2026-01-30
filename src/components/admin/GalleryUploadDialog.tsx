@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 interface GalleryUploadDialogProps {
   open: boolean;
@@ -40,16 +42,33 @@ const GalleryUploadDialog = ({
   onOpenChange,
   onSuccess,
 }: GalleryUploadDialogProps) => {
-  const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  const { upload, isUploading, progress, settings } = useImageUpload({
+    folder: "gallery",
+    showToast: false,
+  });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        toast.error("Only JPG, JPEG, and PNG images are allowed");
+        return;
+      }
+      
+      // Validate file size
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
@@ -60,6 +79,9 @@ const GalleryUploadDialog = ({
     setCategory("");
     setCustomCategory("");
     setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setPreviewUrl(null);
   };
 
@@ -75,27 +97,18 @@ const GalleryUploadDialog = ({
       return;
     }
 
-    setUploading(true);
-
     try {
-      // Upload to storage
-      const fileExt = selectedFile.name.split(".").pop();
-      const fileName = `gallery/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("tour-images")
-        .upload(fileName, selectedFile);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("tour-images")
-        .getPublicUrl(fileName);
+      // Upload and convert to WebP
+      const result = await upload(selectedFile);
+      
+      if (!result) {
+        toast.error("Failed to upload image");
+        return;
+      }
 
       // Save to gallery table
       const { error: dbError } = await supabase.from("gallery").insert({
-        image_url: urlData.publicUrl,
+        image_url: result.url,
         title: title || null,
         category: finalCategory,
         sort_order: 0,
@@ -103,15 +116,21 @@ const GalleryUploadDialog = ({
 
       if (dbError) throw dbError;
 
-      toast.success("Image uploaded successfully");
+      // Show success message with size savings
+      if (result.savedPercent > 0) {
+        toast.success(
+          `Image uploaded! Saved ${result.savedPercent}% with WebP conversion`
+        );
+      } else {
+        toast.success("Image uploaded successfully");
+      }
+      
       resetForm();
       onSuccess();
       onOpenChange(false);
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Failed to upload image");
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -135,6 +154,7 @@ const GalleryUploadDialog = ({
                 <button
                   onClick={() => {
                     setSelectedFile(null);
+                    if (previewUrl) URL.revokeObjectURL(previewUrl);
                     setPreviewUrl(null);
                   }}
                   className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
@@ -148,15 +168,39 @@ const GalleryUploadDialog = ({
                 <span className="text-sm text-muted-foreground">
                   Click to select image
                 </span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  JPG, JPEG, PNG only (max 5MB)
+                </span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png"
                   onChange={handleFileSelect}
                   className="hidden"
                 />
               </label>
             )}
           </div>
+
+          {/* Upload Progress */}
+          {isUploading && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Uploading and optimizing...</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          )}
+
+          {/* WebP Info */}
+          {settings.enableWebp && selectedFile && !isUploading && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+              <ImageIcon className="w-4 h-4" />
+              <span>
+                Image will be optimized (Quality: {settings.webpQuality}%, Max width: {settings.maxWidth}px)
+              </span>
+            </div>
+          )}
 
           {/* Title */}
           <div className="space-y-2">
@@ -198,10 +242,10 @@ const GalleryUploadDialog = ({
           {/* Upload Button */}
           <Button
             onClick={handleUpload}
-            disabled={uploading || !selectedFile}
+            disabled={isUploading || !selectedFile}
             className="w-full"
           >
-            {uploading ? (
+            {isUploading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Uploading...

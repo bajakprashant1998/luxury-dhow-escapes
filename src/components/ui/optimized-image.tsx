@@ -24,13 +24,44 @@ interface OptimizedImageProps {
   objectFit?: "cover" | "contain" | "fill" | "none";
   /** Callback when image loads */
   onLoad?: () => void;
+  /** WebP source URL (optional - for manual WebP fallback) */
+  webpSrc?: string;
+}
+
+/**
+ * Attempts to find a WebP version of the image URL
+ * Assumes WebP images are stored in /webp/ subfolder or have .webp extension
+ */
+function getWebpUrl(src: string): string | null {
+  if (!src) return null;
+  
+  // If already a WebP, return as-is
+  if (src.endsWith(".webp")) return src;
+  
+  // Check if this is a Supabase storage URL
+  if (src.includes("supabase") && src.includes("/storage/")) {
+    // Try to construct WebP path
+    // e.g., /main/image.jpg -> /main/webp/image.webp
+    const urlParts = src.split("/");
+    const fileName = urlParts.pop() || "";
+    const folder = urlParts.pop() || "";
+    
+    // Only attempt WebP for images in main or gallery folders
+    if (folder === "main" || folder === "gallery") {
+      const baseName = fileName.replace(/\.(jpg|jpeg|png)$/i, "");
+      const webpPath = [...urlParts, folder, "webp", `${baseName}.webp`].join("/");
+      return webpPath;
+    }
+  }
+  
+  return null;
 }
 
 /**
  * Optimized image component with:
  * - Lazy loading with skeleton placeholder
+ * - WebP fallback support via <picture> tag
  * - srcset support for responsive images
- * - WebP format detection
  * - Smooth fade-in animation
  * - Priority loading for LCP images
  */
@@ -45,12 +76,17 @@ const OptimizedImage = memo(({
   aspectRatio,
   objectFit = "cover",
   onLoad,
+  webpSrc,
 }: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [webpError, setWebpError] = useState(false);
 
   // Generate srcset string from sources array
   const srcSet = sources?.map((s) => `${s.src} ${s.width}w`).join(", ");
+  
+  // Get WebP URL (either provided or auto-detected)
+  const webpUrl = webpSrc || getWebpUrl(src);
 
   const handleLoad = () => {
     setLoaded(true);
@@ -60,6 +96,10 @@ const OptimizedImage = memo(({
   const handleError = () => {
     setError(true);
     setLoaded(true);
+  };
+
+  const handleWebpError = () => {
+    setWebpError(true);
   };
 
   // Determine object-fit class
@@ -102,22 +142,35 @@ const OptimizedImage = memo(({
           </svg>
         </div>
       ) : (
-        <img
-          src={src}
-          alt={alt}
-          srcSet={srcSet}
-          sizes={sizes}
-          loading={priority ? "eager" : "lazy"}
-          decoding={priority ? "sync" : "async"}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={cn(
-            "w-full h-full transition-opacity duration-500",
-            objectFitClass,
-            loaded ? "opacity-100" : "opacity-0",
-            className
+        <picture>
+          {/* WebP source - only show if we have a WebP URL and it hasn't errored */}
+          {webpUrl && !webpError && (
+            <source
+              srcSet={webpUrl}
+              type="image/webp"
+              onError={handleWebpError as any}
+            />
           )}
-        />
+          
+          {/* Fallback image */}
+          <img
+            src={src}
+            alt={alt}
+            srcSet={srcSet}
+            sizes={sizes}
+            loading={priority ? "eager" : "lazy"}
+            decoding={priority ? "sync" : "async"}
+            fetchPriority={priority ? "high" : undefined}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={cn(
+              "w-full h-full transition-opacity duration-500",
+              objectFitClass,
+              loaded ? "opacity-100" : "opacity-0",
+              className
+            )}
+          />
+        </picture>
       )}
     </div>
   );

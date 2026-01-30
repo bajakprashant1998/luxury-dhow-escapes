@@ -347,6 +347,10 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                 placeholder="Compelling summary for tour cards. Use **bold** for key features and *italics* for highlights."
                 rows={4}
                 helpText="Used on tour cards and search results. Keep it concise and engaging."
+                tourTitle={formData.title}
+                tourCategory={formData.category}
+                tourLocation={formData.location}
+                descriptionType="short"
               />
 
               <RichTextEditor
@@ -357,6 +361,10 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                 placeholder="Create a luxurious, detailed description using the formatting toolbar..."
                 rows={12}
                 helpText="Displayed on the tour detail page. Use headings, lists, and links to create premium content."
+                tourTitle={formData.title}
+                tourCategory={formData.category}
+                tourLocation={formData.location}
+                descriptionType="long"
               />
             </CardContent>
           </Card>

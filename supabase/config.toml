@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.notify-agent-request]
 verify_jwt = false
+
+[functions.generate-tour-content]
+verify_jwt = false
+
+[functions.convert-image-webp]
+verify_jwt = false

@@ -22,14 +22,14 @@ import {
   Edit3,
   Ship,
   MapPin,
-  Package,
   CalendarCheck,
-  Anchor,
-  Waves,
   Utensils,
   Star,
+  Loader2,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface RichTextEditorProps {
   id: string;
@@ -39,6 +39,11 @@ interface RichTextEditorProps {
   placeholder?: string;
   rows?: number;
   helpText?: string;
+  // Context for AI generation
+  tourTitle?: string;
+  tourCategory?: string;
+  tourLocation?: string;
+  descriptionType?: "short" | "long";
 }
 
 // Premium content templates
@@ -101,11 +106,16 @@ const RichTextEditor = ({
   placeholder,
   rows = 6,
   helpText,
+  tourTitle = "",
+  tourCategory = "",
+  tourLocation = "",
+  descriptionType = "short",
 }: RichTextEditorProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isPreview, setIsPreview] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const insertAtCursor = useCallback(
     (before: string, after: string = "") => {
@@ -190,6 +200,50 @@ const RichTextEditor = ({
     onChange(newText);
   };
 
+  // AI Content Generation
+  const generateWithAI = async () => {
+    if (!tourTitle) {
+      toast.error("Please enter a tour title first");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-tour-content`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            title: tourTitle,
+            category: tourCategory,
+            location: tourLocation,
+            type: descriptionType,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Generation failed");
+      }
+
+      const data = await response.json();
+      if (data.content) {
+        onChange(data.content);
+        toast.success("Content generated successfully!");
+      }
+    } catch (error) {
+      console.error("AI generation error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to generate content");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   // Simple markdown to HTML preview
   const renderPreview = (text: string) => {
     if (!text) return "<p class='text-muted-foreground italic'>No content to preview</p>";
@@ -262,6 +316,26 @@ const RichTextEditor = ({
       {/* Toolbar */}
       {!isPreview && (
         <div className="flex flex-wrap items-center gap-1 p-2 bg-muted/50 rounded-t-md border border-b-0 border-input">
+          {/* AI Generate Button */}
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={generateWithAI}
+            disabled={isGenerating || !tourTitle}
+            className="h-8 gap-1.5 px-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+            title={tourTitle ? "Generate premium content with AI" : "Enter tour title first"}
+          >
+            {isGenerating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Wand2 className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">AI Generate</span>
+          </Button>
+
+          <div className="w-px h-6 bg-border mx-1" />
+
           {/* Formatting buttons */}
           <Button
             type="button"

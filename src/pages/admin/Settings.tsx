@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { Save, Globe, Home, Mail, FileText, Loader2 } from "lucide-react";
+import { Save, Globe, Home, Mail, FileText, Loader2, Image as ImageIcon } from "lucide-react";
 import {
   useSiteSettings,
   useBatchUpdateSiteSettings,
@@ -20,9 +22,9 @@ import {
 } from "@/hooks/useEmailTemplates";
 import EmailTemplateEditor from "@/components/admin/EmailTemplateEditor";
 
-type SettingsTab = "site" | "homepage" | "footer" | "email";
+type SettingsTab = "site" | "homepage" | "footer" | "email" | "images";
 
-const VALID_TABS: SettingsTab[] = ["site", "homepage", "footer", "email"];
+const VALID_TABS: SettingsTab[] = ["site", "homepage", "footer", "email", "images"];
 
 function getTabFromPath(pathname: string): SettingsTab {
   const parts = pathname.split("/").filter(Boolean);
@@ -58,6 +60,12 @@ const DEFAULT_FOOTER = {
   twitterUrl: "https://twitter.com/betterviewtour",
 };
 
+const DEFAULT_IMAGE_SETTINGS = {
+  enableWebp: true,
+  webpQuality: 80,
+  maxWidth: 1920,
+};
+
 const AdminSettings = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -75,6 +83,7 @@ const AdminSettings = () => {
   const [siteSettings, setSiteSettings] = useState(DEFAULT_SITE);
   const [homepageSettings, setHomepageSettings] = useState(DEFAULT_HOMEPAGE);
   const [footerSettings, setFooterSettings] = useState(DEFAULT_FOOTER);
+  const [imageSettings, setImageSettings] = useState(DEFAULT_IMAGE_SETTINGS);
 
   const tabFromUrl = useMemo(() => getTabFromPath(location.pathname), [location.pathname]);
   const [activeTab, setActiveTab] = useState<SettingsTab>(tabFromUrl);
@@ -89,6 +98,7 @@ const AdminSettings = () => {
       const siteData = allSettings.find((s) => s.key === "site");
       const homepageData = allSettings.find((s) => s.key === "homepage");
       const footerData = allSettings.find((s) => s.key === "footer");
+      const imageData = allSettings.find((s) => s.key === "image_settings");
 
       if (siteData?.value) {
         setSiteSettings({ ...DEFAULT_SITE, ...(siteData.value as typeof DEFAULT_SITE) });
@@ -98,6 +108,9 @@ const AdminSettings = () => {
       }
       if (footerData?.value) {
         setFooterSettings({ ...DEFAULT_FOOTER, ...(footerData.value as typeof DEFAULT_FOOTER) });
+      }
+      if (imageData?.value) {
+        setImageSettings({ ...DEFAULT_IMAGE_SETTINGS, ...(imageData.value as typeof DEFAULT_IMAGE_SETTINGS) });
       }
     }
   }, [allSettings]);
@@ -112,6 +125,10 @@ const AdminSettings = () => {
 
   const handleSaveFooterSettings = async () => {
     batchUpdate.mutate([{ key: "footer", value: footerSettings as unknown as SiteSettingsValue }]);
+  };
+
+  const handleSaveImageSettings = async () => {
+    batchUpdate.mutate([{ key: "image_settings", value: imageSettings as unknown as SiteSettingsValue }]);
   };
 
   const isLoading = batchUpdate.isPending;
@@ -149,7 +166,7 @@ const AdminSettings = () => {
           }}
           className="w-full"
         >
-          <TabsList className="grid w-full max-w-md grid-cols-4">
+          <TabsList className="grid w-full max-w-xl grid-cols-5">
             <TabsTrigger value="site" className="gap-2">
               <Globe className="w-4 h-4" />
               <span className="hidden sm:inline">Site</span>
@@ -165,6 +182,10 @@ const AdminSettings = () => {
             <TabsTrigger value="email" className="gap-2">
               <Mail className="w-4 h-4" />
               <span className="hidden sm:inline">Email</span>
+            </TabsTrigger>
+            <TabsTrigger value="images" className="gap-2">
+              <ImageIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Images</span>
             </TabsTrigger>
           </TabsList>
 
@@ -374,6 +395,103 @@ const AdminSettings = () => {
                 isSaving={updateTemplate.isPending}
               />
             )}
+          </TabsContent>
+
+          {/* Image Settings */}
+          <TabsContent value="images">
+            <div className="bg-card rounded-xl border border-border p-6 space-y-6">
+              <div>
+                <h3 className="font-display text-lg font-semibold text-foreground mb-4">
+                  Image Optimization Settings
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Configure automatic WebP conversion for uploaded images. WebP provides 25-35% better compression than JPEG/PNG.
+                </p>
+                
+                <div className="space-y-6">
+                  {/* Enable WebP Toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="enableWebp" className="text-base">Enable WebP Conversion</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Automatically convert uploaded images to WebP format
+                      </p>
+                    </div>
+                    <Switch
+                      id="enableWebp"
+                      checked={imageSettings.enableWebp}
+                      onCheckedChange={(checked) =>
+                        setImageSettings({ ...imageSettings, enableWebp: checked })
+                      }
+                    />
+                  </div>
+
+                  {/* Quality Slider */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>WebP Quality</Label>
+                      <span className="text-sm font-medium text-foreground">
+                        {imageSettings.webpQuality}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[imageSettings.webpQuality]}
+                      onValueChange={([value]) =>
+                        setImageSettings({ ...imageSettings, webpQuality: value })
+                      }
+                      min={50}
+                      max={95}
+                      step={5}
+                      disabled={!imageSettings.enableWebp}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Higher quality = larger file size. Recommended: 75-85%
+                    </p>
+                  </div>
+
+                  {/* Max Width */}
+                  <div className="space-y-2">
+                    <Label htmlFor="maxWidth">Maximum Image Width (px)</Label>
+                    <Input
+                      id="maxWidth"
+                      type="number"
+                      value={imageSettings.maxWidth}
+                      onChange={(e) =>
+                        setImageSettings({
+                          ...imageSettings,
+                          maxWidth: parseInt(e.target.value) || 1920,
+                        })
+                      }
+                      disabled={!imageSettings.enableWebp}
+                      min={800}
+                      max={3840}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Images wider than this will be resized. Recommended: 1920px
+                    </p>
+                  </div>
+
+                  {/* Info Box */}
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    <h4 className="font-medium text-sm">Allowed Upload Formats</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• JPEG / JPG</li>
+                      <li>• PNG</li>
+                    </ul>
+                    <p className="text-xs text-muted-foreground pt-2">
+                      Maximum file size: 5MB. Images are automatically validated and sanitized on upload.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleSaveImageSettings} disabled={isLoading}>
+                  {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Changes
+                </Button>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
