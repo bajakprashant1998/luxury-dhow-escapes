@@ -76,7 +76,7 @@ export function mapDbTourToTour(dbTour: DbTour): Tour {
     duration: dbTour.duration || "",
     rating: Number(dbTour.rating) || 4.5,
     reviewCount: dbTour.review_count || 0,
-    image: normalizeImagePath(dbTour.image_url),
+    image: normalizeImagePath(dbTour.image_url || dbTour.gallery?.[0] || null),
     gallery: (dbTour.gallery || []).map(normalizeImagePath),
     highlights: dbTour.highlights || [],
     included: dbTour.included || [],
