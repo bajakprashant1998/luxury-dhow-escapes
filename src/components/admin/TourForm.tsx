@@ -36,10 +36,13 @@ interface TourFormProps {
   mode: "create" | "edit";
 }
 
+import { useImageUpload } from "@/hooks/useImageUpload";
+
 const TourForm = ({ tour, mode }: TourFormProps) => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const { upload } = useImageUpload({ showToast: true });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
@@ -101,38 +104,23 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
     }));
   };
 
-  const uploadImage = async (file: File, folder: string): Promise<string | null> => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("tour-images")
-      .upload(fileName, file);
-
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
-      toast.error("Failed to upload image");
-      return null;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from("tour-images")
-      .getPublicUrl(fileName);
-
-    return publicUrl;
-  };
 
   const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploadingImage(true);
-    const url = await uploadImage(file, "main");
-    if (url) {
-      setFormData((prev) => ({ ...prev, image_url: url }));
-      toast.success("Image uploaded successfully");
+    // Use the hook's upload function
+    const result = await upload(file);
+
+    if (result?.url) {
+      setFormData((prev) => ({ ...prev, image_url: result.url }));
+      // Toast handles success message
     }
     setIsUploadingImage(false);
+    // Reset input value to allow re-uploading same file if needed
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,10 +130,11 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
     setIsUploadingGallery(true);
     const uploadedUrls: string[] = [];
 
+    // Process files sequentially to ensure order or handle errors individually
     for (const file of Array.from(files)) {
-      const url = await uploadImage(file, "gallery");
-      if (url) {
-        uploadedUrls.push(url);
+      const result = await upload(file);
+      if (result?.url) {
+        uploadedUrls.push(result.url);
       }
     }
 
@@ -154,9 +143,11 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
         ...prev,
         gallery: [...(prev.gallery || []), ...uploadedUrls],
       }));
-      toast.success(`${uploadedUrls.length} image(s) uploaded`);
+      toast.success(`${uploadedUrls.length} image(s) appended to gallery`);
     }
     setIsUploadingGallery(false);
+    // Reset input
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
   };
 
   const removeGalleryImage = (index: number) => {
@@ -739,7 +730,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               {/* Quick Info Items */}
               <div className="space-y-4">
                 <Label className="text-sm font-semibold">Quick Info Items</Label>
-                
+
                 <div className="grid gap-3">
                   <div className="flex items-center gap-3">
                     <Calendar className="w-4 h-4 text-secondary shrink-0" />
@@ -754,7 +745,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                       placeholder="Available daily"
                     />
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <Clock className="w-4 h-4 text-secondary shrink-0" />
                     <Input
@@ -768,7 +759,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                       placeholder="Minimum 2 Hours Required"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -799,7 +790,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                       />
                     )}
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <Shield className="w-4 h-4 text-secondary shrink-0" />
                     <Input
