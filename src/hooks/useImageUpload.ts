@@ -23,7 +23,7 @@ interface UseImageUploadOptions {
   showToast?: boolean;
 }
 
-const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Validate file type by checking magic bytes
@@ -36,10 +36,15 @@ function validateFileType(file: File): Promise<boolean> {
       const isJpeg = arr[0] === 0xff && arr[1] === 0xd8 && arr[2] === 0xff;
       // Check PNG signature: 89 50 4E 47
       const isPng = arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4e && arr[3] === 0x47;
-      resolve(isJpeg || isPng);
+      // Check WebP signature: RIFF....WEBP
+      const isWebp =
+        arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46 &&
+        arr[8] === 0x57 && arr[9] === 0x45 && arr[10] === 0x42 && arr[11] === 0x50;
+
+      resolve(isJpeg || isPng || isWebp);
     };
     reader.onerror = () => resolve(false);
-    reader.readAsArrayBuffer(file.slice(0, 4));
+    reader.readAsArrayBuffer(file.slice(0, 12));
   });
 }
 
@@ -48,32 +53,32 @@ function convertToWebP(file: File, quality: number, maxWidth: number): Promise<{
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
-    
+
     img.onload = () => {
       URL.revokeObjectURL(url);
-      
+
       // Calculate dimensions while maintaining aspect ratio
       let width = img.width;
       let height = img.height;
-      
+
       if (width > maxWidth) {
         height = Math.round((height * maxWidth) / width);
         width = maxWidth;
       }
-      
+
       // Create canvas and draw resized image
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
-      
+
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         reject(new Error('Failed to get canvas context'));
         return;
       }
-      
+
       ctx.drawImage(img, 0, 0, width, height);
-      
+
       // Convert to WebP blob
       canvas.toBlob(
         (blob) => {
@@ -87,19 +92,19 @@ function convertToWebP(file: File, quality: number, maxWidth: number): Promise<{
         quality / 100 // Canvas expects 0-1 range
       );
     };
-    
+
     img.onerror = () => {
       URL.revokeObjectURL(url);
       reject(new Error('Failed to load image for conversion'));
     };
-    
+
     img.src = url;
   });
 }
 
 export function useImageUpload(options: UseImageUploadOptions = {}) {
   const { folder = "uploads", onProgress, showToast = true } = options;
-  
+
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [preview, setPreview] = useState<string | null>(null);
@@ -108,7 +113,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
   // Get image settings from database
   const { data: imageSettings } = useSiteSetting("image_settings");
   const settings: ImageSettings = (imageSettings as ImageSettings) || {};
-  
+
   const webpQuality = settings.webpQuality ?? 80;
   const maxWidth = settings.maxWidth ?? 1920;
   const enableWebp = settings.enableWebp ?? true;
@@ -116,7 +121,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
   const validateFile = useCallback(async (file: File): Promise<string | null> => {
     // Check MIME type
     if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
-      return "Only JPG, JPEG, and PNG images are allowed";
+      return "Only JPG, PNG, and WebP images are allowed";
     }
 
     // Check file size
@@ -127,7 +132,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
     // Validate magic bytes
     const isValidType = await validateFileType(file);
     if (!isValidType) {
-      return "Invalid file format. Only JPG/PNG images are allowed";
+      return "Invalid file format. Only JPG/PNG/WebP images are allowed";
     }
 
     return null;
@@ -220,7 +225,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
           .replace(/-+/g, "-")
           .replace(/(^-|-$)/g, "")
           .slice(0, 50);
-        
+
         const timestamp = Date.now();
         const randomId = Math.random().toString(36).substring(2, 8);
         const fileName = `${folder}/webp/${timestamp}-${sanitizedName || randomId}.webp`;
