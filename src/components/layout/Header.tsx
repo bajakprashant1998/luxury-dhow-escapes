@@ -102,7 +102,7 @@ const Header = () => {
             <img 
               src={rentalYachtLogo} 
               alt="Rental Yacht Dubai" 
-              className="w-11 h-11 object-contain rounded-lg"
+              className="w-14 h-14 md:w-16 md:h-16 object-contain"
             />
             <div className="flex flex-col">
               <span className="font-display font-bold text-xl text-primary leading-tight tracking-tight">Rental Yacht</span>
