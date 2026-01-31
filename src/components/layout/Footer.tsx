@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Shield, Lock, CreditCard } from "lucide-react";
-import rentalYachtLogo from "@/assets/rental-yacht-logo.png";
+import rentalYachtLogo from "@/assets/rental-yacht-logo-new.png";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_CACHE_KEY, ADMIN_USER_KEY, getAdminCache } from "@/lib/adminAuth";
 import { useContactConfig } from "@/hooks/useContactConfig";
