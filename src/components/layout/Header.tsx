@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, Mail, ChevronDown, Ship, Anchor, Crown, Users } from "lucide-react";
-import rentalYachtLogo from "@/assets/rental-yacht-logo.png";
+import rentalYachtLogo from "@/assets/rental-yacht-logo-new.png";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
