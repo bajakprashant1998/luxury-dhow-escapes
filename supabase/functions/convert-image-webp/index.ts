@@ -11,9 +11,10 @@ const corsHeaders = {
 const FILE_SIGNATURES = {
   jpeg: [0xff, 0xd8, 0xff],
   png: [0x89, 0x50, 0x4e, 0x47],
+  webp: [0x52, 0x49, 0x46, 0x46], // RIFF header for WebP
 };
 
-function validateFileSignature(bytes: Uint8Array): "jpeg" | "png" | null {
+function validateFileSignature(bytes: Uint8Array): "jpeg" | "png" | "webp" | null {
   // Check JPEG
   if (
     bytes[0] === FILE_SIGNATURES.jpeg[0] &&
@@ -30,6 +31,16 @@ function validateFileSignature(bytes: Uint8Array): "jpeg" | "png" | null {
     bytes[3] === FILE_SIGNATURES.png[3]
   ) {
     return "png";
+  }
+  // Check WebP (RIFF....WEBP)
+  if (
+    bytes[0] === FILE_SIGNATURES.webp[0] &&
+    bytes[1] === FILE_SIGNATURES.webp[1] &&
+    bytes[2] === FILE_SIGNATURES.webp[2] &&
+    bytes[3] === FILE_SIGNATURES.webp[3] &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return "webp";
   }
   return null;
 }
@@ -57,12 +68,6 @@ serve(async (req) => {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const folder = (formData.get("folder") as string) || "uploads";
-    const qualityStr = formData.get("quality") as string;
-    const maxWidthStr = formData.get("maxWidth") as string;
-    
-    // These are stored for future WebP conversion implementation
-    const _quality = qualityStr ? parseInt(qualityStr) : 80;
-    const _maxWidth = maxWidthStr ? parseInt(maxWidthStr) : 1920;
 
     if (!file) {
       return new Response(
@@ -88,7 +93,7 @@ serve(async (req) => {
     const fileType = validateFileSignature(bytes);
     if (!fileType) {
       return new Response(
-        JSON.stringify({ error: "Invalid file type. Only JPG/JPEG/PNG allowed." }),
+        JSON.stringify({ error: "Invalid file type. Only JPG/JPEG/PNG/WebP allowed." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -103,16 +108,31 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Generate sanitized filename - store in /webp/ folder for future WebP implementation
+    // Generate sanitized filename
     const sanitizedName = sanitizeFileName(file.name);
-    const extension = fileType === "jpeg" ? "jpg" : "png";
+    
+    // Determine extension and content type
+    let extension: string;
+    let contentType: string;
+    
+    if (fileType === "webp") {
+      extension = "webp";
+      contentType = "image/webp";
+    } else if (fileType === "jpeg") {
+      extension = "jpg";
+      contentType = "image/jpeg";
+    } else {
+      extension = "png";
+      contentType = "image/png";
+    }
+    
     const filePath = `${folder}/webp/${sanitizedName}.${extension}`;
 
     // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from("tour-images")
       .upload(filePath, bytes, {
-        contentType: fileType === "jpeg" ? "image/jpeg" : "image/png",
+        contentType,
         upsert: false,
       });
 
@@ -136,6 +156,7 @@ serve(async (req) => {
         savedBytes: 0,
         savedPercent: 0,
         dimensions: { width: 0, height: 0 },
+        fileType,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
