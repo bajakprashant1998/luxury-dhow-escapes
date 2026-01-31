@@ -43,6 +43,60 @@ function validateFileType(file: File): Promise<boolean> {
   });
 }
 
+// Convert image to WebP using Canvas API (client-side conversion)
+function convertToWebP(file: File, quality: number, maxWidth: number): Promise<{ blob: Blob; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      
+      // Calculate dimensions while maintaining aspect ratio
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      
+      // Create canvas and draw resized image
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convert to WebP blob
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve({ blob, width, height });
+          } else {
+            reject(new Error('Failed to convert image to WebP'));
+          }
+        },
+        'image/webp',
+        quality / 100 // Canvas expects 0-1 range
+      );
+    };
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image for conversion'));
+    };
+    
+    img.src = url;
+  });
+}
+
 export function useImageUpload(options: UseImageUploadOptions = {}) {
   const { folder = "uploads", onProgress, showToast = true } = options;
   
@@ -112,6 +166,8 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
         setProgress(10);
         onProgress?.(10);
 
+        const originalSize = file.size;
+
         if (!enableWebp) {
           // Fallback: upload directly without conversion
           setProgress(30);
@@ -140,61 +196,79 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
 
           return {
             url: urlData.publicUrl,
-            originalSize: file.size,
-            webpSize: file.size,
+            originalSize,
+            webpSize: originalSize,
             savedPercent: 0,
             dimensions: { width: 0, height: 0 },
           };
         }
 
-        // Convert to WebP via edge function
+        // Convert to WebP client-side using Canvas API
         setProgress(20);
         onProgress?.(20);
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("folder", folder);
-        formData.append("quality", webpQuality.toString());
-        formData.append("maxWidth", maxWidth.toString());
+        const { blob: webpBlob, width, height } = await convertToWebP(file, webpQuality, maxWidth);
 
-        setProgress(40);
-        onProgress?.(40);
+        setProgress(50);
+        onProgress?.(50);
 
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/convert-image-webp`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: formData,
-          }
-        );
+        // Generate sanitized filename
+        const baseName = file.name.replace(/\.[^/.]+$/, "");
+        const sanitizedName = baseName
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/(^-|-$)/g, "")
+          .slice(0, 50);
+        
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substring(2, 8);
+        const fileName = `${folder}/webp/${timestamp}-${sanitizedName || randomId}.webp`;
 
-        setProgress(80);
-        onProgress?.(80);
+        setProgress(60);
+        onProgress?.(60);
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Upload failed");
-        }
+        // Upload WebP blob directly to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from("tour-images")
+          .upload(fileName, webpBlob, {
+            contentType: "image/webp",
+            upsert: false,
+          });
 
-        const result = await response.json();
+        if (uploadError) throw uploadError;
+
+        setProgress(90);
+        onProgress?.(90);
+
+        const { data: urlData } = supabase.storage
+          .from("tour-images")
+          .getPublicUrl(fileName);
+
+        const webpSize = webpBlob.size;
+        const savedBytes = originalSize - webpSize;
+        const savedPercent = Math.round((savedBytes / originalSize) * 100);
 
         setProgress(100);
         onProgress?.(100);
 
         if (showToast) {
-          if (result.savedPercent > 0) {
+          if (savedPercent > 0) {
             toast.success(
-              `Image converted to WebP! Saved ${result.savedPercent}% (${formatBytes(result.savedBytes)})`
+              `Image converted to WebP! Saved ${savedPercent}% (${formatBytes(savedBytes)})`
             );
           } else {
-            toast.success("Image uploaded successfully");
+            toast.success("Image uploaded as WebP");
           }
         }
 
-        return result as UploadResult;
+        return {
+          url: urlData.publicUrl,
+          originalSize,
+          webpSize,
+          savedPercent,
+          dimensions: { width, height },
+        };
       } catch (err) {
         const message = err instanceof Error ? err.message : "Upload failed";
         setError(message);
