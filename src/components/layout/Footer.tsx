@@ -143,11 +143,11 @@ const Footer = () => {
               <img
                 src={rentalYachtLogo}
                 alt="Rental Yacht Dubai"
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-lg"
+                className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
               />
               <div className="flex flex-col">
-                <span className="font-display font-bold text-lg sm:text-xl text-secondary leading-tight">Rental Yacht</span>
-                <span className="text-[10px] sm:text-xs text-primary-foreground/70 tracking-wider uppercase">Dubai</span>
+                <span className="font-display font-bold text-xl sm:text-2xl text-secondary leading-tight">Rental Yacht</span>
+                <span className="text-xs sm:text-sm text-primary-foreground/70 tracking-wider uppercase">Dubai</span>
               </div>
             </div>
             <p className="text-primary-foreground/80 text-xs sm:text-sm leading-relaxed">

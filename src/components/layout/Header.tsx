@@ -105,8 +105,8 @@ const Header = () => {
               className="w-14 h-14 md:w-16 md:h-16 object-contain"
             />
             <div className="flex flex-col">
-              <span className="font-display font-bold text-xl text-primary leading-tight tracking-tight">Rental Yacht</span>
-              <span className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase font-medium">Dubai</span>
+              <span className="font-display font-bold text-xl md:text-2xl text-primary leading-tight tracking-tight">Rental Yacht</span>
+              <span className="text-xs md:text-sm text-muted-foreground tracking-[0.2em] uppercase font-medium">Dubai</span>
             </div>
           </Link>
 
