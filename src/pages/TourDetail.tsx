@@ -1,30 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Star, 
-  Clock, 
-  MapPin, 
-  Check, 
-  X, 
-  ChevronRight,
-  Heart,
-  Share2,
-  Anchor,
-  Utensils,
-  Music,
-  Camera
-} from "lucide-react";
+import { Star, Clock, MapPin, Check, X, ChevronRight, Heart, Share2, Anchor, Utensils, Music, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/layout/Layout";
 import TourCard from "@/components/TourCard";
@@ -34,21 +16,30 @@ import QuickInfoCards from "@/components/tour-detail/QuickInfoCards";
 import BookingSidebar from "@/components/tour-detail/BookingSidebar";
 import ReviewsSection from "@/components/tour-detail/ReviewsSection";
 import MobileBookingBar from "@/components/tour-detail/MobileBookingBar";
-
 import BookingModal from "@/components/tour-detail/BookingModal";
 import { useTour, useRelatedTours } from "@/hooks/useTours";
 import { getTourUrl, getCategoryFromPath } from "@/lib/seoUtils";
-
 const TourDetail = () => {
-  const { slug, categoryPath } = useParams<{ slug: string; categoryPath?: string }>();
+  const {
+    slug,
+    categoryPath
+  } = useParams<{
+    slug: string;
+    categoryPath?: string;
+  }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const { data: tour, isLoading, error } = useTour(slug || "");
-  const { data: relatedTours = [] } = useRelatedTours(
-    tour?.category || "",
-    tour?.id || ""
-  );
+  const {
+    toast
+  } = useToast();
+  const {
+    data: tour,
+    isLoading,
+    error
+  } = useTour(slug || "");
+  const {
+    data: relatedTours = []
+  } = useRelatedTours(tour?.category || "", tour?.id || "");
   const [isSaved, setIsSaved] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
@@ -57,7 +48,9 @@ const TourDetail = () => {
     if (tour && !categoryPath && location.pathname.startsWith("/tours/")) {
       // Old URL format detected, redirect to new SEO URL
       const newUrl = getTourUrl(tour);
-      navigate(newUrl, { replace: true });
+      navigate(newUrl, {
+        replace: true
+      });
     }
   }, [tour, categoryPath, location.pathname, navigate]);
 
@@ -68,50 +61,54 @@ const TourDetail = () => {
       setIsSaved(!!saved);
     }
   }, [tour?.id]);
-
   const handleSave = () => {
     if (!tour) return;
-    
     if (isSaved) {
       localStorage.removeItem(`saved-tour-${tour.id}`);
       setIsSaved(false);
-      toast({ title: "Removed from saved tours" });
+      toast({
+        title: "Removed from saved tours"
+      });
     } else {
       localStorage.setItem(`saved-tour-${tour.id}`, "true");
       setIsSaved(true);
-      toast({ title: "Tour saved!", description: "You can find this tour in your saved items." });
+      toast({
+        title: "Tour saved!",
+        description: "You can find this tour in your saved items."
+      });
     }
   };
-
   const handleShare = async () => {
     if (!tour) return;
-    
     const shareData = {
       title: tour.title,
       text: tour.description,
-      url: window.location.href,
+      url: window.location.href
     };
-    
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        toast({ title: "Link copied!", description: "Share this tour with friends and family." });
+        toast({
+          title: "Link copied!",
+          description: "Share this tour with friends and family."
+        });
       }
     } catch (err) {
       // User cancelled share or error occurred
       if ((err as Error).name !== 'AbortError') {
         await navigator.clipboard.writeText(window.location.href);
-        toast({ title: "Link copied to clipboard!" });
+        toast({
+          title: "Link copied to clipboard!"
+        });
       }
     }
   };
 
   // Loading state
   if (isLoading) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="bg-muted py-3">
           <div className="container">
             <Skeleton className="h-5 w-64" />
@@ -129,14 +126,12 @@ const TourDetail = () => {
             <Skeleton className="aspect-[16/9] w-full rounded-xl" />
           </div>
         </section>
-      </Layout>
-    );
+      </Layout>;
   }
 
   // Error or not found state
   if (error || !tour) {
-    return (
-      <Layout>
+    return <Layout>
         <div className="container py-20 text-center">
           <h1 className="font-display text-3xl font-bold mb-4">Tour Not Found</h1>
           <p className="text-muted-foreground mb-8">The tour you're looking for doesn't exist.</p>
@@ -144,8 +139,7 @@ const TourDetail = () => {
             <Button>Browse All Tours</Button>
           </Link>
         </div>
-      </Layout>
-    );
+      </Layout>;
   }
 
   // Get icon for itinerary activity
@@ -161,13 +155,11 @@ const TourDetail = () => {
     }
     return Camera;
   };
-
-  return (
-    <Layout>
+  return <Layout>
       {/* Breadcrumb */}
-      <div className="bg-muted py-3">
+      <div className="bg-muted py-0">
         <div className="container">
-          <nav className="flex items-center gap-2 text-sm">
+          <nav className="text-sm py-[10px] my-[10px] flex-row flex items-center justify-start gap-[8px]">
             <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
               Home
             </Link>
@@ -185,47 +177,46 @@ const TourDetail = () => {
       <section className="py-6 md:py-8">
         <div className="container">
           {/* Title & Actions Row */}
-          <motion.div 
-            className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <motion.div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6" initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.5
+        }}>
             <div>
-              <motion.p 
-                className="text-secondary font-semibold mb-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-              >
+              <motion.p className="text-secondary font-semibold mb-1" initial={{
+              opacity: 0
+            }} animate={{
+              opacity: 1
+            }} transition={{
+              delay: 0.1
+            }}>
                 {tour.subtitle}
               </motion.p>
-              <motion.h1 
-                className="font-display text-2xl md:text-4xl font-bold text-foreground mb-3"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-              >
+              <motion.h1 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-3" initial={{
+              opacity: 0,
+              y: 10
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              delay: 0.15
+            }}>
                 {tour.title}
               </motion.h1>
-              <motion.div 
-                className="flex flex-wrap items-center gap-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
+              <motion.div className="flex flex-wrap items-center gap-4" initial={{
+              opacity: 0
+            }} animate={{
+              opacity: 1
+            }} transition={{
+              delay: 0.2
+            }}>
                 <div className="flex items-center gap-1.5">
                   <div className="flex items-center">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-4 h-4 ${
-                          star <= Math.round(tour.rating)
-                            ? "fill-secondary text-secondary"
-                            : "text-muted-foreground"
-                        }`}
-                      />
-                    ))}
+                    {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`w-4 h-4 ${star <= Math.round(tour.rating) ? "fill-secondary text-secondary" : "text-muted-foreground"}`} />)}
                   </div>
                   <span className="font-semibold">{tour.rating}</span>
                   <span className="text-muted-foreground">({tour.reviewCount.toLocaleString()} reviews)</span>
@@ -242,19 +233,30 @@ const TourDetail = () => {
             </div>
 
             {/* Action Buttons */}
-            <motion.div 
-              className="flex items-center gap-2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div className="flex items-center gap-2" initial={{
+            opacity: 0,
+            x: 20
+          }} animate={{
+            opacity: 1,
+            x: 0
+          }} transition={{
+            delay: 0.3
+          }}>
+              <motion.div whileHover={{
+              scale: 1.05
+            }} whileTap={{
+              scale: 0.95
+            }}>
                 <Button variant="outline" size="sm" className="gap-2" onClick={handleSave}>
                   <Heart className={cn("w-4 h-4 transition-all", isSaved && "fill-destructive text-destructive")} />
                   <span className="hidden sm:inline">{isSaved ? "Saved" : "Save"}</span>
                 </Button>
               </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div whileHover={{
+              scale: 1.05
+            }} whileTap={{
+              scale: 0.95
+            }}>
                 <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
                   <Share2 className="w-4 h-4" />
                   <span className="hidden sm:inline">Share</span>
@@ -285,56 +287,69 @@ const TourDetail = () => {
               <QuickInfoCards duration={tour.duration} capacity={tour.capacity} />
 
               {/* Overview */}
-              <motion.div 
-                className="bg-card rounded-xl p-6 shadow-md"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5 }}
-              >
+              <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
+              opacity: 0,
+              y: 20
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true,
+              margin: "-50px"
+            }} transition={{
+              duration: 0.5
+            }}>
                 <h2 className="font-display text-2xl font-bold text-foreground mb-4">Overview</h2>
                 <p className="text-muted-foreground leading-relaxed">{tour.longDescription}</p>
               </motion.div>
 
               {/* Highlights */}
-              {tour.highlights.length > 0 && (
-                <motion.div 
-                  className="bg-card rounded-xl p-6 shadow-md"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5 }}
-                >
+              {tour.highlights.length > 0 && <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
+              opacity: 0,
+              y: 20
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true,
+              margin: "-50px"
+            }} transition={{
+              duration: 0.5
+            }}>
                   <h2 className="font-display text-2xl font-bold text-foreground mb-4">Highlights</h2>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {tour.highlights.map((highlight, index) => (
-                      <motion.li 
-                        key={index} 
-                        className="flex items-start gap-3"
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.05 }}
-                      >
+                    {tour.highlights.map((highlight, index) => <motion.li key={index} className="flex items-start gap-3" initial={{
+                  opacity: 0,
+                  x: -10
+                }} whileInView={{
+                  opacity: 1,
+                  x: 0
+                }} viewport={{
+                  once: true
+                }} transition={{
+                  delay: index * 0.05
+                }}>
                         <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-4 h-4 text-secondary" />
                         </div>
                         <span className="text-foreground">{highlight}</span>
-                      </motion.li>
-                    ))}
+                      </motion.li>)}
                   </ul>
-                </motion.div>
-              )}
+                </motion.div>}
 
               {/* Inclusions & Exclusions with Tabs */}
-              {(tour.included.length > 0 || tour.excluded.length > 0) && (
-                <motion.div 
-                  className="bg-card rounded-xl p-6 shadow-md"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5 }}
-                >
+              {(tour.included.length > 0 || tour.excluded.length > 0) && <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
+              opacity: 0,
+              y: 20
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true,
+              margin: "-50px"
+            }} transition={{
+              duration: 0.5
+            }}>
                   <Tabs defaultValue="included" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 mb-4">
                       <TabsTrigger value="included" className="gap-2">
@@ -348,118 +363,123 @@ const TourDetail = () => {
                     </TabsList>
                     <TabsContent value="included">
                       <ul className="space-y-3">
-                        {tour.included.map((item, index) => (
-                          <li key={index} className="flex items-start gap-3">
+                        {tour.included.map((item, index) => <li key={index} className="flex items-start gap-3">
                             <Check className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
                             <span className="text-foreground">{item}</span>
-                          </li>
-                        ))}
+                          </li>)}
                       </ul>
                     </TabsContent>
                     <TabsContent value="excluded">
                       <ul className="space-y-3">
-                        {tour.excluded.map((item, index) => (
-                          <li key={index} className="flex items-start gap-3">
+                        {tour.excluded.map((item, index) => <li key={index} className="flex items-start gap-3">
                             <X className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                             <span className="text-foreground">{item}</span>
-                          </li>
-                        ))}
+                          </li>)}
                       </ul>
                     </TabsContent>
                   </Tabs>
-                </motion.div>
-              )}
+                </motion.div>}
 
               {/* Itinerary */}
-              {tour.itinerary.length > 0 && (
-                <motion.div 
-                  className="bg-card rounded-xl p-6 shadow-md"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5 }}
-                >
+              {tour.itinerary.length > 0 && <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
+              opacity: 0,
+              y: 20
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true,
+              margin: "-50px"
+            }} transition={{
+              duration: 0.5
+            }}>
                   <h2 className="font-display text-2xl font-bold text-foreground mb-6">Your Experience</h2>
                   <div className="relative">
                     {tour.itinerary.map((item, index) => {
-                      const IconComponent = getActivityIcon(item.activity);
-                      return (
-                        <motion.div 
-                          key={index} 
-                          className="flex gap-4 pb-6 last:pb-0"
-                          initial={{ opacity: 0, x: -20 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: index * 0.1 }}
-                        >
+                  const IconComponent = getActivityIcon(item.activity);
+                  return <motion.div key={index} className="flex gap-4 pb-6 last:pb-0" initial={{
+                    opacity: 0,
+                    x: -20
+                  }} whileInView={{
+                    opacity: 1,
+                    x: 0
+                  }} viewport={{
+                    once: true
+                  }} transition={{
+                    delay: index * 0.1
+                  }}>
                           {/* Timeline */}
                           <div className="flex flex-col items-center">
-                            <motion.div 
-                              className="w-12 h-12 rounded-xl bg-secondary/10 border-2 border-secondary flex items-center justify-center"
-                              whileHover={{ scale: 1.1, rotate: 5 }}
-                            >
+                            <motion.div className="w-12 h-12 rounded-xl bg-secondary/10 border-2 border-secondary flex items-center justify-center" whileHover={{
+                        scale: 1.1,
+                        rotate: 5
+                      }}>
                               <IconComponent className="w-5 h-5 text-secondary" />
                             </motion.div>
-                            {index < tour.itinerary.length - 1 && (
-                              <motion.div 
-                                className="w-0.5 h-full bg-gradient-to-b from-secondary/50 to-secondary/10 mt-2"
-                                initial={{ scaleY: 0 }}
-                                whileInView={{ scaleY: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 + 0.2 }}
-                              />
-                            )}
+                            {index < tour.itinerary.length - 1 && <motion.div className="w-0.5 h-full bg-gradient-to-b from-secondary/50 to-secondary/10 mt-2" initial={{
+                        scaleY: 0
+                      }} whileInView={{
+                        scaleY: 1
+                      }} viewport={{
+                        once: true
+                      }} transition={{
+                        delay: index * 0.1 + 0.2
+                      }} />}
                           </div>
                           {/* Content */}
                           <div className="flex-1 pb-4">
                             <p className="text-secondary font-bold text-lg">{item.time}</p>
                             <p className="text-foreground">{item.activity}</p>
                           </div>
-                        </motion.div>
-                      );
-                    })}
+                        </motion.div>;
+                })}
                   </div>
-                </motion.div>
-              )}
+                </motion.div>}
 
               {/* Reviews Section */}
               <ReviewsSection rating={tour.rating} reviewCount={tour.reviewCount} />
 
               {/* FAQs */}
-              {tour.faqs.length > 0 && (
-                <motion.div 
-                  className="bg-card rounded-xl p-6 shadow-md"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5 }}
-                >
+              {tour.faqs.length > 0 && <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
+              opacity: 0,
+              y: 20
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true,
+              margin: "-50px"
+            }} transition={{
+              duration: 0.5
+            }}>
                   <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                     Frequently Asked Questions
                   </h2>
                   <Accordion type="single" collapsible className="w-full">
-                    {tour.faqs.map((faq, index) => (
-                      <AccordionItem key={index} value={`faq-${index}`}>
+                    {tour.faqs.map((faq, index) => <AccordionItem key={index} value={`faq-${index}`}>
                         <AccordionTrigger className="text-left font-medium hover:text-secondary transition-colors">
                           {faq.question}
                         </AccordionTrigger>
                         <AccordionContent className="text-muted-foreground">
                           {faq.answer}
                         </AccordionContent>
-                      </AccordionItem>
-                    ))}
+                      </AccordionItem>)}
                   </Accordion>
-                </motion.div>
-              )}
+                </motion.div>}
 
               {/* Important Information */}
-              <motion.div 
-                className="bg-card rounded-xl p-6 shadow-md"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5 }}
-              >
+              <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
+              opacity: 0,
+              y: 20
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true,
+              margin: "-50px"
+            }} transition={{
+              duration: 0.5
+            }}>
                 <h2 className="font-display text-2xl font-bold text-foreground mb-4">Important Information</h2>
                 <Tabs defaultValue="cancellation" className="w-full">
                   <TabsList className="grid w-full grid-cols-3 mb-4">
@@ -490,84 +510,61 @@ const TourDetail = () => {
 
             {/* Sidebar - Booking Card */}
             <div className="lg:col-span-1 hidden lg:block">
-              <BookingSidebar 
-                price={tour.price} 
-                originalPrice={tour.originalPrice} 
-                duration={tour.duration}
-                reviewCount={tour.reviewCount}
-                tourTitle={tour.title}
-                tourId={tour.id}
-                pricingType={tour.pricingType}
-                fullYachtPrice={tour.fullYachtPrice}
-                capacity={tour.capacity}
-                bookingFeatures={tour.bookingFeatures}
-              />
+              <BookingSidebar price={tour.price} originalPrice={tour.originalPrice} duration={tour.duration} reviewCount={tour.reviewCount} tourTitle={tour.title} tourId={tour.id} pricingType={tour.pricingType} fullYachtPrice={tour.fullYachtPrice} capacity={tour.capacity} bookingFeatures={tour.bookingFeatures} />
             </div>
           </div>
         </div>
       </section>
 
       {/* Related Tours */}
-      {relatedTours.length > 0 && (
-        <section className="py-12 bg-muted/50">
+      {relatedTours.length > 0 && <section className="py-12 bg-muted/50">
           <div className="container">
-            <motion.h2 
-              className="font-display text-2xl font-bold text-foreground mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
+            <motion.h2 className="font-display text-2xl font-bold text-foreground mb-8" initial={{
+          opacity: 0,
+          y: 20
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} viewport={{
+          once: true
+        }}>
               You Might Also Like
             </motion.h2>
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ staggerChildren: 0.1 }}
-            >
-              {relatedTours.map((relatedTour, index) => (
-                <motion.div
-                  key={relatedTour.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                >
+            <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" initial={{
+          opacity: 0
+        }} whileInView={{
+          opacity: 1
+        }} viewport={{
+          once: true
+        }} transition={{
+          staggerChildren: 0.1
+        }}>
+              {relatedTours.map((relatedTour, index) => <motion.div key={relatedTour.id} initial={{
+            opacity: 0,
+            y: 20
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            delay: index * 0.1
+          }}>
                   <TourCard tour={relatedTour} />
-                </motion.div>
-              ))}
+                </motion.div>)}
             </motion.div>
           </div>
-        </section>
-      )}
+        </section>}
 
       {/* Mobile Booking Bar */}
-      <MobileBookingBar 
-        price={tour.price} 
-        originalPrice={tour.originalPrice}
-        tourTitle={tour.title}
-        tourId={tour.id}
-        pricingType={tour.pricingType}
-        fullYachtPrice={tour.fullYachtPrice}
-        capacity={tour.capacity}
-        bookingFeatures={tour.bookingFeatures}
-      />
+      <MobileBookingBar price={tour.price} originalPrice={tour.originalPrice} tourTitle={tour.title} tourId={tour.id} pricingType={tour.pricingType} fullYachtPrice={tour.fullYachtPrice} capacity={tour.capacity} bookingFeatures={tour.bookingFeatures} />
 
 
       {/* Booking Modal */}
-      <BookingModal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        tourTitle={tour.title}
-        tourId={tour.id}
-        price={tour.price}
-      />
+      <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} tourTitle={tour.title} tourId={tour.id} price={tour.price} />
 
       {/* Bottom padding for mobile booking bar */}
       <div className="h-24 lg:hidden" />
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default TourDetail;
