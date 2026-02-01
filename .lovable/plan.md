@@ -1,244 +1,185 @@
 
-# AI Content Generation & WebP Image Conversion System
+# Implementation Plan: Admin Analytics & Reviews Management
 
-This plan covers two major enhancements: AI-powered content generation for premium tour descriptions and automatic WebP image conversion for all uploads.
-
----
-
-## Feature 1: AI-Powered Content Generation
-
-### Overview
-
-Add an "AI Generate" button to the RichTextEditor that uses Lovable AI to auto-write premium, luxurious tour descriptions based on the tour title, category, and location.
-
-### Implementation
-
-#### 1.1 New Edge Function: `generate-tour-content`
-
-Create a new edge function that calls Lovable AI Gateway to generate premium content.
-
-| Parameter | Description |
-|-----------|-------------|
-| `title` | Tour title (e.g., "55ft Luxury Yacht Charter") |
-| `category` | Tour category (yacht-private, dhow-cruise, etc.) |
-| `location` | Tour location (Dubai Marina, etc.) |
-| `type` | "short" or "long" description |
-
-**AI Prompt Strategy:**
-- Use a detailed system prompt that enforces the luxury writing style
-- Include markdown formatting instructions (headings, bold, italic)
-- Request internal links to /tours, /contact, etc.
-- Ensure scannable, conversion-focused content
-
-#### 1.2 Update RichTextEditor Component
-
-Add a new "AI Generate" button to the toolbar:
-- Shows a sparkle icon with loading state
-- Accepts context props: `tourTitle`, `tourCategory`, `tourLocation`
-- Calls the edge function and streams/inserts generated content
-- Shows toast on success/error
-
-#### 1.3 Update TourForm Integration
-
-Pass the current form values (title, category, location) to the RichTextEditor so the AI has context for generation.
+This plan addresses four requests:
+1. Create a live Conversion Rate analytics page
+2. Track real website visitor counts
+3. Add dynamic review management to tour detail pages
+4. Fix the /admin/activity-log page
 
 ---
 
-## Feature 2: Automatic WebP Image Conversion
+## 1. Live Conversion Rate Page
 
-### Overview
+### What We'll Build
+A new analytics page at `/admin/analytics` showing real-time conversion metrics:
+- Website visitors vs. bookings ratio
+- Conversion funnel visualization
+- Daily/weekly/monthly trends with charts
 
-Create a complete image processing pipeline that converts all uploaded JPG/PNG images to WebP format with configurable quality settings.
+### Database Changes
+Create a new `page_views` table to track website visits:
+- `id` (uuid)
+- `session_id` (text) - unique visitor session
+- `page_path` (text) - which page was visited
+- `referrer` (text, nullable) - where they came from
+- `user_agent` (text, nullable)
+- `created_at` (timestamp)
 
-### Architecture
-
-```text
-┌─────────────────────┐     ┌──────────────────────────┐     ┌─────────────────┐
-│  Admin Uploads      │────▶│  convert-image-webp      │────▶│  Storage Bucket │
-│  JPG / PNG          │     │  Edge Function           │     │  /webp/ folder  │
-└─────────────────────┘     │  (using sharp via Deno)  │     └─────────────────┘
-                            └──────────────────────────┘
-```
-
-### Implementation
-
-#### 2.1 New Edge Function: `convert-image-webp`
-
-Create an edge function that:
-1. Receives image file as base64 or form-data
-2. Validates file type (only JPG, JPEG, PNG allowed)
-3. Converts to WebP using quality settings
-4. Removes EXIF metadata
-5. Uploads to Supabase Storage in `/webp/` folder
-6. Returns the WebP public URL
-
-**Technical Details:**
-- Use Deno's image manipulation capabilities or a Wasm-based solution
-- Quality: 75-85% (configurable)
-- Preserve aspect ratio
-- Max width: 1920px (configurable)
-- Strip metadata for privacy/size
-
-#### 2.2 New Reusable Upload Hook: `useImageUpload`
-
-Create a centralized hook for all image uploads:
-
-| Feature | Description |
-|---------|-------------|
-| File validation | Only accept JPG, JPEG, PNG |
-| Size limit | Max 5MB |
-| Auto-conversion | Call edge function for WebP |
-| Progress tracking | Show upload progress |
-| Preview | Generate local preview before upload |
-
-#### 2.3 Update Upload Components
-
-Modify all image upload components to use the new hook:
-
-| Component | Changes |
-|-----------|---------|
-| `TourForm.tsx` | Main image + gallery uploads |
-| `GalleryUploadDialog.tsx` | Gallery image uploads |
-| Any future upload components | Use shared hook |
-
-#### 2.4 New Admin Settings: Image Conversion
-
-Add image settings to the Settings page:
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| WebP Quality | 80% | Compression quality (75-95) |
-| Max Width | 1920px | Maximum image width |
-| Enable WebP | true | Toggle WebP conversion |
-
-Store these in `site_settings` table.
-
-#### 2.5 Update OptimizedImage Component
-
-Enhance the component to use `<picture>` tag with WebP fallback:
-
-```html
-<picture>
-  <source srcset="image.webp" type="image/webp">
-  <img src="image.jpg" alt="...">
-</picture>
-```
-
-**Logic:**
-- If URL ends in `.webp`, serve directly
-- If legacy URL (jpg/png), attempt to find WebP version
-- Fallback gracefully if WebP doesn't exist
-
----
-
-## Storage Structure
-
-```text
-tour-images/
-  ├── main/
-  │   └── webp/
-  │       └── 1234567890-abc123.webp
-  ├── gallery/
-  │   └── webp/
-  │       └── 1234567890-xyz789.webp
-  └── legacy/  (optional - keep originals)
-```
-
----
-
-## Files to Create
-
+### Files to Create
 | File | Purpose |
 |------|---------|
-| `supabase/functions/generate-tour-content/index.ts` | AI content generation |
-| `supabase/functions/convert-image-webp/index.ts` | WebP conversion |
-| `src/hooks/useImageUpload.ts` | Centralized upload hook |
+| `src/pages/admin/Analytics.tsx` | New analytics dashboard page |
+| `src/hooks/usePageViews.ts` | Hook to track and fetch page view data |
 
-## Files to Modify
-
+### Files to Modify
 | File | Changes |
 |------|---------|
-| `src/components/admin/RichTextEditor.tsx` | Add AI generate button |
-| `src/components/admin/TourForm.tsx` | Pass context to RichTextEditor, use new upload hook |
-| `src/components/admin/GalleryUploadDialog.tsx` | Use new upload hook |
-| `src/components/ui/optimized-image.tsx` | Add picture tag for WebP fallback |
-| `src/pages/admin/Settings.tsx` | Add image settings section |
-| `supabase/config.toml` | Register new edge functions |
+| `src/App.tsx` | Add route for `/admin/analytics` |
+| `src/components/layout/Layout.tsx` | Add page view tracking on mount |
+| `src/components/admin/AdminSidebar.tsx` | Add Analytics menu item |
+| `src/pages/admin/Dashboard.tsx` | Update stats to show real data |
+
+---
+
+## 2. Real Website Visitor Tracking
+
+### How It Works
+1. When any page loads, we record a page view to the database
+2. Use browser's `sessionStorage` to track unique sessions
+3. Calculate visitors, page views, and conversion rates from real data
+
+### Dashboard Integration
+Update the "Online Store Visitors" stat card to show:
+- Real unique visitor count
+- Real conversion rate (bookings / visitors)
+- Week-over-week comparison
+
+---
+
+## 3. Tour Detail Reviews Management
+
+### What We'll Build
+Replace the hardcoded mock reviews with real database data, plus add admin controls for managing reviews directly on the tour page.
+
+### ReviewsSection Updates
+- Fetch real reviews from database filtered by tour_id
+- Show "Add Review" button for admins
+- Show edit/delete controls for each review (admin only)
+- Dialog forms for add/edit review operations
+
+### Files to Modify
+| File | Changes |
+|------|---------|
+| `src/components/tour-detail/ReviewsSection.tsx` | Fetch real reviews, add CRUD functionality |
+
+### Admin Features
+- Inline review management without leaving the tour page
+- Quick approve/reject buttons
+- Delete confirmation dialog
+
+---
+
+## 4. Fix Activity Log Page
+
+### Issue Identified
+The activity log page code is correct, but:
+1. The `activity_logs` table is empty (no activities recorded yet)
+2. RLS policy requires `admin` role - need to verify the logged-in user has this role
+
+### Solution
+1. Update the `useLogActivity` hook integration across admin pages to ensure activities are being logged
+2. Add fallback message when no logs exist
+3. Ensure the current admin user can access the logs
+
+### Files to Review
+| File | Action |
+|------|--------|
+| `src/hooks/useActivityLog.ts` | Already correct |
+| `src/pages/admin/ActivityLog.tsx` | Already correct - shows "No activity logs found" when empty |
+| Admin mutation hooks | Ensure they call `useLogActivity` to record changes |
+
+---
+
+## Database Schema
+
+### New Table: `page_views`
+```text
+Columns:
+- id (uuid, primary key, default gen_random_uuid())
+- session_id (text, not null) - identifies unique browser session
+- page_path (text, not null) - the URL path visited
+- referrer (text, nullable) - referring URL
+- user_agent (text, nullable) - browser info
+- ip_address (text, nullable) - for geo analytics (optional)
+- created_at (timestamptz, default now())
+
+Indexes:
+- created_at (for time-based queries)
+- session_id (for unique visitor counts)
+```
+
+### RLS Policies for `page_views`
+- INSERT: Anyone can insert (public tracking)
+- SELECT: Admin only (privacy)
 
 ---
 
 ## Technical Details
 
-### AI Content Generation Prompt
-
-The edge function will use a carefully crafted prompt:
-
+### Page View Tracking Flow
 ```text
-You are a luxury copywriter for a premium yacht charter company in Dubai.
-
-Write a {type} description for: {title}
-Category: {category}
-Location: {location}
-
-Requirements:
-- Use markdown: ## headings, **bold** for key features, *italic* for experiences
-- Include 2-3 internal links: [text](/tours), [text](/contact)
-- Tone: Luxurious, inviting, aspirational
-- Focus on: Experiences, exclusivity, Dubai landmarks
-- Make content scannable with bullet points
-- End with a subtle call-to-action
+1. User visits any page
+2. Layout component mounts
+3. Check sessionStorage for existing session_id
+4. If none, generate new UUID as session_id
+5. Insert page view record to database
+6. No blocking - fire and forget for performance
 ```
 
-### WebP Conversion Approach
-
-Since Deno doesn't have native sharp support, we'll use one of these approaches:
-
-**Option A: Browser-compatible Canvas API (Recommended)**
-- Use Deno's web APIs to decode/encode images
-- Leverage `ImageBitmap` and `OffscreenCanvas`
-- Works without external dependencies
-
-**Option B: External Service Call**
-- Call a lightweight image processing service
-- Return the processed image
-
-### Upload Flow
-
+### Conversion Rate Calculation
 ```text
-1. User selects file
-2. Validate: JPG/PNG only, max 5MB
-3. Generate local preview
-4. Send to edge function
-5. Edge function:
-   a. Decode image
-   b. Resize if > 1920px
-   c. Convert to WebP at 80% quality
-   d. Upload to Storage
-   e. Return WebP URL
-6. Update form with new URL
-7. Show success toast with file size comparison
+Conversion Rate = (Total Bookings / Unique Visitors) × 100
+
+Example:
+- Unique visitors this week: 500
+- Bookings this week: 18
+- Conversion Rate: 3.6%
+```
+
+### Reviews Data Flow
+```text
+1. TourDetail page renders ReviewsSection with tour_id
+2. ReviewsSection queries reviews table WHERE tour_id = current tour
+3. For admins, show management buttons
+4. CRUD operations update database in real-time
 ```
 
 ---
 
-## Security Considerations
+## Summary of Changes
 
-- Sanitize file names (remove special chars, generate unique ID)
-- Validate file signatures (magic bytes), not just extension
-- Rate limit uploads per user
-- Max file size enforced both client and server side
+### New Files (3)
+1. `src/pages/admin/Analytics.tsx` - Full analytics dashboard
+2. `src/hooks/usePageViews.ts` - Page view tracking hook
+3. Database migration for `page_views` table
+
+### Modified Files (6)
+1. `src/App.tsx` - Add analytics route
+2. `src/components/layout/Layout.tsx` - Add tracking
+3. `src/components/admin/AdminSidebar.tsx` - Add menu link
+4. `src/pages/admin/Dashboard.tsx` - Real stats
+5. `src/components/tour-detail/ReviewsSection.tsx` - Real reviews + CRUD
+6. Various admin pages - Ensure activity logging
 
 ---
 
 ## Expected Outcomes
 
-**AI Content Generation:**
-- 80% faster content creation for new tours
-- Consistent premium tone across all descriptions
-- Proper markdown formatting for SEO
-
-**WebP Conversion:**
-- 25-40% smaller file sizes
-- Improved Core Web Vitals (LCP)
-- Automatic optimization without manual effort
-- Backwards compatible with fallback images
+After implementation:
+- Real visitor counts on dashboard (updated live)
+- Accurate conversion rate calculations
+- Tour pages show actual customer reviews
+- Admins can manage reviews directly on tour pages
+- Activity log captures all admin actions
+- Full analytics page with charts and trends
