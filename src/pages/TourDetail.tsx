@@ -437,7 +437,7 @@ const TourDetail = () => {
                 </motion.div>}
 
               {/* Reviews Section */}
-              <ReviewsSection rating={tour.rating} reviewCount={tour.reviewCount} />
+              <ReviewsSection rating={tour.rating} reviewCount={tour.reviewCount} tourId={tour.id} />
 
               {/* FAQs */}
               {tour.faqs.length > 0 && <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{

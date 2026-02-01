@@ -20,6 +20,7 @@ import {
   History,
   Scale,
   Headset,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { title: "Bookings", href: "/admin/bookings", icon: Calendar },
   { title: "Live Chat", href: "/admin/live-chat", icon: Headset },
   { title: "Locations", href: "/admin/locations", icon: MapPin },

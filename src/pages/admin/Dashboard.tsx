@@ -13,6 +13,7 @@ import CustomerRetentionChart from "@/components/admin/CustomerRetentionChart";
 import ActivityFeed from "@/components/admin/ActivityFeed";
 import { DashboardStatsSkeleton, ChartSkeleton, TableSkeleton } from "@/components/admin/AdminSkeletons";
 import { withTimeout } from "@/lib/withTimeout";
+import { useVisitorStats, useConversionStats } from "@/hooks/usePageViews";
 import {
   Users,
   DollarSign,
@@ -42,6 +43,10 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Real visitor and conversion stats
+  const { data: visitorStats } = useVisitorStats("week");
+  const { data: conversionStats } = useConversionStats("week");
 
   useEffect(() => {
     fetchDashboardData();
@@ -155,10 +160,14 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Online Store Visitors"
-            value="12,426"
+            value={visitorStats?.uniqueVisitors?.toLocaleString() || "0"}
             icon={Eye}
-            change="+12.5%"
-            changeType="positive"
+            change={visitorStats?.visitorChange !== undefined 
+              ? `${visitorStats.visitorChange >= 0 ? "+" : ""}${visitorStats.visitorChange}%`
+              : "—"}
+            changeType={visitorStats?.visitorChange !== undefined 
+              ? (visitorStats.visitorChange >= 0 ? "positive" : "negative")
+              : "neutral"}
             subtitle="Since last week"
             viewReportLink="/admin/analytics"
             animationDelay={0}
@@ -175,10 +184,14 @@ const AdminDashboard = () => {
           />
           <StatCard
             title="Conversion Rate"
-            value="3.6%"
+            value={`${conversionStats?.conversionRate || 0}%`}
             icon={TrendingUp}
-            change="+2.1%"
-            changeType="positive"
+            change={conversionStats?.conversionChange !== undefined
+              ? `${conversionStats.conversionChange >= 0 ? "+" : ""}${conversionStats.conversionChange}%`
+              : "—"}
+            changeType={conversionStats?.conversionChange !== undefined
+              ? (conversionStats.conversionChange >= 0 ? "positive" : "negative")
+              : "neutral"}
             subtitle="Since last week"
             viewReportLink="/admin/analytics"
             animationDelay={100}
