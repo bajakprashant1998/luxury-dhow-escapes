@@ -26,8 +26,9 @@ import CharacterCounter from "./CharacterCounter";
 import SEOPreview from "./SEOPreview";
 import KeywordsInput from "./KeywordsInput";
 import RichTextEditor from "./RichTextEditor";
-import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
+import { BookingFeatures, defaultBookingFeatures, defaultCancellationInfo, defaultWhatToBring, defaultGoodToKnow } from "@/lib/tourMapper";
 import { generateSeoSlug, getCategoryPath } from "@/lib/seoUtils";
+import ImportantInfoEditor from "./ImportantInfoEditor";
 
 type Tour = Tables<"tours">;
 
@@ -865,6 +866,14 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Important Information Editor */}
+          <ImportantInfoEditor
+            bookingFeatures={formData.booking_features}
+            onChange={(newFeatures) =>
+              setFormData((prev) => ({ ...prev, booking_features: newFeatures }))
+            }
+          />
 
           {/* SEO Settings */}
           <Card>
