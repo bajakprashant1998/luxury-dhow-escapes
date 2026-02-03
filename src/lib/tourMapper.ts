@@ -10,7 +10,32 @@ export interface BookingFeatures {
   hotel_pickup_text: string;
   cancellation_text: string;
   charter_features: string[];
+  // Important Information section content
+  cancellation_info: string[];
+  what_to_bring: string[];
+  good_to_know: string[];
 }
+
+// Default Important Information content
+export const defaultCancellationInfo = [
+  "✓ Free cancellation up to 24 hours before the start time",
+  "✓ Full refund for cancellations made within the free period",
+  "✗ No refund for no-shows or late cancellations",
+];
+
+export const defaultWhatToBring = [
+  "• Comfortable shoes and smart casual attire",
+  "• Camera or smartphone for photos",
+  "• Light jacket (air conditioning on lower deck)",
+  "• Valid ID for verification",
+];
+
+export const defaultGoodToKnow = [
+  "• Arrive 20-30 minutes before departure",
+  "• Not wheelchair accessible",
+  "• Vegetarian options available upon request",
+  "• Dress code: Smart casual (no shorts/flip-flops)",
+];
 
 // Default booking features
 export const defaultBookingFeatures: BookingFeatures = {
@@ -22,6 +47,9 @@ export const defaultBookingFeatures: BookingFeatures = {
   hotel_pickup_text: "Hotel pickup included",
   cancellation_text: "Free cancellation (24h)",
   charter_features: ["Private experience", "Exclusive use"],
+  cancellation_info: defaultCancellationInfo,
+  what_to_bring: defaultWhatToBring,
+  good_to_know: defaultGoodToKnow,
 };
 
 // Frontend Tour interface (matching TourCard expectations)

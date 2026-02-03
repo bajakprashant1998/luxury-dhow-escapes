@@ -488,21 +488,19 @@ const TourDetail = () => {
                     <TabsTrigger value="know">Good to Know</TabsTrigger>
                   </TabsList>
                   <TabsContent value="cancellation" className="text-muted-foreground space-y-2">
-                    <p>✓ Free cancellation up to 24 hours before the start time</p>
-                    <p>✓ Full refund for cancellations made within the free period</p>
-                    <p>✗ No refund for no-shows or late cancellations</p>
+                    {tour.bookingFeatures.cancellation_info.map((item, index) => (
+                      <p key={index}>{item}</p>
+                    ))}
                   </TabsContent>
                   <TabsContent value="bring" className="text-muted-foreground space-y-2">
-                    <p>• Comfortable shoes and smart casual attire</p>
-                    <p>• Camera or smartphone for photos</p>
-                    <p>• Light jacket (air conditioning on lower deck)</p>
-                    <p>• Valid ID for verification</p>
+                    {tour.bookingFeatures.what_to_bring.map((item, index) => (
+                      <p key={index}>{item}</p>
+                    ))}
                   </TabsContent>
                   <TabsContent value="know" className="text-muted-foreground space-y-2">
-                    <p>• Arrive 20-30 minutes before departure</p>
-                    <p>• Not wheelchair accessible</p>
-                    <p>• Vegetarian options available upon request</p>
-                    <p>• Dress code: Smart casual (no shorts/flip-flops)</p>
+                    {tour.bookingFeatures.good_to_know.map((item, index) => (
+                      <p key={index}>{item}</p>
+                    ))}
                   </TabsContent>
                 </Tabs>
               </motion.div>
