@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Shield, Lock, CreditCard } from "lucide-react";
+import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Shield, Lock, CreditCard, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { motion } from "framer-motion";
 import rentalYachtLogo from "@/assets/rental-yacht-logo-new.png";
 import { supabase } from "@/integrations/supabase/client";
 import { ADMIN_CACHE_KEY, ADMIN_USER_KEY, getAdminCache } from "@/lib/adminAuth";
 import { useContactConfig } from "@/hooks/useContactConfig";
+import NewsletterForm from "@/components/home/NewsletterForm";
 
 // Payment brand icons as inline SVGs
 const VisaIcon = () => (
@@ -37,6 +39,54 @@ const SecurePaymentIcon = () => (
     <Lock className="w-3 h-3 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
   </div>
 );
+
+// Collapsible section for mobile
+const CollapsibleSection = ({
+  title,
+  children,
+  defaultOpen = false,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="sm:contents">
+      {/* Mobile accordion */}
+      <div className="sm:hidden">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between py-3 text-left"
+        >
+          <h4 className="font-display text-base font-semibold text-secondary">{title}</h4>
+          {isOpen ? (
+            <ChevronUp className="w-5 h-5 text-secondary" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-secondary" />
+          )}
+        </button>
+        <motion.div
+          initial={false}
+          animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="overflow-hidden"
+        >
+          <div className="pb-4">{children}</div>
+        </motion.div>
+      </div>
+
+      {/* Desktop - always visible */}
+      <div className="hidden sm:block">
+        <h4 className="font-display text-base sm:text-lg font-semibold text-secondary mb-4 sm:mb-6">
+          {title}
+        </h4>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const Footer = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -132,13 +182,35 @@ const Footer = () => {
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <footer className="bg-primary text-primary-foreground">
+    <footer className="bg-primary text-primary-foreground relative overflow-hidden">
+      {/* Wave decoration at top */}
+      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-secondary/20 via-secondary/40 to-secondary/20" />
+
       {/* Main Footer */}
-      <div className="container py-10 sm:py-16 px-4 sm:px-6">
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
+      <motion.div
+        className="container py-10 sm:py-16 px-4 sm:px-6"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-12">
           {/* Brand */}
-          <div className="space-y-4 col-span-2 md:col-span-1">
+          <motion.div className="space-y-4 sm:col-span-2 lg:col-span-1" variants={itemVariants}>
             <div className="flex items-center gap-3">
               <img
                 src={rentalYachtLogo}
@@ -146,122 +218,201 @@ const Footer = () => {
                 className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
               />
               <div className="flex flex-col">
-                <span className="font-display font-bold text-xl sm:text-2xl text-secondary leading-tight">Rental Yacht</span>
-                <span className="text-xs sm:text-sm text-primary-foreground/70 tracking-wider uppercase">Dubai</span>
+                <span className="font-display font-bold text-xl sm:text-2xl text-secondary leading-tight">
+                  Rental Yacht
+                </span>
+                <span className="text-xs sm:text-sm text-primary-foreground/70 tracking-wider uppercase">
+                  Dubai
+                </span>
               </div>
             </div>
             <p className="text-primary-foreground/80 text-xs sm:text-sm leading-relaxed">
-              Experience the magic of Dubai with our premium yacht charters and dhow cruise experiences.
-              Creating unforgettable memories on the waters of Dubai Marina.
+              Experience the magic of Dubai with our premium yacht charters and dhow cruise
+              experiences. Creating unforgettable memories on the waters of Dubai Marina.
             </p>
+
+            {/* Rating badge */}
+            <div className="flex items-center gap-2 bg-primary-foreground/5 rounded-lg p-3 border border-primary-foreground/10">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />
+                ))}
+              </div>
+              <div className="text-sm">
+                <span className="font-bold text-secondary">4.9</span>
+                <span className="text-primary-foreground/70"> • 2,000+ Reviews</span>
+              </div>
+            </div>
+
             <div className="flex gap-3 sm:gap-4">
-              <a href="#" className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target">
+              <a
+                href="#"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
+              >
                 <Facebook className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
-              <a href="#" className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target">
+              <a
+                href="#"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
+              >
                 <Instagram className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
-              <a href="#" className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target">
+              <a
+                href="#"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
+              >
                 <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
-              <a href="#" className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target">
+              <a
+                href="#"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
+              >
                 <Youtube className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
             </div>
-          </div>
+          </motion.div>
 
           {/* Quick Links */}
-          <div>
-            <h4 className="font-display text-base sm:text-lg font-semibold text-secondary mb-4 sm:mb-6">Quick Links</h4>
-            <ul className="space-y-2 sm:space-y-3">
-              <li>
-                <Link to="/" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link to="/tours" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Our Tours
-                </Link>
-              </li>
-              <li>
-                <Link to="/gallery" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Gallery
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Book Now
-                </Link>
-              </li>
-              {isAdmin && (
+          <motion.div variants={itemVariants}>
+            <CollapsibleSection title="Quick Links">
+              <ul className="space-y-2 sm:space-y-3">
                 <li>
-                  <Link to="/admin" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                    Admin Panel
+                  <Link
+                    to="/"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Home
                   </Link>
                 </li>
-              )}
-            </ul>
-          </div>
+                <li>
+                  <Link
+                    to="/tours"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Our Tours
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/gallery"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Gallery
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/about"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/contact"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Book Now
+                  </Link>
+                </li>
+                {isAdmin && (
+                  <li>
+                    <Link
+                      to="/admin"
+                      className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                    >
+                      Admin Panel
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </CollapsibleSection>
+          </motion.div>
 
           {/* Tours */}
-          <div className="hidden sm:block">
-            <h4 className="font-display text-base sm:text-lg font-semibold text-secondary mb-4 sm:mb-6">Our Tours</h4>
-            <ul className="space-y-2 sm:space-y-3">
-              <li>
-                <Link to="/dubai/dhow-cruises" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Dhow Cruises
-                </Link>
-              </li>
-              <li>
-                <Link to="/dubai/shared-yacht-tours" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Shared Yacht Tours
-                </Link>
-              </li>
-              <li>
-                <Link to="/dubai/private-yacht-charter" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Private Yacht Charter
-                </Link>
-              </li>
-              <li>
-                <Link to="/dubai/megayacht-experiences" className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200">
-                  Megayacht Experiences
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <motion.div variants={itemVariants}>
+            <CollapsibleSection title="Our Tours">
+              <ul className="space-y-2 sm:space-y-3">
+                <li>
+                  <Link
+                    to="/dubai/dhow-cruises"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Dhow Cruises
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/dubai/shared-yacht-tours"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Shared Yacht Tours
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/dubai/private-yacht-charter"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Private Yacht Charter
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/dubai/megayacht-experiences"
+                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                  >
+                    Megayacht Experiences
+                  </Link>
+                </li>
+              </ul>
+            </CollapsibleSection>
+          </motion.div>
 
           {/* Contact */}
-          <div>
-            <h4 className="font-display text-base sm:text-lg font-semibold text-secondary mb-4 sm:mb-6">Contact Us</h4>
-            <ul className="space-y-3 sm:space-y-4">
-              <li>
-                <a href={`tel:${phone}`} className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 touch-target group">
-                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                  <span>{phoneFormatted}</span>
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${email}`} className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 touch-target group">
-                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                  <span className="break-all">{email}</span>
-                </a>
-              </li>
-              <li>
-                <div className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 text-xs sm:text-sm">
-                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" />
-                  <span>{address}</span>
-                </div>
-              </li>
-            </ul>
-          </div>
+          <motion.div variants={itemVariants}>
+            <CollapsibleSection title="Contact Us">
+              <ul className="space-y-3 sm:space-y-4">
+                <li>
+                  <a
+                    href={`tel:${phone}`}
+                    className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 touch-target group"
+                  >
+                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                    <span>{phoneFormatted}</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={`mailto:${email}`}
+                    className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 touch-target group"
+                  >
+                    <Mail className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="break-all">{email}</span>
+                  </a>
+                </li>
+                <li>
+                  <div className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 text-xs sm:text-sm">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" />
+                    <span>{address}</span>
+                  </div>
+                </li>
+              </ul>
+            </CollapsibleSection>
+          </motion.div>
+
+          {/* Newsletter */}
+          <motion.div variants={itemVariants}>
+            <CollapsibleSection title="Newsletter" defaultOpen>
+              <p className="text-primary-foreground/70 text-xs sm:text-sm mb-4">
+                Subscribe for exclusive offers and updates
+              </p>
+              <NewsletterForm variant="footer" />
+            </CollapsibleSection>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Payment Methods Section */}
       <div className="border-t border-primary-foreground/10">
@@ -278,12 +429,18 @@ const Footer = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto">
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {paymentMethods.map((method, index) => (
-              <div
+              <motion.div
                 key={method.name}
+                variants={itemVariants}
                 className="group relative bg-primary-foreground/5 border border-secondary/20 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:border-secondary/50 hover:bg-primary-foreground/10 transition-all duration-300 hover:scale-105"
-                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="transition-transform duration-300 group-hover:scale-110">
                   {method.icon}
@@ -296,9 +453,9 @@ const Footer = () => {
                     {method.description}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -315,13 +472,22 @@ const Footer = () => {
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
-            <Link to="/privacy-policy" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
+            <Link
+              to="/privacy-policy"
+              className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target"
+            >
               Privacy Policy
             </Link>
-            <Link to="/terms-of-service" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
+            <Link
+              to="/terms-of-service"
+              className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target"
+            >
               Terms of Service
             </Link>
-            <Link to="/cancellation-policy" className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target">
+            <Link
+              to="/cancellation-policy"
+              className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target"
+            >
               Cancellation
             </Link>
           </div>
@@ -342,6 +508,17 @@ const Footer = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-primary border-t border-primary-foreground/10 p-3 pb-safe z-40">
+        <a
+          href={`tel:${phone}`}
+          className="flex items-center justify-center gap-2 bg-secondary text-secondary-foreground font-semibold py-3 rounded-lg w-full touch-target"
+        >
+          <Phone className="w-5 h-5" />
+          Call Now
+        </a>
       </div>
     </footer>
   );

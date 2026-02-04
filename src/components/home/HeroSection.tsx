@@ -1,14 +1,21 @@
 import { Link } from "react-router-dom";
 import { memo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Play, Sparkles, Waves } from "lucide-react";
+import { ArrowRight, Play, Sparkles, Waves, Shield, Clock, Award, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.webp";
 
+// Trust badges that appear below CTA
+const trustBadges = [
+  { icon: Shield, text: "Best Price Guarantee" },
+  { icon: Clock, text: "Instant Confirmation" },
+  { icon: Award, text: "Top Rated 2024" },
+];
+
 const HeroSection = memo(() => {
-  const { stats } = useHomepageContent();
+  const { stats, trustIndicators } = useHomepageContent();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const statsDisplay = [
@@ -71,7 +78,7 @@ const HeroSection = memo(() => {
             </p>
 
             {/* CTAs - Full width on mobile */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
               <Link to="/tours" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group touch-target">
                   Explore Tours
@@ -86,23 +93,51 @@ const HeroSection = memo(() => {
               </Link>
             </div>
 
+            {/* Trust Badges */}
+            <motion.div
+              className="flex flex-wrap gap-3 mb-8 sm:mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              {trustBadges.map((badge, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-primary-foreground/10"
+                >
+                  <badge.icon className="w-4 h-4 text-secondary" />
+                  <span className="text-xs sm:text-sm font-medium text-primary-foreground/90">
+                    {badge.text}
+                  </span>
+                </div>
+              ))}
+            </motion.div>
+
             {/* Stats Row - Responsive Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
               {statsDisplay.map((stat, index) => (
-                <div 
-                  key={index} 
+                <motion.div 
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
                   className="text-center bg-primary-foreground/5 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-primary-foreground/10 hover:scale-105 hover:bg-primary-foreground/10 transition-all duration-200"
                 >
                   <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-secondary">{stat.value}</p>
                   <p className="text-[10px] sm:text-xs text-primary-foreground/70 uppercase tracking-wider mt-1">{stat.label}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
 
           {/* Right Side - Floating Card - simplified animation */}
           <div className="hidden lg:block">
-            <div className="relative animate-float-slow">
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="relative animate-float-slow"
+            >
               <div className="bg-card/95 backdrop-blur-lg rounded-3xl p-6 shadow-2xl border border-border/50 max-w-sm ml-auto">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center">
@@ -114,18 +149,12 @@ const HeroSection = memo(() => {
                   </div>
                 </div>
                 <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="w-2 h-2 rounded-full bg-secondary" />
-                    <span className="text-muted-foreground">Instant confirmation</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="w-2 h-2 rounded-full bg-secondary" />
-                    <span className="text-muted-foreground">Free cancellation up to 24h</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="w-2 h-2 rounded-full bg-secondary" />
-                    <span className="text-muted-foreground">Best price guaranteed</span>
-                  </div>
+                  {trustIndicators.slice(0, 3).map((indicator, index) => (
+                    <div key={index} className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-secondary" />
+                      <span className="text-muted-foreground">{indicator}</span>
+                    </div>
+                  ))}
                 </div>
                 <Link to="/tours">
                   <Button className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
@@ -133,7 +162,17 @@ const HeroSection = memo(() => {
                   </Button>
                 </Link>
               </div>
-            </div>
+
+              {/* Floating mini badge */}
+              <motion.div
+                className="absolute -top-4 -left-4 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.8, type: "spring" }}
+              >
+                Up to 20% OFF
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </div>

@@ -1,10 +1,11 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, Clock, Users, ChevronRight, Ship, Ticket } from "lucide-react";
+import { Star, Clock, Users, ChevronRight, Ship, Ticket, Heart, Award, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Tour } from "@/lib/tourMapper";
 import { getTourUrl } from "@/lib/seoUtils";
+import { toast } from "sonner";
 
 interface TourCardProps {
   tour: Tour;
@@ -19,8 +20,38 @@ const categoryLabels: Record<string, string> = {
 };
 
 const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
+  const [isSaved, setIsSaved] = useState(() => {
+    const saved = localStorage.getItem("savedTours");
+    if (saved) {
+      const savedTours = JSON.parse(saved);
+      return savedTours.includes(tour.id);
+    }
+    return false;
+  });
+
   const discount = Math.round((1 - tour.price / tour.originalPrice) * 100);
   const isPrivateCharter = tour.fullYachtPrice && tour.fullYachtPrice > 0;
+  const isTopRated = tour.rating >= 4.8 && tour.reviewCount >= 50;
+  const isBestSeller = tour.reviewCount >= 100;
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const saved = localStorage.getItem("savedTours");
+    let savedTours: string[] = saved ? JSON.parse(saved) : [];
+
+    if (isSaved) {
+      savedTours = savedTours.filter((id) => id !== tour.id);
+      toast.success("Removed from saved tours");
+    } else {
+      savedTours.push(tour.id);
+      toast.success("Added to saved tours");
+    }
+
+    localStorage.setItem("savedTours", JSON.stringify(savedTours));
+    setIsSaved(!isSaved);
+  };
 
   return (
     <Link to={getTourUrl(tour)} className="group block">
@@ -35,19 +66,52 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
             className="group-hover:scale-105 transition-transform duration-500"
             containerClassName={featured ? "h-full min-h-[200px]" : ""}
           />
+
+          {/* Wishlist Button */}
+          <button
+            onClick={handleSave}
+            className={`absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+              isSaved
+                ? "bg-destructive text-destructive-foreground"
+                : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-background"
+            }`}
+            aria-label={isSaved ? "Remove from saved" : "Save tour"}
+          >
+            <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
+          </button>
+
           {/* Discount Badge */}
           {discount > 0 && (
             <div className="absolute top-4 left-4 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold z-10">
               {discount}% OFF
             </div>
           )}
+
+          {/* Best Seller / Top Rated Badge */}
+          {(isBestSeller || isTopRated) && (
+            <div className="absolute top-14 left-4 z-10">
+              {isBestSeller ? (
+                <div className="bg-secondary text-secondary-foreground px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
+                  <TrendingUp className="w-3 h-3" />
+                  Best Seller
+                </div>
+              ) : isTopRated ? (
+                <div className="bg-secondary text-secondary-foreground px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
+                  <Award className="w-3 h-3" />
+                  Top Rated
+                </div>
+              ) : null}
+            </div>
+          )}
+
           {/* Private Charter Badge */}
-          {isPrivateCharter && (
-            <div className="absolute top-4 right-4 bg-secondary text-secondary-foreground px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+          {isPrivateCharter && !isBestSeller && !isTopRated && (
+            <div className="absolute top-14 left-4 bg-secondary text-secondary-foreground px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
               <Ship className="w-3 h-3" />
               Private
             </div>
           )}
+
           {/* Category Badge */}
           <div className="absolute bottom-4 left-4 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 z-10">
             <Ship className="w-3 h-3" />

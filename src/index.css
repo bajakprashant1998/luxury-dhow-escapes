@@ -280,3 +280,41 @@
   0%, 100% { transform: translateY(0); opacity: 1; }
   50% { transform: translateY(8px); opacity: 0.5; }
 }
+
+/* Reduce motion for users who prefer it and on mobile for performance */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-float-slower,
+  .animate-bounce-slow,
+  .animate-scroll-indicator,
+  .text-shimmer {
+    animation: none !important;
+  }
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+  .animate-float-slow,
+  .animate-float-slower {
+    animation-duration: 12s; /* Slower = less CPU */
+  }
+  
+  /* Disable parallax-like effects on mobile for smoother scrolling */
+  .parallax-disable-mobile {
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Optimize will-change for elements that animate frequently */
+.hover-scale,
+.card-hover {
+  will-change: transform;
+}
+
+/* Container query support for modern browsers */
+@supports (container-type: inline-size) {
+  .container-query-parent {
+    container-type: inline-size;
+  }
+}
