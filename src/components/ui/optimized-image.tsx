@@ -1,5 +1,4 @@
-import { useState, memo } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, memo, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface ImageSource {
@@ -26,6 +25,8 @@ interface OptimizedImageProps {
   onLoad?: () => void;
   /** WebP source URL (optional - for manual WebP fallback) */
   webpSrc?: string;
+  /** Enable blur-up placeholder effect */
+  blurUp?: boolean;
 }
 
 /**
@@ -59,11 +60,12 @@ function getWebpUrl(src: string): string | null {
 
 /**
  * Optimized image component with:
- * - Lazy loading with skeleton placeholder
+ * - Lazy loading with blur-up placeholder
  * - WebP fallback support via <picture> tag
  * - srcset support for responsive images
  * - Smooth fade-in animation
  * - Priority loading for LCP images
+ * - Intersection Observer for lazy loading
  */
 const OptimizedImage = memo(({
   src,
@@ -77,16 +79,44 @@ const OptimizedImage = memo(({
   objectFit = "cover",
   onLoad,
   webpSrc,
+  blurUp = true,
 }: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [webpError, setWebpError] = useState(false);
+  const [isInView, setIsInView] = useState(priority);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Generate srcset string from sources array
   const srcSet = sources?.map((s) => `${s.src} ${s.width}w`).join(", ");
   
   // Get WebP URL (either provided or auto-detected)
   const webpUrl = webpSrc || getWebpUrl(src);
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    if (priority || !containerRef.current) {
+      setIsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: "50px 0px", // Start loading 50px before element is in view
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [priority]);
 
   const handleLoad = () => {
     setLoaded(true);
@@ -112,6 +142,7 @@ const OptimizedImage = memo(({
 
   return (
     <div 
+      ref={containerRef}
       className={cn(
         "relative overflow-hidden bg-muted",
         aspectRatio && `aspect-[${aspectRatio}]`,
@@ -119,9 +150,12 @@ const OptimizedImage = memo(({
       )}
       style={aspectRatio ? { aspectRatio } : undefined}
     >
-      {/* Skeleton placeholder */}
-      {!loaded && (
-        <Skeleton className="absolute inset-0 w-full h-full" />
+      {/* Blur-up placeholder - shows a blurred gradient until image loads */}
+      {blurUp && !loaded && !error && (
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse"
+          aria-hidden="true"
+        />
       )}
 
       {/* Error fallback */}
@@ -141,7 +175,7 @@ const OptimizedImage = memo(({
             />
           </svg>
         </div>
-      ) : (
+      ) : isInView ? (
         <picture>
           {/* WebP source - only show if we have a WebP URL and it hasn't errored */}
           {webpUrl && !webpError && (
@@ -154,6 +188,7 @@ const OptimizedImage = memo(({
           
           {/* Fallback image */}
           <img
+            ref={imgRef}
             src={src}
             alt={alt}
             srcSet={srcSet}
@@ -171,7 +206,7 @@ const OptimizedImage = memo(({
             )}
           />
         </picture>
-      )}
+      ) : null}
     </div>
   );
 });
