@@ -597,8 +597,8 @@ const TourDetail = () => {
       {/* Booking Modal */}
       <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} tourTitle={tour.title} tourId={tour.id} price={tour.price} />
 
-      {/* Bottom padding for mobile booking bar */}
-      <div className="h-24 lg:hidden" />
+      {/* Bottom padding for mobile booking bar - accounts for expanded state and safe area */}
+      <div className="h-32 lg:hidden" />
     </Layout>;
 };
 export default TourDetail;
