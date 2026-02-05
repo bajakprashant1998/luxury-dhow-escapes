@@ -43,7 +43,7 @@ const MobileBookingBar = memo(({
   return (
     <>
       <div 
-        className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-2xl lg:hidden pb-safe"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-2xl lg:hidden pb-safe"
       >
         {/* Expandable Info Panel */}
         <AnimatePresence>
