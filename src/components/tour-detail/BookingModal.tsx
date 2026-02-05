@@ -228,21 +228,15 @@ const BookingModal = ({
     }
   };
 
-  const GuestCounter = ({ 
-    label, 
-    sublabel, 
-    value, 
-    onChange, 
-    min = 0, 
-    max = 10 
-  }: { 
-    label: string; 
-    sublabel: string; 
-    value: number; 
-    onChange: (v: number) => void; 
-    min?: number; 
-    max?: number; 
-  }) => (
+  // Guest counter component - defined inline without ref to avoid forwardRef warning
+  const renderGuestCounter = (
+    label: string, 
+    sublabel: string, 
+    value: number, 
+    onChange: (v: number) => void, 
+    min: number = 0, 
+    max: number = 10 
+  ) => (
     <div className="flex-1 min-w-0 border border-border rounded-2xl p-4 transition-all duration-300 hover:border-secondary/50 hover:shadow-md bg-card/50">
       <div className="flex items-center justify-between sm:block">
         <div className="sm:mb-4">
@@ -251,6 +245,7 @@ const BookingModal = ({
         </div>
         <div className="flex items-center gap-3 sm:gap-0 sm:justify-between">
           <button
+            type="button"
             onClick={() => onChange(Math.max(min, value - 1))}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed touch-target"
             disabled={value <= min}
@@ -259,6 +254,7 @@ const BookingModal = ({
           </button>
           <span className="text-xl sm:text-2xl font-bold tabular-nums w-10 text-center">{value}</span>
           <button
+            type="button"
             onClick={() => onChange(Math.min(max, value + 1))}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
           >
@@ -385,25 +381,9 @@ const BookingModal = ({
                   <div>
                     <label className="text-sm font-bold text-foreground mb-3 block">Number of Guests *</label>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                      <GuestCounter
-                        label="Adults"
-                        sublabel="12+ years"
-                        value={adults}
-                        onChange={setAdults}
-                        min={1}
-                      />
-                      <GuestCounter
-                        label="Children"
-                        sublabel="4-11 yrs • 50% off"
-                        value={children}
-                        onChange={setChildren}
-                      />
-                      <GuestCounter
-                        label="Infants"
-                        sublabel="0-3 yrs • Free"
-                        value={infants}
-                        onChange={setInfants}
-                      />
+                      {renderGuestCounter("Adults", "12+ years", adults, setAdults, 1, 10)}
+                      {renderGuestCounter("Children", "4-11 yrs • 50% off", children, setChildren, 0, 10)}
+                      {renderGuestCounter("Infants", "0-3 yrs • Free", infants, setInfants, 0, 10)}
                     </div>
                   </div>
                 )}
