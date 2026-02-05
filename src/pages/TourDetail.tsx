@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Star, Clock, MapPin, Check, X, ChevronRight, Heart, Share2, Anchor, Utensils, Music, Camera } from "lucide-react";
@@ -13,12 +13,44 @@ import TourCard from "@/components/TourCard";
 import ImageGallery from "@/components/tour-detail/ImageGallery";
 import TrustBadges from "@/components/tour-detail/TrustBadges";
 import QuickInfoCards from "@/components/tour-detail/QuickInfoCards";
-import BookingSidebar from "@/components/tour-detail/BookingSidebar";
-import ReviewsSection from "@/components/tour-detail/ReviewsSection";
 import MobileBookingBar from "@/components/tour-detail/MobileBookingBar";
 import BookingModal from "@/components/tour-detail/BookingModal";
 import { useTour, useRelatedTours } from "@/hooks/useTours";
 import { getTourUrl, getCategoryFromPath } from "@/lib/seoUtils";
+
+// Lazy load below-fold components for better initial load
+const BookingSidebar = lazy(() => import("@/components/tour-detail/BookingSidebar"));
+const ReviewsSection = lazy(() => import("@/components/tour-detail/ReviewsSection"));
+
+// Loading skeletons for lazy components
+const SidebarSkeleton = () => (
+  <div className="sticky top-28 space-y-4">
+    <div className="bg-card rounded-2xl p-6 shadow-xl animate-pulse">
+      <div className="h-6 bg-muted rounded w-3/4 mb-4" />
+      <div className="h-10 bg-muted rounded mb-4" />
+      <div className="h-12 bg-muted rounded mb-4" />
+      <div className="space-y-3">
+        <div className="h-4 bg-muted rounded w-full" />
+        <div className="h-4 bg-muted rounded w-5/6" />
+        <div className="h-4 bg-muted rounded w-4/6" />
+      </div>
+      <div className="h-12 bg-muted rounded mt-6" />
+    </div>
+  </div>
+);
+
+const ReviewsSkeleton = () => (
+  <div className="bg-card rounded-xl p-6 shadow-md animate-pulse">
+    <div className="h-8 bg-muted rounded w-1/3 mb-6" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="h-24 bg-muted rounded" />
+      <div className="md:col-span-2 space-y-2">
+        {[1,2,3,4,5].map(i => <div key={i} className="h-4 bg-muted rounded" />)}
+      </div>
+    </div>
+  </div>
+);
+
 const TourDetail = () => {
   const {
     slug,
@@ -437,7 +469,9 @@ const TourDetail = () => {
                 </motion.div>}
 
               {/* Reviews Section */}
-              <ReviewsSection rating={tour.rating} reviewCount={tour.reviewCount} tourId={tour.id} />
+              <Suspense fallback={<ReviewsSkeleton />}>
+                <ReviewsSection rating={tour.rating} reviewCount={tour.reviewCount} tourId={tour.id} />
+              </Suspense>
 
               {/* FAQs */}
               {tour.faqs.length > 0 && <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
@@ -508,7 +542,9 @@ const TourDetail = () => {
 
             {/* Sidebar - Booking Card */}
             <div className="lg:col-span-1 hidden lg:block">
-              <BookingSidebar price={tour.price} originalPrice={tour.originalPrice} duration={tour.duration} reviewCount={tour.reviewCount} tourTitle={tour.title} tourId={tour.id} pricingType={tour.pricingType} fullYachtPrice={tour.fullYachtPrice} capacity={tour.capacity} bookingFeatures={tour.bookingFeatures} />
+              <Suspense fallback={<SidebarSkeleton />}>
+                <BookingSidebar price={tour.price} originalPrice={tour.originalPrice} duration={tour.duration} reviewCount={tour.reviewCount} tourTitle={tour.title} tourId={tour.id} pricingType={tour.pricingType} fullYachtPrice={tour.fullYachtPrice} capacity={tour.capacity} bookingFeatures={tour.bookingFeatures} />
+              </Suspense>
             </div>
           </div>
         </div>
