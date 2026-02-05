@@ -516,24 +516,24 @@ const TourDetail = () => {
             }}>
                 <h2 className="font-display text-2xl font-bold text-foreground mb-4">Important Information</h2>
                 <Tabs defaultValue="cancellation" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-4">
-                    <TabsTrigger value="cancellation">Cancellation</TabsTrigger>
-                    <TabsTrigger value="bring">What to Bring</TabsTrigger>
-                    <TabsTrigger value="know">Good to Know</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 mb-4 h-auto">
+                    <TabsTrigger value="cancellation" className="text-xs sm:text-sm py-2 px-1 sm:px-3">Cancellation</TabsTrigger>
+                    <TabsTrigger value="bring" className="text-xs sm:text-sm py-2 px-1 sm:px-3">What to Bring</TabsTrigger>
+                    <TabsTrigger value="know" className="text-xs sm:text-sm py-2 px-1 sm:px-3">Good to Know</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="cancellation" className="text-muted-foreground space-y-2">
+                  <TabsContent value="cancellation" className="text-muted-foreground space-y-2 min-h-[80px]">
                     {tour.bookingFeatures.cancellation_info.map((item, index) => (
-                      <p key={index}>{item}</p>
+                      <p key={index} className="text-sm">{item}</p>
                     ))}
                   </TabsContent>
-                  <TabsContent value="bring" className="text-muted-foreground space-y-2">
+                  <TabsContent value="bring" className="text-muted-foreground space-y-2 min-h-[80px]">
                     {tour.bookingFeatures.what_to_bring.map((item, index) => (
-                      <p key={index}>{item}</p>
+                      <p key={index} className="text-sm">{item}</p>
                     ))}
                   </TabsContent>
-                  <TabsContent value="know" className="text-muted-foreground space-y-2">
+                  <TabsContent value="know" className="text-muted-foreground space-y-2 min-h-[80px]">
                     {tour.bookingFeatures.good_to_know.map((item, index) => (
-                      <p key={index}>{item}</p>
+                      <p key={index} className="text-sm">{item}</p>
                     ))}
                   </TabsContent>
                 </Tabs>
