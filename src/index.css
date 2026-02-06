@@ -281,8 +281,17 @@
   50% { transform: translateY(8px); opacity: 0.5; }
 }
 
-/* Reduce motion for users who prefer it and on mobile for performance */
+/* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
   .animate-float-slow,
   .animate-float-slower,
   .animate-bounce-slow,
@@ -294,15 +303,27 @@
 
 /* Performance optimizations for mobile */
 @media (max-width: 768px) {
+  /* Reduce animation complexity on mobile for better scroll performance */
   .animate-float-slow,
   .animate-float-slower {
     animation-duration: 12s; /* Slower = less CPU */
   }
   
-  /* Disable parallax-like effects on mobile for smoother scrolling */
+  /* Disable heavy animations on mobile */
   .parallax-disable-mobile {
     transform: none !important;
     animation: none !important;
+  }
+  
+  /* Use CSS containment for better rendering performance */
+  .mobile-contain {
+    contain: layout style;
+  }
+  
+  /* Reduce blur effects on mobile (GPU intensive) */
+  .backdrop-blur-lg,
+  .backdrop-blur-md {
+    backdrop-filter: blur(8px);
   }
 }
 
@@ -312,9 +333,28 @@
   will-change: transform;
 }
 
+/* GPU acceleration hints for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Container query support for modern browsers */
 @supports (container-type: inline-size) {
   .container-query-parent {
     container-type: inline-size;
   }
+}
+
+/* Content visibility for below-fold sections - improves initial render */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
+/* Optimize font rendering */
+.optimize-legibility {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
