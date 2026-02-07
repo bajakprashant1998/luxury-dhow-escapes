@@ -326,7 +326,7 @@ const Contact = () => {
         </div>
 
         {/* Floating Stats with Stagger Animation */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 z-20">
+        <div className="absolute  left-0 right-0 translate-y-1/2 z-20">
           <div className="container">
             <motion.div
               className="grid grid-cols-2 md:grid-cols-4 gap-4"
