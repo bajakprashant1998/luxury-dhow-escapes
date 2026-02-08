@@ -13,6 +13,9 @@ import yachtLuxuryInterior from "@/assets/promo/yacht-luxury-interior.jpg";
 import yachtSunsetCouple from "@/assets/promo/yacht-sunset-couple.jpg";
 import yachtAerial from "@/assets/promo/yacht-aerial.jpg";
 import yachtDining from "@/assets/promo/yacht-dining.jpg";
+import yachtPalmJumeirah from "@/assets/promo/yacht-palm-jumeirah.jpg";
+import yachtChampagneNight from "@/assets/promo/yacht-champagne-night.jpg";
+import yachtPoolDeck from "@/assets/promo/yacht-pool-deck.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -65,6 +68,9 @@ const showcaseImages = [
   { img: yachtDining, label: "Gourmet Dining", sub: "Fresh seafood & premium BBQ" },
   { img: yachtAerial, label: "Premium Fleet", sub: "50+ luxury yachts to choose from" },
   { img: heroImage, label: "Iconic Views", sub: "Cruise past Dubai's famous landmarks" },
+  { img: yachtPalmJumeirah, label: "Open Waters", sub: "Crystal clear turquoise escapes" },
+  { img: yachtChampagneNight, label: "Night Celebrations", sub: "Toast to the glittering skyline" },
+  { img: yachtPoolDeck, label: "Pool & Lounge", sub: "Relax on expansive sun decks" },
 ];
 
 export default function YachtPromoLanding() {
