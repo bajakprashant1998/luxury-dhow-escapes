@@ -189,11 +189,11 @@ export default function YachtPromoLanding() {
             <p className="text-gray-400 mt-3 max-w-2xl mx-auto">From stunning interiors to breathtaking skyline views — every detail is crafted for your perfect day.</p>
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            {showcaseImages.map((item, idx) => (
+            {showcaseImages.map((item) => (
               <motion.div
                 key={item.label}
                 variants={fadeUp}
-                className={`relative rounded-2xl overflow-hidden group ${idx === 0 || idx === 5 ? "md:row-span-2 aspect-[3/4] md:aspect-auto" : "aspect-[4/3]"}`}
+                className="relative rounded-2xl overflow-hidden group aspect-[4/3]"
               >
                 <img src={item.img} alt={item.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
