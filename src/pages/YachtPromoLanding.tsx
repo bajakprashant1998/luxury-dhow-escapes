@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Shield, Users, Clock, Award, Phone, MessageCircle, Anchor, ChevronDown, MapPin, Calendar, User, Mail } from "lucide-react";
+import { Star, Shield, Users, Clock, Award, Phone, MessageCircle, Anchor, ChevronDown, MapPin, Calendar, User, Mail, Sparkles, Ship, Waves } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContactConfig } from "@/hooks/useContactConfig";
 import { testimonials } from "@/data/testimonials";
 import { toast } from "sonner";
 
-import yachtInterior from "@/assets/yacht-interior.webp";
-import privateYacht from "@/assets/private-yacht.webp";
-import dubaiMarina from "@/assets/dubai-marina-night.webp";
-import heroImage from "@/assets/hero-dhow-cruise.webp";
-import buffetDining from "@/assets/buffet-dining.webp";
-import tanura from "@/assets/tanura-entertainment.webp";
+// Hero & showcase images
+import heroImage from "@/assets/promo/yacht-dubai-skyline.jpg";
+import yachtPartyDeck from "@/assets/promo/yacht-party-deck.jpg";
+import yachtLuxuryInterior from "@/assets/promo/yacht-luxury-interior.jpg";
+import yachtSunsetCouple from "@/assets/promo/yacht-sunset-couple.jpg";
+import yachtAerial from "@/assets/promo/yacht-aerial.jpg";
+import yachtDining from "@/assets/promo/yacht-dining.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -28,21 +29,21 @@ const packages = [
   {
     name: "Dhow Cruise Experience",
     price: "From AED 99",
-    image: buffetDining,
+    image: yachtDining,
     features: ["2-Hour Marina Cruise", "International Buffet Dinner", "Live Entertainment & Tanura Show", "Stunning Skyline Views", "Welcome Drinks Included"],
     popular: false,
   },
   {
     name: "Shared Yacht Tour",
     price: "From AED 249",
-    image: dubaiMarina,
+    image: yachtPartyDeck,
     features: ["3-Hour Yacht Experience", "Swimming & Snorkeling Stop", "BBQ & Refreshments", "Music System On Board", "Professional Crew"],
     popular: true,
   },
   {
     name: "Private Yacht Charter",
     price: "From AED 799",
-    image: privateYacht,
+    image: yachtAerial,
     features: ["Exclusive Private Experience", "Customizable Duration", "Personal Captain & Crew", "Premium Sound System", "Complimentary Refreshments"],
     popular: false,
   },
@@ -57,6 +58,15 @@ const whyChoose = [
   { icon: Phone, title: "24/7 Support", desc: "Round-the-clock customer assistance" },
 ];
 
+const showcaseImages = [
+  { img: yachtLuxuryInterior, label: "Luxury Interiors", sub: "World-class comfort on the water" },
+  { img: yachtPartyDeck, label: "Party Deck", sub: "Celebrate with the Dubai skyline" },
+  { img: yachtSunsetCouple, label: "Romantic Sunsets", sub: "Unforgettable golden hour moments" },
+  { img: yachtDining, label: "Gourmet Dining", sub: "Fresh seafood & premium BBQ" },
+  { img: yachtAerial, label: "Premium Fleet", sub: "50+ luxury yachts to choose from" },
+  { img: heroImage, label: "Iconic Views", sub: "Cruise past Dubai's famous landmarks" },
+];
+
 export default function YachtPromoLanding() {
   const { whatsappLinkWithGreeting, phoneFormatted, phone } = useContactConfig();
 
@@ -69,18 +79,19 @@ export default function YachtPromoLanding() {
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroImage} alt="Luxury yacht in Dubai Marina" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0a0a0a]" />
+          <img src={heroImage} alt="Luxury yacht cruising in Dubai Marina at sunset" className="w-full h-full object-cover" loading="eager" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0a0a0a]" />
         </div>
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 py-20 md:py-32">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
-              <motion.p variants={fadeUp} className="text-sm tracking-[0.3em] uppercase mb-4" style={{ color: GOLD }}>
-                ✦ Premium Yacht Experiences in Dubai
-              </motion.p>
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4a853]/30 mb-6" style={{ background: "rgba(212,168,83,0.1)" }}>
+                <Sparkles className="w-4 h-4" style={{ color: GOLD }} />
+                <span className="text-xs tracking-[0.2em] uppercase" style={{ color: GOLD }}>Premium Yacht Experiences</span>
+              </motion.div>
               <motion.h1 variants={fadeUp} className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
                 Experience{" "}
-                <span style={{ color: GOLD }}>Luxury Yacht</span>{" "}
+                <span className="bg-gradient-to-r from-[#d4a853] to-[#e8c170] bg-clip-text text-transparent">Luxury Yacht</span>{" "}
                 Rental in Dubai
               </motion.h1>
               <motion.p variants={fadeUp} className="text-lg text-gray-300 mb-8 max-w-lg">
@@ -124,12 +135,13 @@ export default function YachtPromoLanding() {
       <section className="py-8 border-y border-white/10" style={{ background: "#111" }}>
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {[
-            { value: "1,000+", label: "Happy Guests" },
-            { value: "4.9★", label: "Average Rating" },
-            { value: "8+", label: "Years Experience" },
-            { value: "50+", label: "Luxury Yachts" },
+            { value: "1,000+", label: "Happy Guests", icon: Users },
+            { value: "4.9★", label: "Average Rating", icon: Star },
+            { value: "8+", label: "Years Experience", icon: Award },
+            { value: "50+", label: "Luxury Yachts", icon: Ship },
           ].map((s) => (
-            <motion.div key={s.label} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+            <motion.div key={s.label} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-col items-center">
+              <s.icon className="w-5 h-5 mb-2" style={{ color: GOLD }} />
               <p className="text-2xl md:text-3xl font-bold" style={{ color: GOLD }}>{s.value}</p>
               <p className="text-sm text-gray-400 mt-1">{s.label}</p>
             </motion.div>
@@ -168,25 +180,48 @@ export default function YachtPromoLanding() {
         </div>
       </section>
 
-      {/* Experience Showcase */}
+      {/* Experience Showcase — 6 stunning images */}
       <section className="py-20 px-4" style={{ background: "#111" }}>
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
             <p className="text-sm tracking-[0.2em] uppercase mb-2" style={{ color: GOLD }}>The Experience</p>
             <h2 className="text-3xl md:text-4xl font-bold">Unforgettable Moments on the Water</h2>
+            <p className="text-gray-400 mt-3 max-w-2xl mx-auto">From stunning interiors to breathtaking skyline views — every detail is crafted for your perfect day.</p>
           </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-3 gap-4">
-            {[
-              { img: yachtInterior, label: "Luxury Interiors" },
-              { img: dubaiMarina, label: "Iconic Skyline Views" },
-              { img: tanura, label: "Live Entertainment" },
-            ].map((item) => (
-              <motion.div key={item.label} variants={fadeUp} className="relative rounded-2xl overflow-hidden group aspect-[4/5]">
-                <img src={item.img} alt={item.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <p className="absolute bottom-4 left-4 font-semibold text-lg">{item.label}</p>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+            {showcaseImages.map((item, idx) => (
+              <motion.div
+                key={item.label}
+                variants={fadeUp}
+                className={`relative rounded-2xl overflow-hidden group ${idx === 0 || idx === 5 ? "md:row-span-2 aspect-[3/4] md:aspect-auto" : "aspect-[4/3]"}`}
+              >
+                <img src={item.img} alt={item.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <p className="font-semibold text-lg">{item.label}</p>
+                  <p className="text-sm text-gray-300">{item.sub}</p>
+                </div>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Full-width parallax banner */}
+      <section className="relative h-[40vh] md:h-[50vh] overflow-hidden">
+        <img src={yachtSunsetCouple} alt="Romantic yacht sunset" className="w-full h-full object-cover" loading="lazy" />
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center px-4">
+            <Waves className="w-10 h-10 mx-auto mb-4" style={{ color: GOLD }} />
+            <h2 className="text-3xl md:text-5xl font-bold mb-3">Your Dream Awaits</h2>
+            <p className="text-gray-300 max-w-xl mx-auto mb-6">Create memories that last a lifetime aboard Dubai's most exclusive yachts.</p>
+            <button
+              onClick={scrollToBooking}
+              className="px-8 py-4 rounded-lg font-semibold text-black hover:brightness-110 transition-all"
+              style={{ background: `linear-gradient(135deg, ${GOLD}, #e8c170)` }}
+            >
+              Start Planning Your Experience
+            </button>
           </motion.div>
         </div>
       </section>
@@ -203,7 +238,7 @@ export default function YachtPromoLanding() {
               <motion.div
                 key={pkg.name}
                 variants={fadeUp}
-                className="rounded-2xl overflow-hidden border transition-all hover:border-[#d4a853]/60"
+                className="rounded-2xl overflow-hidden border transition-all hover:border-[#d4a853]/60 hover:-translate-y-1"
                 style={{ background: "#161616", borderColor: pkg.popular ? GOLD : "rgba(255,255,255,0.1)" }}
               >
                 {pkg.popular && (
@@ -211,8 +246,8 @@ export default function YachtPromoLanding() {
                     Most Popular
                   </div>
                 )}
-                <div className="relative h-48">
-                  <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
+                <div className="relative h-52">
+                  <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#161616] to-transparent" />
                 </div>
                 <div className="p-6">
