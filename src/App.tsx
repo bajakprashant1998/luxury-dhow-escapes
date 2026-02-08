@@ -22,6 +22,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const CancellationPolicy = lazy(() => import("./pages/CancellationPolicy"));
+const YachtPromoLanding = lazy(() => import("./pages/YachtPromoLanding"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages - lazy load entire admin section
@@ -240,6 +241,7 @@ const App = () => (
                 </RequireSession>
               }
             />
+            <Route path="/entalyachtdubaipromotion-1" element={<YachtPromoLanding />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
