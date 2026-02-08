@@ -1,12 +1,16 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Star, Shield, Users, Clock, Award, Phone, MessageCircle, Anchor, ChevronDown, MapPin, Calendar, User, Mail, Sparkles, Ship, Waves } from "lucide-react";
+import { useState, lazy, Suspense, memo, useCallback } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  Star, Shield, Users, Clock, Award, Phone, MessageCircle,
+  Anchor, ChevronDown, Calendar, User, Mail, Sparkles, Ship,
+  Waves, MapPin,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContactConfig } from "@/hooks/useContactConfig";
 import { testimonials } from "@/data/testimonials";
 import { toast } from "sonner";
 
-// Hero & showcase images
+// Hero image loaded eagerly, rest lazy
 import heroImage from "@/assets/promo/yacht-dubai-skyline.jpg";
 import yachtPartyDeck from "@/assets/promo/yacht-party-deck.jpg";
 import yachtLuxuryInterior from "@/assets/promo/yacht-luxury-interior.jpg";
@@ -17,16 +21,24 @@ import yachtPalmJumeirah from "@/assets/promo/yacht-palm-jumeirah.jpg";
 import yachtChampagneNight from "@/assets/promo/yacht-champagne-night.jpg";
 import yachtPoolDeck from "@/assets/promo/yacht-pool-deck.jpg";
 
+/* ─── Animation Variants ─── */
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.15 } },
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.4 } },
 };
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.92 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" as const } },
+};
+const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
+const staggerFast = { visible: { transition: { staggerChildren: 0.06 } } };
 
 const GOLD = "#d4a853";
+const GOLD_LIGHT = "#e8c170";
 
 const packages = [
   {
@@ -73,106 +85,159 @@ const showcaseImages = [
   { img: yachtPoolDeck, label: "Pool & Lounge", sub: "Relax on expansive sun decks" },
 ];
 
+/* ─── Gold Gradient Button ─── */
+const GoldButton = memo(({ children, onClick, className = "", type = "button", disabled = false, size = "lg" }: {
+  children: React.ReactNode; onClick?: () => void; className?: string; type?: "button" | "submit"; disabled?: boolean; size?: "lg" | "md";
+}) => (
+  <button
+    type={type}
+    onClick={onClick}
+    disabled={disabled}
+    className={`font-bold text-black rounded-xl transition-all duration-300 hover:shadow-[0_8px_30px_rgba(212,168,83,0.4)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 ${size === "lg" ? "py-4 px-8 text-base md:text-lg" : "py-3 px-6 text-sm md:text-base"} ${className}`}
+    style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_LIGHT})` }}
+  >
+    {children}
+  </button>
+));
+GoldButton.displayName = "GoldButton";
+
+/* ─── Section Wrapper ─── */
+const Section = memo(({ children, bg = "#0a0a0a", className = "", id }: {
+  children: React.ReactNode; bg?: string; className?: string; id?: string;
+}) => (
+  <section id={id} className={`py-14 md:py-20 px-4 sm:px-6 ${className}`} style={{ background: bg }}>
+    {children}
+  </section>
+));
+Section.displayName = "Section";
+
+/* ─── Section Header ─── */
+const SectionHeader = memo(({ tag, title, subtitle }: { tag: string; title: string; subtitle?: string }) => (
+  <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUp} className="text-center mb-10 md:mb-14">
+    <p className="text-xs sm:text-sm tracking-[0.2em] uppercase mb-2" style={{ color: GOLD }}>{tag}</p>
+    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">{title}</h2>
+    {subtitle && <p className="text-gray-400 mt-3 max-w-2xl mx-auto text-sm md:text-base">{subtitle}</p>}
+  </motion.div>
+));
+SectionHeader.displayName = "SectionHeader";
+
+/* ─── Lazy Image ─── */
+const LazyImg = memo(({ src, alt, className = "" }: { src: string; alt: string; className?: string }) => (
+  <img src={src} alt={alt} loading="lazy" decoding="async" className={className} />
+));
+LazyImg.displayName = "LazyImg";
+
 export default function YachtPromoLanding() {
   const { whatsappLinkWithGreeting, phoneFormatted, phone } = useContactConfig();
 
-  const scrollToBooking = () => {
+  const scrollToBooking = useCallback(() => {
     document.getElementById("final-booking")?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden">
+      {/* ══════ HERO ══════ */}
+      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroImage} alt="Luxury yacht cruising in Dubai Marina at sunset" className="w-full h-full object-cover" loading="eager" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0a0a0a]" />
+          <img
+            src={heroImage}
+            alt="Luxury yacht cruising in Dubai Marina at sunset"
+            className="w-full h-full object-cover"
+            loading="eager"
+            fetchPriority="high"
+            decoding="sync"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#0a0a0a]" />
         </div>
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 py-20 md:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-24 md:py-32">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
-              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4a853]/30 mb-6" style={{ background: "rgba(212,168,83,0.1)" }}>
-                <Sparkles className="w-4 h-4" style={{ color: GOLD }} />
-                <span className="text-xs tracking-[0.2em] uppercase" style={{ color: GOLD }}>Premium Yacht Experiences</span>
+              <motion.div variants={fadeIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4a853]/30 mb-5" style={{ background: "rgba(212,168,83,0.1)" }}>
+                <Sparkles className="w-3.5 h-3.5" style={{ color: GOLD }} />
+                <span className="text-[10px] sm:text-xs tracking-[0.2em] uppercase" style={{ color: GOLD }}>Premium Yacht Experiences</span>
               </motion.div>
-              <motion.h1 variants={fadeUp} className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+              <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-4 md:mb-6">
                 Experience{" "}
                 <span className="bg-gradient-to-r from-[#d4a853] to-[#e8c170] bg-clip-text text-transparent">Luxury Yacht</span>{" "}
                 Rental in Dubai
               </motion.h1>
-              <motion.p variants={fadeUp} className="text-lg text-gray-300 mb-8 max-w-lg">
-                Sail through the iconic Dubai skyline aboard our premium fleet. Unforgettable experiences with world-class service, from intimate sunset cruises to lavish private charters.
+              <motion.p variants={fadeUp} className="text-sm sm:text-base md:text-lg text-gray-300 mb-6 md:mb-8 max-w-lg leading-relaxed">
+                Sail through the iconic Dubai skyline aboard our premium fleet. Unforgettable experiences with world-class service.
               </motion.p>
-              <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
-                <button
-                  onClick={scrollToBooking}
-                  className="px-8 py-4 rounded-lg font-semibold text-black text-lg hover:brightness-110 transition-all shadow-lg shadow-[#d4a85340]"
-                  style={{ background: `linear-gradient(135deg, ${GOLD}, #e8c170)` }}
-                >
-                  Book Your Yacht Now
-                </button>
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
+                <GoldButton onClick={scrollToBooking}>Book Your Yacht Now</GoldButton>
                 <a
                   href={whatsappLinkWithGreeting("Hi! I'm interested in booking a luxury yacht in Dubai.")}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-8 py-4 rounded-lg font-semibold border border-white/20 hover:border-white/50 transition-all flex items-center gap-2"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold border border-white/20 hover:border-white/50 hover:bg-white/5 transition-all duration-300 text-sm md:text-base"
                 >
-                  <MessageCircle className="w-5 h-5" /> WhatsApp Us
+                  <MessageCircle className="w-4 h-4" /> WhatsApp Us
                 </a>
               </motion.div>
             </motion.div>
 
             {/* Mini Booking Form */}
-            <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.7 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+            >
               <MiniBookingForm />
             </motion.div>
           </div>
         </div>
+
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
         >
-          <ChevronDown className="w-8 h-8 text-white/40" />
+          <ChevronDown className="w-6 h-6 text-white/30" />
         </motion.div>
       </section>
 
-      {/* Trust Stats */}
-      <section className="py-8 border-y border-white/10" style={{ background: "#111" }}>
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[
-            { value: "1,000+", label: "Happy Guests", icon: Users },
-            { value: "4.9★", label: "Average Rating", icon: Star },
-            { value: "8+", label: "Years Experience", icon: Award },
-            { value: "50+", label: "Luxury Yachts", icon: Ship },
-          ].map((s) => (
-            <motion.div key={s.label} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-col items-center">
-              <s.icon className="w-5 h-5 mb-2" style={{ color: GOLD }} />
-              <p className="text-2xl md:text-3xl font-bold" style={{ color: GOLD }}>{s.value}</p>
-              <p className="text-sm text-gray-400 mt-1">{s.label}</p>
-            </motion.div>
-          ))}
+      {/* ══════ TRUST STATS ══════ */}
+      <section className="py-6 md:py-8 border-y border-white/10" style={{ background: "#111" }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerFast} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[
+              { value: "1,000+", label: "Happy Guests", icon: Users },
+              { value: "4.9★", label: "Average Rating", icon: Star },
+              { value: "8+", label: "Years Experience", icon: Award },
+              { value: "50+", label: "Luxury Yachts", icon: Ship },
+            ].map((s) => (
+              <motion.div key={s.label} variants={scaleIn} className="flex flex-col items-center py-2">
+                <s.icon className="w-4 h-4 sm:w-5 sm:h-5 mb-1.5" style={{ color: GOLD }} />
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: GOLD }}>{s.value}</p>
+                <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{s.label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 px-4" style={{ background: "#0a0a0a" }}>
+      {/* ══════ TESTIMONIALS ══════ */}
+      <Section>
         <div className="max-w-6xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-            <p className="text-sm tracking-[0.2em] uppercase mb-2" style={{ color: GOLD }}>Testimonials</p>
-            <h2 className="text-3xl md:text-4xl font-bold">Trusted by 1000+ Happy Guests</h2>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-3 gap-6">
+          <SectionHeader tag="Testimonials" title="Trusted by 1000+ Happy Guests" />
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger} className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {testimonials.slice(0, 3).map((t) => (
-              <motion.div key={t.id} variants={fadeUp} className="rounded-2xl p-6 border border-white/10" style={{ background: "#161616" }}>
-                <div className="flex gap-1 mb-3">
+              <motion.div
+                key={t.id}
+                variants={scaleIn}
+                className="rounded-2xl p-5 md:p-6 border border-white/10 hover:border-[#d4a853]/30 transition-all duration-300"
+                style={{ background: "#161616" }}
+              >
+                <div className="flex gap-0.5 mb-3">
                   {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-current" style={{ color: GOLD }} />
+                    <Star key={i} className="w-3.5 h-3.5 fill-current" style={{ color: GOLD }} />
                   ))}
                 </div>
-                <p className="text-gray-300 text-sm mb-4 line-clamp-4">"{t.content}"</p>
+                <p className="text-gray-300 text-sm leading-relaxed mb-4 line-clamp-4">"{t.content}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: GOLD, color: "#000" }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: GOLD, color: "#000" }}>
                     {t.name.charAt(0)}
                   </div>
                   <div>
@@ -184,181 +249,202 @@ export default function YachtPromoLanding() {
             ))}
           </motion.div>
         </div>
-      </section>
+      </Section>
 
-      {/* Experience Showcase — 6 stunning images */}
-      <section className="py-20 px-4" style={{ background: "#111" }}>
+      {/* ══════ EXPERIENCE SHOWCASE ══════ */}
+      <Section bg="#111">
         <div className="max-w-7xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-            <p className="text-sm tracking-[0.2em] uppercase mb-2" style={{ color: GOLD }}>The Experience</p>
-            <h2 className="text-3xl md:text-4xl font-bold">Unforgettable Moments on the Water</h2>
-            <p className="text-gray-400 mt-3 max-w-2xl mx-auto">From stunning interiors to breathtaking skyline views — every detail is crafted for your perfect day.</p>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          <SectionHeader
+            tag="The Experience"
+            title="Unforgettable Moments on the Water"
+            subtitle="From stunning interiors to breathtaking skyline views — every detail is crafted for your perfect day."
+          />
+
+          {/* Mobile: horizontal scroll carousel | Desktop: grid */}
+          <div className="md:hidden -mx-4 px-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide">
+              {showcaseImages.map((item) => (
+                <motion.div key={item.label} variants={scaleIn} className="flex-shrink-0 w-[72vw] snap-center">
+                  <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
+                    <LazyImg src={item.img} alt={item.label} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="font-semibold text-base">{item.label}</p>
+                      <p className="text-xs text-gray-300 mt-0.5">{item.sub}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Desktop grid */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="hidden md:grid grid-cols-3 gap-4">
             {showcaseImages.map((item) => (
-              <motion.div
-                key={item.label}
-                variants={fadeUp}
-                className="relative rounded-2xl overflow-hidden group aspect-[4/3]"
-              >
-                <img src={item.img} alt={item.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
+              <motion.div key={item.label} variants={scaleIn} className="relative rounded-2xl overflow-hidden group aspect-[4/3] cursor-pointer">
+                <LazyImg src={item.img} alt={item.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-4 left-4 right-4 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                   <p className="font-semibold text-lg">{item.label}</p>
-                  <p className="text-sm text-gray-300">{item.sub}</p>
+                  <p className="text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">{item.sub}</p>
                 </div>
               </motion.div>
             ))}
           </motion.div>
         </div>
-      </section>
+      </Section>
 
-      {/* Full-width parallax banner */}
-      <section className="relative h-[40vh] md:h-[50vh] overflow-hidden">
-        <img src={yachtSunsetCouple} alt="Romantic yacht sunset" className="w-full h-full object-cover" loading="lazy" />
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center px-4">
-            <Waves className="w-10 h-10 mx-auto mb-4" style={{ color: GOLD }} />
-            <h2 className="text-3xl md:text-5xl font-bold mb-3">Your Dream Awaits</h2>
-            <p className="text-gray-300 max-w-xl mx-auto mb-6">Create memories that last a lifetime aboard Dubai's most exclusive yachts.</p>
-            <button
-              onClick={scrollToBooking}
-              className="px-8 py-4 rounded-lg font-semibold text-black hover:brightness-110 transition-all"
-              style={{ background: `linear-gradient(135deg, ${GOLD}, #e8c170)` }}
-            >
-              Start Planning Your Experience
-            </button>
-          </motion.div>
-        </div>
-      </section>
+      {/* ══════ PARALLAX BANNER ══════ */}
+      <ParallaxBanner image={yachtSunsetCouple} scrollToBooking={scrollToBooking} />
 
-      {/* Packages */}
-      <section className="py-20 px-4" style={{ background: "#0a0a0a" }}>
+      {/* ══════ PACKAGES ══════ */}
+      <Section>
         <div className="max-w-6xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-            <p className="text-sm tracking-[0.2em] uppercase mb-2" style={{ color: GOLD }}>Our Packages</p>
-            <h2 className="text-3xl md:text-4xl font-bold">Choose Your Experience</h2>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-3 gap-6">
+          <SectionHeader tag="Our Packages" title="Choose Your Experience" />
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger} className="grid sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6">
             {packages.map((pkg) => (
               <motion.div
                 key={pkg.name}
-                variants={fadeUp}
-                className="rounded-2xl overflow-hidden border transition-all hover:border-[#d4a853]/60 hover:-translate-y-1"
+                variants={scaleIn}
+                whileHover={{ y: -6 }}
+                className="rounded-2xl overflow-hidden border transition-all duration-300"
                 style={{ background: "#161616", borderColor: pkg.popular ? GOLD : "rgba(255,255,255,0.1)" }}
               >
                 {pkg.popular && (
-                  <div className="text-center py-2 text-xs font-bold tracking-widest uppercase text-black" style={{ background: GOLD }}>
-                    Most Popular
+                  <div className="text-center py-2 text-[10px] sm:text-xs font-bold tracking-widest uppercase text-black" style={{ background: GOLD }}>
+                    ⭐ Most Popular
                   </div>
                 )}
-                <div className="relative h-52">
-                  <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" loading="lazy" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#161616] to-transparent" />
+                <div className="relative h-40 sm:h-48 md:h-52 overflow-hidden">
+                  <LazyImg src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#161616] via-transparent to-transparent" />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-1">{pkg.name}</h3>
-                  <p className="text-2xl font-bold mb-4" style={{ color: GOLD }}>{pkg.price}</p>
-                  <ul className="space-y-2 mb-6">
+                <div className="p-5 md:p-6">
+                  <h3 className="text-lg md:text-xl font-bold mb-1">{pkg.name}</h3>
+                  <p className="text-xl md:text-2xl font-bold mb-4" style={{ color: GOLD }}>{pkg.price}</p>
+                  <ul className="space-y-2 mb-5">
                     {pkg.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                        <span style={{ color: GOLD }}>✓</span> {f}
+                      <li key={f} className="flex items-start gap-2 text-xs sm:text-sm text-gray-300">
+                        <span className="mt-0.5 flex-shrink-0" style={{ color: GOLD }}>✓</span>
+                        <span>{f}</span>
                       </li>
                     ))}
                   </ul>
-                  <button
-                    onClick={scrollToBooking}
-                    className="w-full py-3 rounded-lg font-semibold transition-all hover:brightness-110 text-black"
-                    style={{ background: pkg.popular ? `linear-gradient(135deg, ${GOLD}, #e8c170)` : "rgba(255,255,255,0.1)", color: pkg.popular ? "#000" : "#fff" }}
-                  >
-                    Book Now
-                  </button>
+                  {pkg.popular ? (
+                    <GoldButton onClick={scrollToBooking} className="w-full" size="md">Book Now</GoldButton>
+                  ) : (
+                    <button
+                      onClick={scrollToBooking}
+                      className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 border border-white/10 hover:border-[#d4a853]/50 hover:bg-white/5"
+                    >
+                      Book Now
+                    </button>
+                  )}
                 </div>
               </motion.div>
             ))}
           </motion.div>
         </div>
-      </section>
+      </Section>
 
-      {/* Why Choose Us */}
-      <section className="py-20 px-4" style={{ background: "#111" }}>
+      {/* ══════ WHY CHOOSE US ══════ */}
+      <Section bg="#111">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-            <p className="text-sm tracking-[0.2em] uppercase mb-2" style={{ color: GOLD }}>Why Choose Us</p>
-            <h2 className="text-3xl md:text-4xl font-bold">The Rental Yacht Dubai Difference</h2>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          <SectionHeader tag="Why Choose Us" title="The Rental Yacht Dubai Difference" />
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={staggerFast} className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
             {whyChoose.map((item) => (
-              <motion.div key={item.title} variants={fadeUp} className="text-center p-6 rounded-2xl border border-white/5 hover:border-[#d4a853]/30 transition-all" style={{ background: "#1a1a1a" }}>
-                <item.icon className="w-8 h-8 mx-auto mb-3" style={{ color: GOLD }} />
-                <h3 className="font-semibold mb-1">{item.title}</h3>
-                <p className="text-sm text-gray-400">{item.desc}</p>
+              <motion.div
+                key={item.title}
+                variants={scaleIn}
+                whileHover={{ scale: 1.03 }}
+                className="text-center p-4 md:p-6 rounded-2xl border border-white/5 hover:border-[#d4a853]/30 transition-all duration-300"
+                style={{ background: "#1a1a1a" }}
+              >
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(212,168,83,0.12)" }}>
+                  <item.icon className="w-5 h-5 md:w-6 md:h-6" style={{ color: GOLD }} />
+                </div>
+                <h3 className="font-semibold text-sm md:text-base mb-1">{item.title}</h3>
+                <p className="text-xs md:text-sm text-gray-400 leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
-      </section>
+      </Section>
 
-      {/* Urgency */}
-      <section className="py-16 px-4 text-center" style={{ background: `linear-gradient(135deg, #1a2d4f, #0d1a2d)` }}>
+      {/* ══════ URGENCY ══════ */}
+      <section className="py-14 md:py-20 px-4 text-center overflow-hidden" style={{ background: "linear-gradient(135deg, #1a2d4f, #0d1a2d)" }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="max-w-2xl mx-auto">
-          <motion.div variants={fadeUp}>
-            <Anchor className="w-10 h-10 mx-auto mb-4" style={{ color: GOLD }} />
+          <motion.div variants={scaleIn}>
+            <Anchor className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-4" style={{ color: GOLD }} />
           </motion.div>
-          <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold mb-3">Limited Availability This Season</motion.h2>
-          <motion.p variants={fadeUp} className="text-gray-300 mb-2">Our premium yachts are booking fast. Only <span className="font-bold text-white">7 slots remaining</span> this week.</motion.p>
-          <motion.p variants={fadeUp} className="text-sm text-gray-400 mb-8">Don't miss your chance to experience Dubai from the water.</motion.p>
-          <motion.button
-            variants={fadeUp}
-            onClick={scrollToBooking}
-            className="px-10 py-4 rounded-lg font-semibold text-black text-lg hover:brightness-110 transition-all shadow-lg shadow-[#d4a85340]"
-            style={{ background: `linear-gradient(135deg, ${GOLD}, #e8c170)` }}
-          >
-            Reserve Your Spot Today
-          </motion.button>
+          <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">Limited Availability This Season</motion.h2>
+          <motion.p variants={fadeUp} className="text-gray-300 text-sm md:text-base mb-2">
+            Our premium yachts are booking fast. Only <span className="font-bold text-white">7 slots remaining</span> this week.
+          </motion.p>
+          <motion.p variants={fadeUp} className="text-xs md:text-sm text-gray-400 mb-6 md:mb-8">Don't miss your chance to experience Dubai from the water.</motion.p>
+          <motion.div variants={fadeUp}>
+            <GoldButton onClick={scrollToBooking}>Reserve Your Spot Today</GoldButton>
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* Final Booking Form */}
-      <section id="final-booking" className="py-20 px-4" style={{ background: "#0a0a0a" }}>
+      {/* ══════ FINAL BOOKING FORM ══════ */}
+      <Section id="final-booking">
         <div className="max-w-3xl mx-auto">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-10">
-            <p className="text-sm tracking-[0.2em] uppercase mb-2" style={{ color: GOLD }}>Book Now</p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">Secure Your Luxury Yacht Experience</h2>
-            <p className="text-gray-400">Fill in the form below and our team will confirm your booking within minutes.</p>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+          <SectionHeader tag="Book Now" title="Secure Your Luxury Yacht Experience" subtitle="Fill in the form below and our team will confirm your booking within minutes." />
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleIn}>
             <FullBookingForm />
           </motion.div>
         </div>
-      </section>
+      </Section>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 text-center border-t border-white/10" style={{ background: "#0a0a0a" }}>
-        <p className="text-sm text-gray-500">© {new Date().getFullYear()} Rental Yacht Dubai. All rights reserved.</p>
+      {/* ══════ FOOTER ══════ */}
+      <footer className="py-6 md:py-8 px-4 text-center border-t border-white/10" style={{ background: "#0a0a0a" }}>
+        <p className="text-xs sm:text-sm text-gray-500">© {new Date().getFullYear()} Rental Yacht Dubai. All rights reserved.</p>
         <div className="flex justify-center gap-4 mt-3">
-          <a href={`tel:${phone}`} className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+          <a href={`tel:${phone}`} className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1">
             <Phone className="w-3 h-3" /> {phoneFormatted}
           </a>
-          <a href={whatsappLinkWithGreeting()} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+          <a href={whatsappLinkWithGreeting()} target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1">
             <MessageCircle className="w-3 h-3" /> WhatsApp
           </a>
         </div>
       </footer>
 
-      {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-3 md:hidden" style={{ background: "linear-gradient(to top, #0a0a0a, transparent)" }}>
-        <button
-          onClick={scrollToBooking}
-          className="w-full py-4 rounded-xl font-bold text-black text-lg shadow-lg shadow-[#d4a85340]"
-          style={{ background: `linear-gradient(135deg, ${GOLD}, #e8c170)` }}
-        >
-          Book Your Yacht Now
-        </button>
+      {/* ══════ STICKY MOBILE CTA ══════ */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-safe">
+        <div className="p-3 pt-5" style={{ background: "linear-gradient(to top, #0a0a0a 60%, transparent)" }}>
+          <GoldButton onClick={scrollToBooking} className="w-full shadow-lg shadow-[#d4a85340]">
+            Book Your Yacht Now
+          </GoldButton>
+        </div>
       </div>
     </div>
   );
 }
+
+/* ─── Parallax Banner ─── */
+const ParallaxBanner = memo(({ image, scrollToBooking }: { image: string; scrollToBooking: () => void }) => (
+  <section className="relative h-[35vh] sm:h-[40vh] md:h-[50vh] overflow-hidden">
+    <LazyImg src={image} alt="Romantic yacht sunset" className="w-full h-full object-cover" />
+    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center px-4">
+        <motion.div variants={scaleIn}>
+          <Waves className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-3" style={{ color: GOLD }} />
+        </motion.div>
+        <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-5xl font-bold mb-2 md:mb-3">Your Dream Awaits</motion.h2>
+        <motion.p variants={fadeUp} className="text-gray-300 max-w-xl mx-auto mb-5 md:mb-6 text-sm md:text-base">Create memories that last a lifetime aboard Dubai's most exclusive yachts.</motion.p>
+        <motion.div variants={fadeUp}>
+          <GoldButton onClick={scrollToBooking} size="md">Start Planning Your Experience</GoldButton>
+        </motion.div>
+      </motion.div>
+    </div>
+  </section>
+));
+ParallaxBanner.displayName = "ParallaxBanner";
+
+/* ─── Input Class ─── */
+const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#d4a853]/50 focus:ring-1 focus:ring-[#d4a853]/20 transition-all duration-200";
 
 /* ─── Mini Booking Form (Hero) ─── */
 function MiniBookingForm() {
@@ -383,42 +469,37 @@ function MiniBookingForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl p-6 md:p-8 border border-white/10 backdrop-blur-md" style={{ background: "rgba(0,0,0,0.6)" }}>
-      <h3 className="text-xl font-bold mb-1">Quick Booking</h3>
-      <p className="text-sm text-gray-400 mb-5">Get a response within 15 minutes</p>
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 sm:p-6 md:p-8 border border-white/10 backdrop-blur-md" style={{ background: "rgba(0,0,0,0.65)" }}>
+      <h3 className="text-lg md:text-xl font-bold mb-0.5">Quick Booking</h3>
+      <p className="text-xs sm:text-sm text-gray-400 mb-4 md:mb-5">Get a response within 15 minutes</p>
       <div className="space-y-3">
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your Name" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#d4a853]/50" />
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your Name" className={inputCls} />
         </div>
         <div className="relative">
           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#d4a853]/50" />
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone Number" type="tel" className={inputCls} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="relative">
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-sm text-gray-300 focus:outline-none focus:border-[#d4a853]/50" />
+            <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={`${inputCls} text-gray-300`} />
           </div>
           <div className="relative">
             <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <select value={form.guests} onChange={(e) => setForm({ ...form, guests: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-sm text-gray-300 focus:outline-none focus:border-[#d4a853]/50 appearance-none">
-              {[...Array(20)].map((_, i) => (
+            <select value={form.guests} onChange={(e) => setForm({ ...form, guests: e.target.value })} className={`${inputCls} text-gray-300 appearance-none`}>
+              {Array.from({ length: 20 }, (_, i) => (
                 <option key={i + 1} value={i + 1}>{i + 1} Guest{i > 0 ? "s" : ""}</option>
               ))}
             </select>
           </div>
         </div>
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full mt-5 py-3.5 rounded-lg font-bold text-black hover:brightness-110 transition-all disabled:opacity-50"
-        style={{ background: `linear-gradient(135deg, ${GOLD}, #e8c170)` }}
-      >
+      <GoldButton type="submit" disabled={loading} className="w-full mt-4 md:mt-5" size="md">
         {loading ? "Sending..." : "Get Instant Quote"}
-      </button>
-      <p className="text-xs text-gray-500 text-center mt-3">✓ No payment required · Free cancellation</p>
+      </GoldButton>
+      <p className="text-[10px] sm:text-xs text-gray-500 text-center mt-2.5">✓ No payment required · Free cancellation</p>
     </form>
   );
 }
@@ -445,11 +526,9 @@ function FullBookingForm() {
     setForm({ name: "", email: "", phone: "", date: "", guests: "2", message: "" });
   };
 
-  const inputCls = "w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-sm placeholder:text-gray-500 focus:outline-none focus:border-[#d4a853]/50";
-
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl p-6 md:p-10 border border-white/10" style={{ background: "#161616" }}>
-      <div className="grid md:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 sm:p-6 md:p-10 border border-white/10" style={{ background: "#161616" }}>
+      <div className="grid sm:grid-cols-2 gap-3 md:gap-4">
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full Name *" className={inputCls} />
@@ -460,34 +539,29 @@ function FullBookingForm() {
         </div>
         <div className="relative">
           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone Number *" className={inputCls} />
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone Number *" type="tel" className={inputCls} />
         </div>
         <div className="relative">
           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={inputCls} />
+          <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={`${inputCls} text-gray-300`} />
         </div>
         <div className="relative">
           <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <select value={form.guests} onChange={(e) => setForm({ ...form, guests: e.target.value })} className={`${inputCls} appearance-none`}>
-            {[...Array(30)].map((_, i) => (
+          <select value={form.guests} onChange={(e) => setForm({ ...form, guests: e.target.value })} className={`${inputCls} text-gray-300 appearance-none`}>
+            {Array.from({ length: 30 }, (_, i) => (
               <option key={i + 1} value={i + 1}>{i + 1} Guest{i > 0 ? "s" : ""}</option>
             ))}
           </select>
         </div>
         <div className="relative">
           <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
-          <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Special requests or questions..." rows={1} className={`${inputCls} min-h-[44px]`} />
+          <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Special requests..." rows={1} className={`${inputCls} min-h-[44px]`} />
         </div>
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full mt-6 py-4 rounded-lg font-bold text-black text-lg hover:brightness-110 transition-all disabled:opacity-50 shadow-lg shadow-[#d4a85340]"
-        style={{ background: `linear-gradient(135deg, ${GOLD}, #e8c170)` }}
-      >
+      <GoldButton type="submit" disabled={loading} className="w-full mt-5 md:mt-6">
         {loading ? "Submitting..." : "Secure Your Yacht Experience"}
-      </button>
-      <p className="text-xs text-gray-500 text-center mt-3">✓ Free cancellation up to 24 hours · Instant confirmation</p>
+      </GoldButton>
+      <p className="text-[10px] sm:text-xs text-gray-500 text-center mt-2.5">✓ Free cancellation up to 24 hours · Instant confirmation</p>
     </form>
   );
 }
