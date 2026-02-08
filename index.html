@@ -26,18 +26,35 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://jmiigncmyirihxkuxybo.supabase.co" crossorigin />
 
-  <!-- Preload critical fonts with display swap -->
+  <!-- Load fonts non-render-blocking -->
   <link rel="preload"
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
     as="style"
     onload="this.onload=null;this.rel='stylesheet'" />
   <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" />
   </noscript>
 
-  <!-- Preload hero images for faster LCP -->
-  <link rel="preload" href="/src/assets/hero-dhow-cruise.webp" as="image" type="image/webp" fetchpriority="high" />
-  <link rel="preload" href="/assets/promo/yacht-dubai-skyline.jpg" as="image" type="image/jpeg" />
+  <!-- Preload hero images for faster LCP - conditionally useful per route -->
+  <!-- Landing page hero preloaded via JS below -->
+  <script>
+    // Route-specific hero preload to avoid loading unnecessary images
+    (function() {
+      var path = window.location.pathname;
+      var link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.fetchPriority = 'high';
+      if (path.indexOf('entalyachtdubaipromotion') !== -1) {
+        link.href = '/assets/promo/yacht-dubai-skyline.jpg';
+        link.type = 'image/jpeg';
+      } else {
+        link.href = '/src/assets/hero-dhow-cruise.webp';
+        link.type = 'image/webp';
+      }
+      document.head.appendChild(link);
+    })();
+  </script>
 
   <!-- DNS Prefetch for CDNs and third-party resources -->
   <link rel="dns-prefetch" href="https://jmiigncmyirihxkuxybo.supabase.co" />
