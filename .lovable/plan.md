@@ -1,229 +1,50 @@
 
-# Enhancement Plan: Menu, Home Page, Footer & Speed Optimization
 
-This plan addresses two key areas: visual/UX enhancements for navigation and content sections, plus performance optimizations to improve website speed.
+# Luxury Yacht Landing Page
 
----
+## Overview
+Create a standalone, high-converting landing page at `/entalyachtdubaipromotion-1` that is **not** added to the navigation menu. The page will use the existing brand colors (Deep Navy #1a2d4f + Gold #d4a853) enhanced with black and white for a premium feel, inspired by the reference image.
 
-## Part 1: Menu Enhancements
+## What Will Be Built
 
-### 1.1 Header Top Bar Improvements
-- Add subtle entrance animation on page load
-- Include a rotating promotional banner (e.g., "Special Offer: 15% off weekend cruises")
-- Add WhatsApp quick contact icon alongside phone/email
+### Page Structure (7 Sections)
 
-### 1.2 Desktop Navigation Enhancements
-- Add subtle hover underline animations for nav links
-- Include a "New" or "Popular" badge for featured tour categories
-- Add a sticky search icon that opens a quick search modal
-- Improve mega-menu with featured tour thumbnail images
+1. **Hero Section** - Full-screen dark background with yacht imagery, bold headline "Experience Luxury Yacht Rental in Dubai", gold CTA button, and an inline mini booking form (name, phone, date, guests) visible above the fold.
 
-### 1.3 Mobile Menu Improvements
-- Add smooth accordion animations for expandable sections
-- Include a search bar at the top of mobile menu
-- Add social media icons in mobile menu footer
-- Implement gesture-based close (swipe right to close)
+2. **Trust + Social Proof** - Stats bar (1000+ guests, 5-star rating, years of experience) followed by 3 customer testimonials pulled from existing testimonial data, with star ratings.
 
-### Files to Modify
-| File | Changes |
-|------|---------|
-| `src/components/layout/Header.tsx` | Enhanced animations, search, promotions |
-| `src/index.css` | New animation keyframes |
+3. **Yacht Experience Showcase** - Grid of premium yacht images (reusing existing assets like private-yacht-55ft, yacht-interior, dubai-marina-night) with short highlight text overlays.
 
----
+4. **Packages Section** - 3 gold-bordered cards showing real packages from existing tour data (Dhow Cruise, Shared Yacht, Private Charter) with pricing, inclusions, and CTA buttons.
 
-## Part 2: Home Page Enhancements
+5. **Why Choose Us** - Icon-based grid: Safety Certified, Professional Crew, Instant Confirmation, Luxury Guarantee, Best Price, 24/7 Support.
 
-### 2.1 Hero Section Upgrades
-- Add a subtle video background option (with poster fallback)
-- Include animated trust badges below CTAs
-- Add a "What's Trending" live ticker
-- Improve stats cards with count-up animation on view
+6. **Urgency Section** - Dark section with "Limited Availability" messaging, scarcity text ("Only X spots left this week"), and a prominent "Reserve Today" CTA.
 
-### 2.2 Experience Categories Enhancement
-- Add hover image preview thumbnails
-- Include guest count indicators ("500+ guests this week")
-- Add subtle pulse animation on category icons
+7. **Final Booking Form** - Full-width section with a larger booking form (name, email, phone, date, guests, message) and headline "Secure Your Luxury Yacht Experience". Form submissions will be saved to the existing `inquiries` table in the database.
 
-### 2.3 Featured Tours Section
-- Add "Quick View" hover preview modal
-- Include "Top Rated" and "Best Seller" badges
-- Add wishlist/save functionality icon
-- Implement skeleton-to-content animation
+### UX Features
+- **Sticky CTA button** fixed at the bottom on mobile
+- **Smooth scroll animations** using Framer Motion (fade-in on scroll)
+- **Mobile-first responsive** design
+- **No header/footer** from the main site layout (standalone page)
+- WhatsApp link integrated for direct contact
 
-### 2.4 Testimonials Carousel
-- Add auto-pause on user interaction
-- Include video testimonial support
-- Add platform badges (TripAdvisor, Google verified)
-- Improve swipe gestures on mobile
+## Technical Details
 
-### 2.5 CTA Section Upgrade
-- Add countdown timer for limited offers
-- Include trust indicators (payment icons, guarantee badges)
-- Add a floating "Chat with us" prompt
+### Files to Create
+- `src/pages/YachtPromoLanding.tsx` - The full landing page component (standalone, no Layout wrapper)
 
 ### Files to Modify
-| File | Changes |
-|------|---------|
-| `src/components/home/HeroSection.tsx` | Video support, trust badges, trending ticker |
-| `src/components/home/ExperienceCategories.tsx` | Hover previews, guest counts |
-| `src/components/home/FeaturedTours.tsx` | Quick view, badges, wishlist |
-| `src/components/home/TestimonialsCarousel.tsx` | Video support, platform badges |
-| `src/components/home/CTASection.tsx` | Countdown timer, trust badges |
-| `src/components/home/WhyChooseUs.tsx` | Enhanced animations |
-| `src/components/TourCard.tsx` | Badge system, wishlist icon |
+- `src/App.tsx` - Add lazy-loaded route for `/entalyachtdubaipromotion-1`
 
----
+### Key Implementation Details
+- Page will NOT use the shared `<Layout>` component (no header/footer/menu)
+- Reuse existing image assets from `src/assets/` (yacht-interior, private-yacht-55ft, dubai-marina-night, etc.)
+- Reuse existing testimonials from `src/data/testimonials.ts`
+- Booking form submissions save to the `inquiries` table via Supabase
+- Use `useContactConfig` for WhatsApp/phone links
+- Framer Motion `whileInView` for scroll-triggered animations
+- Gold accent color: `#d4a853` (existing secondary color)
+- Dark background sections using `#0a0a0a` / `#111111`
 
-## Part 3: Footer Enhancements
-
-### 3.1 Layout Improvements
-- Add a newsletter subscription form with animated success state
-- Include an embedded mini Google Map for location
-- Add TripAdvisor/Google rating widgets
-- Include recent blog posts or news section placeholder
-
-### 3.2 Visual Enhancements
-- Add staggered fade-in animations on scroll
-- Include floating wave decoration at top border
-- Improve payment badge hover interactions
-- Add language/currency selector placeholder
-
-### 3.3 Mobile Optimizations
-- Collapsible accordion sections for link groups
-- Sticky "Call Now" button on mobile footer
-- Improved spacing for touch targets
-
-### Files to Modify
-| File | Changes |
-|------|---------|
-| `src/components/layout/Footer.tsx` | Newsletter, map, ratings, animations |
-| `src/index.css` | Wave decoration CSS |
-
----
-
-## Part 4: Website Speed Optimization
-
-### 4.1 Critical Rendering Path
-- Implement critical CSS inlining for above-the-fold content
-- Add resource hints (preload, prefetch) for key assets
-- Defer non-critical JavaScript loading
-
-### 4.2 Image Optimization
-- Implement responsive srcset for all images
-- Add blur-up placeholder technique
-- Lazy load below-the-fold images with IntersectionObserver
-- Ensure all images use WebP with fallbacks
-
-### 4.3 JavaScript Optimization
-- Reduce Framer Motion usage on mobile (use CSS where possible)
-- Implement route-based code splitting (already done, verify)
-- Tree-shake unused icon imports
-- Memoize expensive computations
-
-### 4.4 Font Optimization
-- Use font-display: swap (already implemented)
-- Subset fonts to only used characters
-- Preload critical font weights
-
-### 4.5 Third-Party Script Management
-- Lazy load Google Analytics after page load
-- Defer social media embeds
-- Add loading="lazy" to all below-fold iframes
-
-### 4.6 Caching Strategy
-- Implement service worker for asset caching
-- Configure proper cache headers via Vercel
-
-### 4.7 Performance Monitoring
-- Add Web Vitals tracking (LCP, FID, CLS)
-- Create performance budget alerts
-
-### Files to Modify/Create
-| File | Changes |
-|------|---------|
-| `index.html` | Resource hints, critical CSS, defer scripts |
-| `src/main.tsx` | Web Vitals reporting |
-| `src/App.tsx` | Verify lazy loading completeness |
-| `src/components/ui/optimized-image.tsx` | Blur-up placeholders, improved srcset |
-| `src/index.css` | Reduce animation complexity on mobile |
-| `vite.config.ts` | Build optimization settings |
-| `vercel.json` | Caching headers |
-
----
-
-## Technical Implementation Details
-
-### Performance Budget Targets
-| Metric | Target | Current Estimate |
-|--------|--------|------------------|
-| LCP | < 2.5s | ~3.0s |
-| FID | < 100ms | ~80ms |
-| CLS | < 0.1 | ~0.05 |
-| Total Bundle | < 200KB | ~250KB |
-| First Load JS | < 100KB | ~120KB |
-
-### Animation Performance Strategy
-```text
-Mobile (< 768px):
-- Disable Framer Motion parallax effects
-- Use CSS transforms instead of JS animations
-- Reduce stagger delays by 50%
-
-Desktop:
-- Keep rich animations
-- Use will-change for animated elements
-- Hardware-accelerate transforms
-```
-
-### Image Loading Strategy
-```text
-Hero Image: priority=true, fetchPriority=high
-Above-fold images: priority=true
-Below-fold images: loading=lazy
-Thumbnails: loading=lazy + low-quality placeholder
-```
-
----
-
-## Summary of Changes
-
-### New Components (2)
-1. `src/components/home/NewsletterForm.tsx` - Email subscription form
-2. `src/components/home/TrendingTicker.tsx` - Live trending tours ticker
-
-### Modified Files (12)
-1. `src/components/layout/Header.tsx` - Enhanced navigation
-2. `src/components/layout/Footer.tsx` - Newsletter, animations
-3. `src/components/home/HeroSection.tsx` - Trust badges, ticker
-4. `src/components/home/ExperienceCategories.tsx` - Hover effects
-5. `src/components/home/FeaturedTours.tsx` - Quick view, badges
-6. `src/components/home/TestimonialsCarousel.tsx` - Platform badges
-7. `src/components/home/CTASection.tsx` - Countdown, trust icons
-8. `src/components/TourCard.tsx` - Wishlist, badges
-9. `src/components/ui/optimized-image.tsx` - Blur placeholders
-10. `src/index.css` - Mobile performance, new animations
-11. `index.html` - Resource hints, optimizations
-12. `vite.config.ts` - Build optimizations
-
----
-
-## Expected Outcomes
-
-### User Experience
-- More engaging navigation with smooth animations
-- Better visual hierarchy on home page
-- Clearer calls-to-action
-- Enhanced trust signals throughout
-
-### Performance
-- 20-30% reduction in Largest Contentful Paint
-- Smoother scrolling on mobile devices
-- Reduced JavaScript bundle size
-- Better Core Web Vitals scores
-
-### Business Impact
-- Improved conversion rates from enhanced CTAs
-- Lower bounce rates from faster load times
-- Better SEO from improved Core Web Vitals
-- Increased engagement from newsletter signups
