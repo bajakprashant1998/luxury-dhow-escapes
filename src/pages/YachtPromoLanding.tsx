@@ -136,20 +136,21 @@ export default function YachtPromoLanding() {
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-24 md:py-32">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <motion.div initial="hidden" animate="visible" variants={stagger}>
-              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4a853]/30 mb-5" style={{ background: "rgba(212,168,83,0.1)" }}>
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4a853]/30 mb-5" style={{ background: "rgba(212,168,83,0.1)" }}>
                 <Sparkles className="w-3.5 h-3.5" style={{ color: GOLD }} />
                 <span className="text-[10px] sm:text-xs tracking-[0.2em] uppercase" style={{ color: GOLD }}>Premium Yacht Experiences</span>
-              </motion.div>
-              <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-4 md:mb-6">
+              </div>
+              {/* H1 is LCP element — must NOT have opacity:0 initial state */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-4 md:mb-6">
                 Experience{" "}
                 <span className="bg-gradient-to-r from-[#d4a853] to-[#e8c170] bg-clip-text text-transparent">Luxury Yacht</span>{" "}
                 Rental in Dubai
-              </motion.h1>
-              <motion.p variants={fadeUp} className="text-sm sm:text-base md:text-lg text-gray-300 mb-6 md:mb-8 max-w-lg leading-relaxed">
+              </h1>
+              <p className="text-sm sm:text-base md:text-lg text-gray-300 mb-6 md:mb-8 max-w-lg leading-relaxed">
                 Sail through the iconic Dubai skyline aboard our premium fleet. Unforgettable experiences with world-class service.
-              </motion.p>
-              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
+              </p>
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }} className="flex flex-col sm:flex-row gap-3">
                 <GoldButton onClick={scrollToBooking}>Book Your Yacht Now</GoldButton>
                 <a
                   href={whatsappLinkWithGreeting("Hi! I'm interested in booking a luxury yacht in Dubai.")}
@@ -160,7 +161,7 @@ export default function YachtPromoLanding() {
                   <MessageCircle className="w-4 h-4" /> WhatsApp Us
                 </a>
               </motion.div>
-            </motion.div>
+            </div>
 
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }}>
               <MiniBookingForm />
