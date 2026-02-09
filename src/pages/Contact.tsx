@@ -49,6 +49,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import Layout from "@/components/layout/Layout";
+import PageMeta from "@/components/PageMeta";
 import { tours } from "@/data/tours";
 import { useToast } from "@/hooks/use-toast";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.webp";
@@ -269,6 +270,11 @@ const Contact = () => {
 
   return (
     <Layout>
+      <PageMeta
+        title="Contact Us - Rental Yacht Dubai"
+        description="Get in touch with Rental Yacht Dubai. Book your dream cruise or ask us anything about our yacht experiences."
+        canonicalPath="/contact"
+      />
       {/* Confetti Effect */}
       <AnimatePresence>
         {showConfetti && <Confetti />}

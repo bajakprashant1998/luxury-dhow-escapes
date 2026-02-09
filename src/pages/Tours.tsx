@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/layout/Layout";
 import TourCard from "@/components/TourCard";
+import PageMeta from "@/components/PageMeta";
 import { useTours } from "@/hooks/useTours";
 import { useActiveCategories } from "@/hooks/useCategories";
 import { getCategoryFromPath, getCategoryUrl } from "@/lib/seoUtils";
@@ -119,6 +120,11 @@ const Tours = () => {
 
   return (
     <Layout>
+      <PageMeta
+        title="Tours - Rental Yacht Dubai"
+        description="Browse all yacht charters and dhow cruises in Dubai. Find the perfect marine experience for your Dubai adventure."
+        canonicalPath={categoryPath ? `/dubai/${categoryPath}` : "/tours"}
+      />
       {/* Hero Section with Parallax Effect */}
       <section className="relative py-24 md:py-32 bg-primary text-primary-foreground overflow-hidden">
         {/* Background with parallax */}
