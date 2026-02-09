@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Shield, Lock, Eye, FileText, Users, Globe, FileCheck, AlertTriangle, CreditCard, Clock, Anchor, Scale, Calendar, RefreshCw, CloudRain, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import PageMeta from "@/components/PageMeta";
 import { useSiteSetting } from "@/hooks/useSiteSettings";
 import { LucideIcon } from "lucide-react";
 
@@ -116,6 +117,11 @@ const PrivacyPolicy = () => {
 
   return (
     <Layout>
+      <PageMeta
+        title="Privacy Policy - Rental Yacht Dubai"
+        description="Your privacy is important to us. Read how Rental Yacht Dubai collects, uses, and protects your personal information."
+        canonicalPath="/privacy-policy"
+      />
       {/* Hero Section */}
       <section className="relative py-20 md:py-28 bg-primary text-primary-foreground overflow-hidden">
         <div className="absolute inset-0 opacity-10">

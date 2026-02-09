@@ -17,6 +17,7 @@ import MobileBookingBar from "@/components/tour-detail/MobileBookingBar";
 import BookingModal from "@/components/tour-detail/BookingModal";
 import { useTour, useRelatedTours } from "@/hooks/useTours";
 import { getTourUrl, getCategoryFromPath } from "@/lib/seoUtils";
+import PageMeta from "@/components/PageMeta";
 
 // Lazy load below-fold components for better initial load
 const BookingSidebar = lazy(() => import("@/components/tour-detail/BookingSidebar"));
@@ -188,6 +189,13 @@ const TourDetail = () => {
     return Camera;
   };
   return <Layout>
+      <PageMeta
+        title={`${tour.title} - Rental Yacht Dubai`}
+        description={(tour.description || "").slice(0, 160)}
+        ogImage={tour.gallery?.[0] || tour.image}
+        canonicalPath={getTourUrl(tour)}
+        ogType="article"
+      />
       {/* Breadcrumb */}
       <div className="bg-muted py-0">
         <div className="container">

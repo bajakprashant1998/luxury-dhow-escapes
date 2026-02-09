@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContactConfig } from "@/hooks/useContactConfig";
+import PageMeta from "@/components/PageMeta";
 import { testimonials } from "@/data/testimonials";
 import { toast } from "sonner";
 
@@ -118,6 +119,12 @@ export default function YachtPromoLanding() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden">
+      <PageMeta
+        title="Luxury Yacht Experience Dubai - Special Offer | Rental Yacht Dubai"
+        description="Exclusive Dubai yacht party packages. Premium fleet, professional crew, and unforgettable experiences at special promotional prices."
+        ogImage="/assets/promo/yacht-dubai-skyline.jpg"
+        canonicalPath="/entalyachtdubaipromotion-1"
+      />
       {/* ══════ HERO ══════ */}
       <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
