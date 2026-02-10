@@ -73,7 +73,7 @@ export interface Tour {
   excluded: string[];
   itinerary: { time: string; activity: string }[];
   faqs: { question: string; answer: string }[];
-  category: "dhow-cruise" | "yacht-shared" | "yacht-private" | "megayacht";
+  category: "dhow-cruise" | "yacht-shared" | "yacht-private" | "megayacht" | "water-activity" | "yacht-event";
   capacity?: string;
   featured: boolean;
   pricingType: "per_person" | "per_hour";
