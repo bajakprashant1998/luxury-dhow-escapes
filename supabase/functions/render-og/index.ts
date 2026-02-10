@@ -51,6 +51,10 @@ const staticPages: Record<string, { title: string; description: string; image?: 
     description: "Exclusive Dubai yacht party packages. Premium fleet, professional crew, and unforgettable experiences at special promotional prices.",
     image: `${DOMAIN}/assets/promo/yacht-dubai-skyline.jpg`,
   },
+  "/activities": {
+    title: "Water Activities & Events - Rental Yacht Dubai",
+    description: "Discover thrilling water activities and luxury yacht events in Dubai. Jet ski, parasailing, birthday parties, weddings, and more.",
+  },
 };
 
 // Category path mappings
@@ -59,6 +63,8 @@ const pathToCategory: Record<string, string> = {
   "shared-yacht-tours": "yacht-shared",
   "private-yacht-charter": "yacht-private",
   "megayacht-experiences": "megayacht",
+  "water-activities": "water-activity",
+  "yacht-events": "yacht-event",
 };
 
 function renderHTML(

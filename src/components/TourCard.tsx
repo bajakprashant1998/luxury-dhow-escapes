@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, Clock, Users, ChevronRight, Ship, Ticket, Heart, Award, TrendingUp } from "lucide-react";
+import { Star, Clock, Users, ChevronRight, Ship, Ticket, Heart, Award, TrendingUp, Waves, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Tour } from "@/lib/tourMapper";
@@ -17,6 +17,17 @@ const categoryLabels: Record<string, string> = {
   "yacht-shared": "Shared Yacht",
   "yacht-private": "Private Charter",
   "megayacht": "Megayacht",
+  "water-activity": "Water Activity",
+  "yacht-event": "Yacht Event",
+};
+
+const categoryIcons: Record<string, typeof Ship> = {
+  "dhow-cruise": Ship,
+  "yacht-shared": Ship,
+  "yacht-private": Ship,
+  "megayacht": Ship,
+  "water-activity": Waves,
+  "yacht-event": PartyPopper,
 };
 
 const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
@@ -114,8 +125,8 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
 
           {/* Category Badge */}
           <div className="absolute bottom-4 left-4 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 z-10">
-            <Ship className="w-3 h-3" />
-            {categoryLabels[tour.category]}
+            {(() => { const Icon = categoryIcons[tour.category] || Ship; return <Icon className="w-3 h-3" />; })()}
+            {categoryLabels[tour.category] || tour.category}
           </div>
         </div>
 

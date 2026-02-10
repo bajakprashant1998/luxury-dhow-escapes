@@ -23,6 +23,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const CancellationPolicy = lazy(() => import("./pages/CancellationPolicy"));
 const YachtPromoLanding = lazy(() => import("./pages/YachtPromoLanding"));
+const Activities = lazy(() => import("./pages/Activities"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages - lazy load entire admin section
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/dubai/:categoryPath" element={<Tours />} />
             {/* Legacy route - kept for backwards compatibility */}
             <Route path="/tours/:slug" element={<TourDetail />} />
+            <Route path="/activities" element={<Activities />} />
             <Route path="/saved-tours" element={<SavedTours />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/about" element={<About />} />

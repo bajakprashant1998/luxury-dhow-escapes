@@ -17,6 +17,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
   "yacht-shared": <Users className="w-4 h-4" />,
   "yacht-private": <Ship className="w-4 h-4" />,
   "megayacht": <Crown className="w-4 h-4" />,
+  "water-activity": <Ship className="w-4 h-4" />,
+  "yacht-event": <Crown className="w-4 h-4" />,
 };
 
 const containerVariants = {
