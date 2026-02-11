@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Clock, MapPin, Check, X, ChevronRight, Heart, Share2, Anchor, Utensils, Music, Camera } from "lucide-react";
+import { Star, Clock, MapPin, Check, X, ChevronRight, Heart, Share2, Anchor, Utensils, Music, Camera, Shield, AlertTriangle, Sparkles, ChefHat, Info, Waves, PartyPopper, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -377,6 +377,91 @@ const TourDetail = () => {
                   </ul>
                 </motion.div>}
 
+              {/* Water Activity: Equipment & Gear */}
+              {tour.category === 'water-activity' && (tour.bookingFeatures.equipment_list?.length || 0) > 0 && (
+                <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Shield className="w-6 h-6 text-secondary" />
+                    Equipment & Gear Provided
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {tour.bookingFeatures.equipment_list!.map((item, index) => (
+                      <motion.div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/5 border border-secondary/10" initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }}>
+                        <Check className="w-5 h-5 text-secondary flex-shrink-0" />
+                        <span className="text-foreground text-sm">{item}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Water Activity: Safety Information */}
+              {tour.category === 'water-activity' && (tour.bookingFeatures.safety_info?.length || 0) > 0 && (
+                <motion.div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-amber-400" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <AlertTriangle className="w-6 h-6 text-amber-500" />
+                    Safety Information
+                  </h2>
+                  <ul className="space-y-3">
+                    {tour.bookingFeatures.safety_info!.map((item, index) => (
+                      <li key={index} className="flex items-start gap-3 text-sm">
+                        <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+
+              {/* Event: Decoration Options */}
+              {tour.category === 'yacht-event' && (tour.bookingFeatures.decoration_options?.length || 0) > 0 && (
+                <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-secondary" />
+                    Decoration & Setup Options
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {tour.bookingFeatures.decoration_options!.map((item, index) => (
+                      <span key={index} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-secondary/10 text-secondary text-sm font-medium border border-secondary/20">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Event: Catering Options */}
+              {tour.category === 'yacht-event' && (tour.bookingFeatures.catering_options?.length || 0) > 0 && (
+                <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <ChefHat className="w-6 h-6 text-secondary" />
+                    Catering & Dining Packages
+                  </h2>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {tour.bookingFeatures.catering_options!.map((item, index) => (
+                      <li key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <Utensils className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5" />
+                        <span className="text-foreground text-sm">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+
+              {/* Event: Customization Notes */}
+              {tour.category === 'yacht-event' && tour.bookingFeatures.customization_notes && (
+                <motion.div className="bg-secondary/5 border border-secondary/20 rounded-xl p-6" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Customization Available</h3>
+                      <p className="text-sm text-muted-foreground">{tour.bookingFeatures.customization_notes}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Inclusions & Exclusions with Tabs */}
               {(tour.included.length > 0 || tour.excluded.length > 0) && <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{
               opacity: 0,
@@ -549,10 +634,33 @@ const TourDetail = () => {
             </div>
 
             {/* Sidebar - Booking Card */}
-            <div className="lg:col-span-1 hidden lg:block">
+            <div className="lg:col-span-1 hidden lg:block space-y-6">
               <Suspense fallback={<SidebarSkeleton />}>
                 <BookingSidebar price={tour.price} originalPrice={tour.originalPrice} duration={tour.duration} reviewCount={tour.reviewCount} tourTitle={tour.title} tourId={tour.id} pricingType={tour.pricingType} fullYachtPrice={tour.fullYachtPrice} capacity={tour.capacity} bookingFeatures={tour.bookingFeatures} />
               </Suspense>
+
+              {/* Cross-Sell CTA for Water Activities */}
+              {tour.category === 'water-activity' && (
+                <motion.div className="rounded-2xl p-6 bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                  <Waves className="w-8 h-8 text-secondary mb-3" />
+                  <h3 className="font-display text-lg font-bold text-foreground mb-2">Combine with a Yacht Charter</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Add this activity to any yacht booking for a complete Dubai experience</p>
+                  <Link to="/tours?category=yacht-private">
+                    <Button variant="secondary" className="w-full">Browse Yachts</Button>
+                  </Link>
+                </motion.div>
+              )}
+
+              {/* Guest Capacity Badge for Events */}
+              {tour.category === 'yacht-event' && tour.capacity && (
+                <motion.div className="rounded-2xl p-6 bg-card border shadow-sm text-center" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                  <Users className="w-8 h-8 text-secondary mx-auto mb-3" />
+                  <p className="font-display text-xl font-bold text-foreground">{tour.capacity}</p>
+                  {tour.bookingFeatures.minimum_duration && (
+                    <p className="text-sm text-muted-foreground mt-1">{tour.bookingFeatures.minimum_duration}</p>
+                  )}
+                </motion.div>
+              )}
             </div>
           </div>
         </div>
@@ -570,7 +678,7 @@ const TourDetail = () => {
         }} viewport={{
           once: true
         }}>
-              You Might Also Like
+              {tour.category === 'water-activity' ? 'More Water Adventures' : tour.category === 'yacht-event' ? 'More Celebration Packages' : 'You Might Also Like'}
             </motion.h2>
             <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" initial={{
           opacity: 0

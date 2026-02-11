@@ -14,6 +14,13 @@ export interface BookingFeatures {
   cancellation_info: string[];
   what_to_bring: string[];
   good_to_know: string[];
+  // Water activity fields
+  equipment_list?: string[];
+  safety_info?: string[];
+  // Event fields
+  decoration_options?: string[];
+  catering_options?: string[];
+  customization_notes?: string;
 }
 
 // Default Important Information content
