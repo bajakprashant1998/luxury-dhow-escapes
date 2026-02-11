@@ -16,7 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin, Calendar, Clock, Users, Shield, Flame, RotateCcw, Link as LinkIcon } from "lucide-react";
+import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin, Calendar, Clock, Users, Shield, Flame, RotateCcw, Link as LinkIcon, Waves, PartyPopper, ChefHat, AlertTriangle } from "lucide-react";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useActiveCategories } from "@/hooks/useCategories";
 import { useActiveLocations } from "@/hooks/useLocations";
@@ -88,6 +88,10 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
   const [highlightInput, setHighlightInput] = useState("");
   const [includedInput, setIncludedInput] = useState("");
   const [excludedInput, setExcludedInput] = useState("");
+  const [equipmentInput, setEquipmentInput] = useState("");
+  const [safetyInput, setSafetyInput] = useState("");
+  const [decorationInput, setDecorationInput] = useState("");
+  const [cateringInput, setCateringInput] = useState("");
 
   const generateSlug = (title: string) => {
     return title
@@ -866,6 +870,277 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Category-Specific Fields */}
+          {formData.category === 'water-activity' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Waves className="w-5 h-5 text-secondary" />
+                  Water Activity Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Equipment List */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Equipment Provided</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={equipmentInput}
+                      onChange={(e) => setEquipmentInput(e.target.value)}
+                      placeholder="e.g., Life jacket, Helmet, Wetsuit"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (!equipmentInput.trim()) return;
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: {
+                              ...prev.booking_features,
+                              equipment_list: [...(prev.booking_features.equipment_list || []), equipmentInput.trim()],
+                            },
+                          }));
+                          setEquipmentInput("");
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (!equipmentInput.trim()) return;
+                        setFormData((prev) => ({
+                          ...prev,
+                          booking_features: {
+                            ...prev.booking_features,
+                            equipment_list: [...(prev.booking_features.equipment_list || []), equipmentInput.trim()],
+                          },
+                        }));
+                        setEquipmentInput("");
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(formData.booking_features.equipment_list || []).map((item, index) => (
+                      <div key={index} className="flex items-center gap-1 bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm">
+                        {item}
+                        <button type="button" onClick={() => {
+                          const newList = (formData.booking_features.equipment_list || []).filter((_, i) => i !== index);
+                          setFormData((prev) => ({ ...prev, booking_features: { ...prev.booking_features, equipment_list: newList } }));
+                        }} className="hover:text-destructive">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Safety Information */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    Safety Information
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={safetyInput}
+                      onChange={(e) => setSafetyInput(e.target.value)}
+                      placeholder="e.g., Minimum age 12 years, Must know swimming"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (!safetyInput.trim()) return;
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: {
+                              ...prev.booking_features,
+                              safety_info: [...(prev.booking_features.safety_info || []), safetyInput.trim()],
+                            },
+                          }));
+                          setSafetyInput("");
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (!safetyInput.trim()) return;
+                        setFormData((prev) => ({
+                          ...prev,
+                          booking_features: {
+                            ...prev.booking_features,
+                            safety_info: [...(prev.booking_features.safety_info || []), safetyInput.trim()],
+                          },
+                        }));
+                        setSafetyInput("");
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(formData.booking_features.safety_info || []).map((item, index) => (
+                      <div key={index} className="flex items-center gap-1 bg-amber-500/10 text-amber-700 px-3 py-1 rounded-full text-sm">
+                        {item}
+                        <button type="button" onClick={() => {
+                          const newList = (formData.booking_features.safety_info || []).filter((_, i) => i !== index);
+                          setFormData((prev) => ({ ...prev, booking_features: { ...prev.booking_features, safety_info: newList } }));
+                        }} className="hover:text-destructive">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {formData.category === 'yacht-event' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PartyPopper className="w-5 h-5 text-secondary" />
+                  Event & Experience Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Decoration Options */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Decoration Options</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={decorationInput}
+                      onChange={(e) => setDecorationInput(e.target.value)}
+                      placeholder="e.g., Balloon setup, Flower arrangements, LED lighting"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (!decorationInput.trim()) return;
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: {
+                              ...prev.booking_features,
+                              decoration_options: [...(prev.booking_features.decoration_options || []), decorationInput.trim()],
+                            },
+                          }));
+                          setDecorationInput("");
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (!decorationInput.trim()) return;
+                        setFormData((prev) => ({
+                          ...prev,
+                          booking_features: {
+                            ...prev.booking_features,
+                            decoration_options: [...(prev.booking_features.decoration_options || []), decorationInput.trim()],
+                          },
+                        }));
+                        setDecorationInput("");
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(formData.booking_features.decoration_options || []).map((item, index) => (
+                      <div key={index} className="flex items-center gap-1 bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm">
+                        {item}
+                        <button type="button" onClick={() => {
+                          const newList = (formData.booking_features.decoration_options || []).filter((_, i) => i !== index);
+                          setFormData((prev) => ({ ...prev, booking_features: { ...prev.booking_features, decoration_options: newList } }));
+                        }} className="hover:text-destructive">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Catering Options */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <ChefHat className="w-4 h-4 text-secondary" />
+                    Catering Options
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={cateringInput}
+                      onChange={(e) => setCateringInput(e.target.value)}
+                      placeholder="e.g., BBQ buffet, Fine dining, Cocktail package"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (!cateringInput.trim()) return;
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: {
+                              ...prev.booking_features,
+                              catering_options: [...(prev.booking_features.catering_options || []), cateringInput.trim()],
+                            },
+                          }));
+                          setCateringInput("");
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (!cateringInput.trim()) return;
+                        setFormData((prev) => ({
+                          ...prev,
+                          booking_features: {
+                            ...prev.booking_features,
+                            catering_options: [...(prev.booking_features.catering_options || []), cateringInput.trim()],
+                          },
+                        }));
+                        setCateringInput("");
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(formData.booking_features.catering_options || []).map((item, index) => (
+                      <div key={index} className="flex items-center gap-1 bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm">
+                        {item}
+                        <button type="button" onClick={() => {
+                          const newList = (formData.booking_features.catering_options || []).filter((_, i) => i !== index);
+                          setFormData((prev) => ({ ...prev, booking_features: { ...prev.booking_features, catering_options: newList } }));
+                        }} className="hover:text-destructive">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Customization Notes */}
+                <div className="space-y-2">
+                  <Label>Customization Notes</Label>
+                  <Textarea
+                    value={formData.booking_features.customization_notes || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        booking_features: { ...prev.booking_features, customization_notes: e.target.value },
+                      }))
+                    }
+                    placeholder="Guide customers on how to customize their event (e.g., special themes, custom menus, entertainment requests)"
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Important Information Editor */}
           <ImportantInfoEditor
