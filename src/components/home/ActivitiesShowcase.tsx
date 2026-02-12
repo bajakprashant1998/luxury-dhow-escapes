@@ -69,7 +69,7 @@ const ActivitiesShowcase = memo(() => {
             <div className="lg:hidden -mx-4 px-4">
               <div className="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory scrollbar-hide">
                 {activityTours.map((tour) => (
-                  <div key={tour.id} className="flex-shrink-0 w-[85%] sm:w-[75%] snap-start">
+                  <div key={tour.id} className="flex-shrink-0 w-[85%] sm:w-[75%] snap-start h-full">
                     <TourCard tour={tour} />
                   </div>
                 ))}
@@ -85,7 +85,7 @@ const ActivitiesShowcase = memo(() => {
               transition={{ duration: 0.4 }}
             >
               {activityTours.map((tour) => (
-                <div key={tour.id}>
+                <div key={tour.id} className="h-full">
                   <TourCard tour={tour} />
                 </div>
               ))}

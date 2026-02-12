@@ -21,6 +21,13 @@ export interface BookingFeatures {
   decoration_options?: string[];
   catering_options?: string[];
   customization_notes?: string;
+  // Transfer service
+  transfer_available?: boolean;
+  transfer_price?: number;
+  transfer_label?: string;
+  // Deck seating
+  has_upper_deck?: boolean;
+  deck_options?: string[];
 }
 
 // Default Important Information content
