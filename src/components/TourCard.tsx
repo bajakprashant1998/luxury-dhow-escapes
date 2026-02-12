@@ -65,7 +65,7 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
   };
 
   return (
-    <Link to={getTourUrl(tour)} className="group block">
+    <Link to={getTourUrl(tour)} className="group block h-full">
       <div className={`bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col ${featured ? 'lg:flex-row' : ''}`}>
         {/* Image with WebP support and srcset */}
         <div className={`relative overflow-hidden ${featured ? 'lg:w-1/2 lg:min-h-[300px]' : ''}`}>
@@ -81,11 +81,10 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
           {/* Wishlist Button */}
           <button
             onClick={handleSave}
-            className={`absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isSaved
+            className={`absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isSaved
                 ? "bg-destructive text-destructive-foreground"
                 : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-background"
-            }`}
+              }`}
             aria-label={isSaved ? "Remove from saved" : "Save tour"}
           >
             <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
@@ -206,8 +205,8 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
                 </>
               )}
             </div>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-secondary hover:text-secondary hover:bg-secondary/10 font-semibold touch-target px-2 sm:px-3"
             >
