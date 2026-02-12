@@ -1,14 +1,12 @@
 import { Link } from "react-router-dom";
 import { memo, useState } from "react";
 import { motion } from "framer-motion";
-import { Ship, Users, Anchor, Crown, TrendingUp } from "lucide-react";
+import { Ship, Users, Anchor, Waves, PartyPopper, TrendingUp } from "lucide-react";
 
 // Import preview images
 import dhowCruiseImg from "@/assets/tours/dhow-cruise-marina.webp";
 import sharedYachtImg from "@/assets/tours/yacht-bbq-experience.jpg";
 import privateCharterImg from "@/assets/tours/private-yacht-55ft.webp";
-import megayachtImg from "@/assets/tours/megayacht-burj-khalifa.webp";
-
 const experienceCategories = [
   {
     icon: Ship,
@@ -44,15 +42,26 @@ const experienceCategories = [
     guestLabel: "groups this month",
   },
   {
-    icon: Crown,
-    title: "Megayacht",
-    description: "Premium luxury cruise",
-    link: "/tours?category=megayacht",
+    icon: Waves,
+    title: "Water Sports",
+    description: "Jet ski, parasailing & more",
+    link: "/activities",
+    gradient: "from-cyan-500/20 to-blue-500/20",
+    iconColor: "text-cyan-500",
+    previewImage: sharedYachtImg,
+    guestCount: "600+",
+    guestLabel: "guests this month",
+  },
+  {
+    icon: PartyPopper,
+    title: "Private Events",
+    description: "Celebrations on the water",
+    link: "/activities?tab=events",
     gradient: "from-purple-500/20 to-pink-500/20",
     iconColor: "text-purple-500",
-    previewImage: megayachtImg,
-    guestCount: "500+",
-    guestLabel: "guests this month",
+    previewImage: privateCharterImg,
+    guestCount: "200+",
+    guestLabel: "events this month",
   },
 ];
 
@@ -116,7 +125,7 @@ const ExperienceCategories = memo(() => {
     <section className="py-6 sm:py-8 -mt-16 sm:-mt-20 relative z-20">
       <div className="container">
         <motion.div
-          className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4"
+          className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}

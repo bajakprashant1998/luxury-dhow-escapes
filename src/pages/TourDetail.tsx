@@ -18,6 +18,7 @@ import BookingModal from "@/components/tour-detail/BookingModal";
 import { useTour, useRelatedTours } from "@/hooks/useTours";
 import { getTourUrl, getCategoryFromPath } from "@/lib/seoUtils";
 import PageMeta from "@/components/PageMeta";
+import { renderMarkdown } from "@/lib/markdownRenderer";
 
 // Lazy load below-fold components for better initial load
 const BookingSidebar = lazy(() => import("@/components/tour-detail/BookingSidebar"));
@@ -340,7 +341,10 @@ const TourDetail = () => {
               duration: 0.5
             }}>
                 <h2 className="font-display text-2xl font-bold text-foreground mb-4">Overview</h2>
-                <p className="text-muted-foreground leading-relaxed">{tour.longDescription}</p>
+                <div
+                  className="text-muted-foreground leading-relaxed prose-headings:text-foreground prose-a:text-secondary"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(tour.longDescription) }}
+                />
               </motion.div>
 
               {/* Highlights */}
@@ -711,7 +715,7 @@ const TourDetail = () => {
 
 
       {/* Booking Modal */}
-      <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} tourTitle={tour.title} tourId={tour.id} price={tour.price} />
+      <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} tourTitle={tour.title} tourId={tour.id} price={tour.price} bookingFeatures={tour.bookingFeatures} />
 
       {/* Bottom padding for mobile booking bar - accounts for expanded state and safe area */}
       <div className="h-32 lg:hidden" />

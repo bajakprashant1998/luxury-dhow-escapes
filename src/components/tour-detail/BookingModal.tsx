@@ -11,7 +11,9 @@ import {
   AlertCircle,
   Sparkles,
   Ship,
-  Users
+  Users,
+  Car,
+  Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +43,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendBookingEmail } from "@/lib/sendBookingEmail";
 import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
 import { Discount } from "@/hooks/useDiscounts";
+import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
+import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -50,6 +56,7 @@ interface BookingModalProps {
   price: number;
   fullYachtPrice?: number | null;
   capacity?: string;
+  bookingFeatures?: BookingFeatures;
 }
 
 const steps = [
@@ -65,7 +72,8 @@ const BookingModal = ({
   tourId,
   price,
   fullYachtPrice,
-  capacity
+  capacity,
+  bookingFeatures = defaultBookingFeatures
 }: BookingModalProps) => {
   // Derive booking type from tour data - no toggle needed
   const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
@@ -92,7 +100,12 @@ const BookingModal = ({
   // Discount state
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
 
-  const subtotal = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
+  // Transfer & deck state
+  const [transferSelected, setTransferSelected] = useState(false);
+  const [selectedDeck, setSelectedDeck] = useState("");
+
+  const transferPrice = (transferSelected && bookingFeatures.transfer_price) ? bookingFeatures.transfer_price : 0;
+  const subtotal = (isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children)) + transferPrice;
 
   const calculateDiscountAmount = () => {
     if (!appliedDiscount) return 0;
@@ -127,6 +140,8 @@ const BookingModal = ({
         setSpecialRequests("");
         setAppliedDiscount(null);
         setSubmitError(null);
+        setTransferSelected(false);
+        setSelectedDeck("");
       }, 300);
     }
   }, [isOpen]);
@@ -187,9 +202,12 @@ const BookingModal = ({
         customer_name: name.trim(),
         customer_email: email.trim(),
         customer_phone: phone.trim(),
-        special_requests: isFullYacht
-          ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}] ${specialRequests.trim() || ''}`
-          : (specialRequests.trim() || null),
+        special_requests: [
+          isFullYacht ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}]` : null,
+          transferSelected ? `[TRANSFER: ${bookingFeatures.transfer_label || 'Hotel Transfer'}]` : null,
+          selectedDeck ? `[DECK: ${selectedDeck}]` : null,
+          specialRequests.trim() || null,
+        ].filter(Boolean).join(' ') || null,
         total_price: totalPrice,
         status: "pending",
         booking_type: bookingType,
@@ -401,6 +419,53 @@ const BookingModal = ({
                   </div>
                 )}
 
+                {/* Transfer Service Option */}
+                {bookingFeatures.transfer_available !== false && (
+                  <div className="border border-border rounded-2xl p-4 bg-card/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Car className="w-5 h-5 text-secondary" />
+                        <div>
+                          <p className="font-bold text-foreground text-sm">
+                            {bookingFeatures.transfer_label || "Hotel/Residence Transfer"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(bookingFeatures.transfer_price || 0) > 0
+                              ? `AED ${bookingFeatures.transfer_price}`
+                              : "Complimentary"}
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={transferSelected}
+                        onCheckedChange={setTransferSelected}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Deck Seating Option */}
+                {bookingFeatures.has_upper_deck && (
+                  <div className="border border-border rounded-2xl p-4 bg-card/50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Layers className="w-5 h-5 text-secondary" />
+                      <p className="font-bold text-foreground text-sm">Preferred Seating</p>
+                    </div>
+                    <RadioGroup
+                      value={selectedDeck}
+                      onValueChange={setSelectedDeck}
+                      className="flex flex-col sm:flex-row gap-3"
+                    >
+                      {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option) => (
+                        <div key={option} className="flex items-center gap-2">
+                          <RadioGroupItem value={option} id={`deck-${option}`} />
+                          <Label htmlFor={`deck-${option}`} className="text-sm cursor-pointer">{option}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+
                 {/* Quick Price Preview - Enhanced */}
                 <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between">
                   <span className="text-sm sm:text-base text-muted-foreground font-medium">
@@ -526,6 +591,18 @@ const BookingModal = ({
                       <p className="font-semibold">{phone}</p>
                     </div>
                   </div>
+                  {transferSelected && (
+                    <div className="pt-3 border-t border-border flex items-center gap-2">
+                      <Car className="w-4 h-4 text-secondary" />
+                      <p className="text-sm font-medium">{bookingFeatures.transfer_label || 'Hotel Transfer'}</p>
+                    </div>
+                  )}
+                  {selectedDeck && (
+                    <div className="pt-3 border-t border-border flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-secondary" />
+                      <p className="text-sm font-medium">{selectedDeck}</p>
+                    </div>
+                  )}
                   {specialRequests && (
                     <div className="pt-3 border-t border-border">
                       <p className="text-muted-foreground text-xs mb-1">Special Requests</p>
@@ -561,6 +638,15 @@ const BookingModal = ({
                         </div>
                       )}
                     </>
+                  )}
+                  {transferSelected && transferPrice > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        <Car className="w-4 h-4" />
+                        Transfer Service
+                      </span>
+                      <span className="font-medium">AED {transferPrice}</span>
+                    </div>
                   )}
                   {appliedDiscount && discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-secondary font-semibold">

@@ -247,6 +247,7 @@ const BookingSidebar = memo(({
             { icon: Clock, text: bookingFeatures.minimum_duration || duration, show: true },
             { icon: Users, text: bookingFeatures.hotel_pickup_text, show: bookingFeatures.hotel_pickup },
             { icon: Shield, text: bookingFeatures.cancellation_text, show: true },
+            { icon: Shield, text: bookingFeatures.transfer_available !== false ? `Transfer: ${bookingFeatures.transfer_label || 'Hotel Transfer'} ${(bookingFeatures.transfer_price || 0) > 0 ? `(AED ${bookingFeatures.transfer_price})` : '(Free)'}` : '', show: bookingFeatures.transfer_available !== false },
           ].filter(item => item.show).map((item, index) => (
             <div 
               key={index}
@@ -323,6 +324,7 @@ const BookingSidebar = memo(({
         price={price}
         fullYachtPrice={fullYachtPrice}
         capacity={capacity}
+        bookingFeatures={bookingFeatures}
       />
     </div>
   );

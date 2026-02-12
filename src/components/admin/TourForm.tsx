@@ -16,7 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin, Calendar, Clock, Users, Shield, Flame, RotateCcw, Link as LinkIcon, Waves, PartyPopper, ChefHat, AlertTriangle } from "lucide-react";
+import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin, Calendar, Clock, Users, Shield, Flame, RotateCcw, Link as LinkIcon, Waves, PartyPopper, ChefHat, AlertTriangle, Car, Layers } from "lucide-react";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useActiveCategories } from "@/hooks/useCategories";
 import { useActiveLocations } from "@/hooks/useLocations";
@@ -867,6 +867,128 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                     Add Feature
                   </Button>
                 </div>
+              </div>
+
+              {/* Transfer Service */}
+              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <Car className="w-4 h-4 text-secondary" />
+                    Transfer Service Available
+                  </Label>
+                  <Switch
+                    checked={formData.booking_features.transfer_available !== false}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        booking_features: { ...prev.booking_features, transfer_available: checked },
+                      }))
+                    }
+                  />
+                </div>
+                {formData.booking_features.transfer_available !== false && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Transfer Price (AED)</Label>
+                      <Input
+                        type="number"
+                        value={formData.booking_features.transfer_price || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: { ...prev.booking_features, transfer_price: parseFloat(e.target.value) || 0 },
+                          }))
+                        }
+                        placeholder="0 = Complimentary"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Transfer Label</Label>
+                      <Input
+                        value={formData.booking_features.transfer_label || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: { ...prev.booking_features, transfer_label: e.target.value },
+                          }))
+                        }
+                        placeholder="Hotel/Residence Transfer"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Upper Deck Option */}
+              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-secondary" />
+                    Has Upper Deck Option
+                  </Label>
+                  <Switch
+                    checked={formData.booking_features.has_upper_deck || false}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        booking_features: { ...prev.booking_features, has_upper_deck: checked },
+                      }))
+                    }
+                  />
+                </div>
+                {formData.booking_features.has_upper_deck && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Deck Options</Label>
+                    {(formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"]).map((option, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={option}
+                          onChange={(e) => {
+                            const newOptions = [...(formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"])];
+                            newOptions[index] = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              booking_features: { ...prev.booking_features, deck_options: newOptions },
+                            }));
+                          }}
+                          placeholder="Deck name"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            const newOptions = (formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"]).filter((_, i) => i !== index);
+                            setFormData((prev) => ({
+                              ...prev,
+                              booking_features: { ...prev.booking_features, deck_options: newOptions },
+                            }));
+                          }}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const current = formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"];
+                        setFormData((prev) => ({
+                          ...prev,
+                          booking_features: {
+                            ...prev.booking_features,
+                            deck_options: [...current, ""],
+                          },
+                        }));
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Deck Option
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
