@@ -1,11 +1,11 @@
 import { useState, memo } from "react";
 import { format } from "date-fns";
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  Shield, 
-  Phone, 
+import {
+  Calendar,
+  Clock,
+  Users,
+  Shield,
+  Phone,
   MessageCircle,
   Minus,
   Plus,
@@ -39,13 +39,13 @@ interface BookingSidebarProps {
   bookingFeatures?: BookingFeatures;
 }
 
-const BookingSidebar = memo(({ 
-  price, 
-  originalPrice, 
-  duration, 
-  reviewCount, 
-  tourTitle, 
-  tourId, 
+const BookingSidebar = memo(({
+  price,
+  originalPrice,
+  duration,
+  reviewCount,
+  tourTitle,
+  tourId,
   pricingType = "per_person",
   fullYachtPrice,
   capacity,
@@ -63,7 +63,7 @@ const BookingSidebar = memo(({
   const bookingType = isFullYacht ? "full_yacht" : "per_person";
 
   const discount = Math.round((1 - price / originalPrice) * 100);
-  
+
   // Calculate total based on booking type
   const totalPrice = isFullYacht
     ? fullYachtPrice
@@ -82,7 +82,7 @@ const BookingSidebar = memo(({
       <div className="bg-card rounded-2xl p-6 shadow-xl border border-border overflow-hidden relative hover:shadow-2xl transition-shadow duration-300">
         {/* Background Gradient */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        
+
         {/* Urgency Badge */}
         {bookingFeatures.urgency_enabled && (
           <div className="flex items-center gap-2 mb-4 p-2.5 bg-destructive/10 rounded-xl relative">
@@ -175,62 +175,62 @@ const BookingSidebar = memo(({
 
         {/* Guest Selectors - Only show for per_person booking */}
         {!isFullYacht && (
-            <div className="mb-6 space-y-3 relative">
-              <label className="text-sm font-medium text-foreground block">Guests</label>
-              
-              {/* Adults */}
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
-                <div>
-                  <p className="font-medium text-sm">Adults</p>
-                  <p className="text-xs text-muted-foreground">Age 12+</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setAdults(Math.max(1, adults - 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
-                    disabled={adults <= 1}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-6 text-center font-semibold">
-                    {adults}
-                  </span>
-                  <button
-                    onClick={() => setAdults(Math.min(10, adults + 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+          <div className="mb-6 space-y-3 relative">
+            <label className="text-sm font-medium text-foreground block">Guests</label>
 
-              {/* Children */}
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
-                <div>
-                  <p className="font-medium text-sm">Children</p>
-                  <p className="text-xs text-muted-foreground">Age 2-11 (30% off)</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setChildren(Math.max(0, children - 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
-                    disabled={children <= 0}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-6 text-center font-semibold">
-                    {children}
-                  </span>
-                  <button
-                    onClick={() => setChildren(Math.min(6, children + 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
+            {/* Adults */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
+              <div>
+                <p className="font-medium text-sm">Adults</p>
+                <p className="text-xs text-muted-foreground">Age 12+</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAdults(Math.max(1, adults - 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
+                  disabled={adults <= 1}
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-6 text-center font-semibold">
+                  {adults}
+                </span>
+                <button
+                  onClick={() => setAdults(Math.min(10, adults + 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          )}
+
+            {/* Children */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
+              <div>
+                <p className="font-medium text-sm">Children</p>
+                <p className="text-xs text-muted-foreground">Age 2-11 (30% off)</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setChildren(Math.max(0, children - 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
+                  disabled={children <= 0}
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-6 text-center font-semibold">
+                  {children}
+                </span>
+                <button
+                  onClick={() => setChildren(Math.min(6, children + 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Total Price */}
         <div className="flex items-center justify-between p-4 bg-secondary/10 rounded-xl mb-6 relative overflow-hidden">
@@ -243,13 +243,13 @@ const BookingSidebar = memo(({
         {/* Quick Info */}
         <div className="space-y-3 mb-6 pb-6 border-b border-border relative">
           {[
-            { icon: Calendar, text: bookingFeatures.availability_text, show: true },
-            { icon: Clock, text: bookingFeatures.minimum_duration || duration, show: true },
-            { icon: Users, text: bookingFeatures.hotel_pickup_text, show: bookingFeatures.hotel_pickup },
-            { icon: Shield, text: bookingFeatures.cancellation_text, show: true },
+            { icon: Calendar, text: bookingFeatures.availability_text, show: !!bookingFeatures.availability_text },
+            { icon: Clock, text: bookingFeatures.minimum_duration || duration, show: !!(bookingFeatures.minimum_duration || duration) },
+            { icon: Users, text: bookingFeatures.hotel_pickup_text, show: bookingFeatures.hotel_pickup && !!bookingFeatures.hotel_pickup_text },
+            { icon: Shield, text: bookingFeatures.cancellation_text, show: !!bookingFeatures.cancellation_text },
             { icon: Shield, text: bookingFeatures.transfer_available !== false ? `Transfer: ${bookingFeatures.transfer_label || 'Hotel Transfer'} ${(bookingFeatures.transfer_price || 0) > 0 ? `(AED ${bookingFeatures.transfer_price})` : '(Free)'}` : '', show: bookingFeatures.transfer_available !== false },
           ].filter(item => item.show).map((item, index) => (
-            <div 
+            <div
               key={index}
               className="flex items-center gap-3"
             >
@@ -262,7 +262,7 @@ const BookingSidebar = memo(({
         {/* CTAs */}
         <div className="space-y-3 relative">
           <div>
-            <Button 
+            <Button
               onClick={() => setIsBookingModalOpen(true)}
               className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-12 text-lg shadow-lg group hover:scale-[1.02] active:scale-[0.98] transition-transform"
             >

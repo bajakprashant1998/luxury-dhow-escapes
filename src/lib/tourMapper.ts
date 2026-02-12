@@ -11,9 +11,9 @@ export interface BookingFeatures {
   cancellation_text: string;
   charter_features: string[];
   // Important Information section content
-  cancellation_info: string[];
-  what_to_bring: string[];
-  good_to_know: string[];
+  cancellation_info: (string | { text: string; icon: "check" | "cross" | "info" | "dot" })[];
+  what_to_bring: (string | { text: string; icon: "check" | "cross" | "info" | "dot" })[];
+  good_to_know: (string | { text: string; icon: "check" | "cross" | "info" | "dot" })[];
   // Water activity fields
   equipment_list?: string[];
   safety_info?: string[];
