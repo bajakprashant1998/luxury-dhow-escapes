@@ -1,131 +1,128 @@
 
-# Activity-Specific Sections & Admin Fields
+# 5 Enhancements: Card Sizing, Transfer Option, Deck Seating, Bold Text Fix, Hero Cards
 
-## Overview
+## 1. Fix Card Sizes in ActivitiesShowcase (Home Page)
 
-Add conditional content sections to tour detail pages based on category type, and extend the admin form with matching editable fields. Also includes 3 new feature suggestions to implement alongside.
+**Problem**: The cards in the "Water Activities & Events" section on the homepage may have inconsistent heights because `TourCard` content varies.
 
----
+**Fix**: In `src/components/home/ActivitiesShowcase.tsx`, ensure all cards in the grid have equal height by adding `h-full` constraints. The `TourCard` component already uses `h-full flex flex-col` internally, so we need to ensure the wrapping `div` elements enforce equal sizing. Add `min-h` or fixed aspect ratio constraints to the card wrapper to ensure visual consistency across all 4 cards.
 
-## Part 1: Extend BookingFeatures Interface
-
-**File: `src/lib/tourMapper.ts`**
-
-Add new optional fields to the `BookingFeatures` interface:
-
-```
-equipment_list: string[]       // Water activities: life jacket, helmet, wetsuit, etc.
-safety_info: string[]          // Water activities: age limits, swimming requirements, medical disclaimers
-decoration_options: string[]   // Events: balloon setup, flower arrangements, LED lighting, etc.
-catering_options: string[]     // Events: BBQ buffet, fine dining, cocktail packages, etc.
-customization_notes: string    // Events: free-text for special requests guidance
-```
-
-These are optional (defaulting to empty arrays) so existing tours are unaffected.
+**File**: `src/components/home/ActivitiesShowcase.tsx`
+- Add `h-full` to the grid item wrappers on both mobile scroll and desktop grid
+- Ensure the mobile scroll cards also have consistent widths
 
 ---
 
-## Part 2: TourDetail Page -- Conditional Sections
+## 2. Transfer Service Option During Booking
 
-**File: `src/pages/TourDetail.tsx`**
+**Problem**: Customers should be able to choose whether they want a transfer/pickup service when booking.
 
-Insert two new conditional card sections between the "Highlights" and "Inclusions" sections:
+**Approach**: Add a `transfer_option` boolean field to `BookingFeatures` and a `transfer_selected` state in the booking flow.
 
-### For Water Activities (`category === 'water-activity'`):
+### Changes:
 
-**Equipment & Gear Card**
-- Icon: Shield/Wrench
-- Renders `bookingFeatures.equipment_list` as a grid of items with checkmark icons
-- Falls back to `included` items if equipment_list is empty (graceful degradation)
+**`src/lib/tourMapper.ts`**
+- Add to `BookingFeatures` interface:
+  - `transfer_available: boolean` (default: `true`)
+  - `transfer_price: number` (default: `0` for free transfer)
+  - `transfer_label: string` (default: `"Hotel/Residence Transfer"`)
 
-**Safety Information Card**
-- Icon: AlertTriangle
-- Renders `bookingFeatures.safety_info` as a list with warning-style styling
-- Yellow/amber accent to draw attention
-- Shows age requirements, swimming ability, medical conditions
+**`src/components/tour-detail/BookingModal.tsx`**
+- Add `transferSelected` state (boolean, default `false`)
+- In Step 1, after guest counters: show a toggle/switch asking "Would you like transfer service?" with the label from `bookingFeatures`
+- If transfer has a price, show it; if free, show "Complimentary"
+- Include transfer selection in `special_requests` field when submitting
+- Update price calculation to include transfer price if selected
+- Pass `bookingFeatures` as a new prop to BookingModal
 
-### For Events (`category === 'yacht-event'`):
+**`src/components/tour-detail/BookingSidebar.tsx`**
+- Show transfer availability badge in the sidebar features list
 
-**Decoration & Setup Card**
-- Icon: Sparkles/PartyPopper
-- Renders `bookingFeatures.decoration_options` as selectable-looking pills/tags
-- Shows available themes and setup options
-
-**Catering & Dining Card**
-- Icon: Utensils/ChefHat
-- Renders `bookingFeatures.catering_options` as a styled list
-- Shows available food and beverage packages
-
-**Customization Note**
-- If `bookingFeatures.customization_notes` exists, show a highlighted info box with guidance on how to customize the event
-
-All sections use the same `motion.div` animation pattern, `bg-card rounded-xl p-6 shadow-md` styling, and `font-display text-2xl font-bold` headings to match existing sections perfectly.
+**`src/components/admin/TourForm.tsx`**
+- In the Booking Sidebar Features card, add:
+  - Switch: "Transfer Service Available"
+  - Input: "Transfer Price (AED)" (0 = complimentary)
+  - Input: "Transfer Label"
 
 ---
 
-## Part 3: Admin Form -- Category-Specific Fields
+## 3. Upper Deck / Lower Deck Seating Option
 
-**File: `src/components/admin/TourForm.tsx`**
+**Problem**: Some yachts have upper decks. Customers should choose their preferred seating during booking.
 
-Add a new Card section that conditionally renders based on the selected category:
+**Approach**: Add `has_upper_deck` boolean and `deck_options` to `BookingFeatures`.
 
-### When category is `water-activity`:
-- **Equipment List** -- same add/remove list pattern as highlights (input + Plus button + pill tags)
-- **Safety Information** -- same list editor pattern
+### Changes:
 
-### When category is `yacht-event`:
-- **Decoration Options** -- list editor
-- **Catering Options** -- list editor  
-- **Customization Notes** -- single textarea field
+**`src/lib/tourMapper.ts`**
+- Add to `BookingFeatures` interface:
+  - `has_upper_deck: boolean` (default: `false`)
+  - `deck_options: string[]` (default: `["Lower Deck", "Upper Deck"]`)
 
-This card appears between "Booking Sidebar Features" and "Important Information" sections, with a contextual title:
-- "Water Activity Details" with Waves icon
-- "Event & Experience Details" with PartyPopper icon
+**`src/components/tour-detail/BookingModal.tsx`**
+- Add `selectedDeck` state (string)
+- In Step 1, when `bookingFeatures.has_upper_deck` is true: show a radio group or select dropdown for deck preference
+- Include selected deck in `special_requests` on submission
+- Show deck selection in Step 3 confirmation summary
 
-Form state initialization reads these new fields from `booking_features` JSONB (defaulting to empty arrays). On submit, they are saved back into the same JSONB column -- no database schema changes needed.
-
----
-
-## Part 4: New Features (Bonus Implementations)
-
-### Feature A: "Add to Yacht Booking" Cross-Sell CTA
-**File: `src/pages/TourDetail.tsx`**
-
-For water activities only, add a styled CTA card below the booking sidebar:
-- "Combine with a Yacht Charter" heading
-- Brief text: "Add this activity to any yacht booking for a complete Dubai experience"
-- "Browse Yachts" button linking to `/tours` filtered by yacht categories
-- Uses secondary color accent with a gradient background
-
-### Feature B: Guest Capacity Visual Indicator
-**File: `src/pages/TourDetail.tsx`**
-
-For events, enhance the QuickInfoCards area with a visual capacity indicator:
-- Show capacity as a prominent badge (e.g., "Up to 50 Guests")
-- Add "Minimum X hours" from booking_features
-- Use Users icon with event-appropriate styling
-
-### Feature C: Category-Aware Related Tours Section
-**File: `src/pages/TourDetail.tsx`**
-
-Update the "You Might Also Like" section title based on category:
-- Water activities: "More Water Adventures"
-- Events: "More Celebration Packages"  
-- Default: "You Might Also Like"
+**`src/components/admin/TourForm.tsx`**
+- In Booking Sidebar Features card, add:
+  - Switch: "Has Upper Deck Option"
+  - When enabled, show deck option list editor (same add/remove pattern as charter features)
 
 ---
 
-## Technical Details
+## 4. Fix Bold/Markdown Formatting on Frontend
+
+**Problem**: The admin RichTextEditor uses markdown syntax (e.g., `**bold**`, `*italic*`, `## headings`), but the TourDetail page renders `longDescription` as plain text inside a `<p>` tag, ignoring all formatting.
+
+**Fix**: Create a simple markdown renderer that converts the stored markdown into HTML, then use `dangerouslySetInnerHTML` with proper sanitization.
+
+### Changes:
+
+**`src/lib/markdownRenderer.ts`** (new file)
+- Export a `renderMarkdown(text: string): string` function
+- Reuse the same regex logic from `RichTextEditor.tsx`'s `renderPreview` function (lines 248-286) since it already handles bold, italic, headings, lists, links, blockquotes, and horizontal rules
+- This ensures what admin sees in preview matches what displays on the frontend
+
+**`src/pages/TourDetail.tsx`**
+- Import `renderMarkdown` from the new utility
+- Replace the Overview section's plain text `<p>{tour.longDescription}</p>` with:
+  ```
+  <div className="prose text-muted-foreground leading-relaxed"
+       dangerouslySetInnerHTML={{ __html: renderMarkdown(tour.longDescription) }} />
+  ```
+- This renders bold, italic, headings, lists, links exactly as formatted in the admin editor
+
+---
+
+## 5. Replace Megayacht Hero Card with Water Sports & Events Cards
+
+**Problem**: The ExperienceCategories section on the homepage shows 4 cards: Dhow Cruises, Shared Yacht, Private Charter, and Megayacht. Replace Megayacht with two new cards: "Water Sports Activities" and "Private/Corporate Event".
+
+**Fix**: Update `src/components/home/ExperienceCategories.tsx`:
+- Remove the Megayacht entry from the `experienceCategories` array
+- Add two new entries:
+  - **Water Sports Activities**: icon `Waves`, link `/activities`, gradient blue-cyan, description "Jet ski, parasailing & more"
+  - **Private/Corporate Event**: icon `PartyPopper`, link `/activities?tab=events`, gradient purple-pink, description "Celebrations on the water"
+- Update the grid from `grid-cols-2 lg:grid-cols-4` to `grid-cols-2 lg:grid-cols-5` to accommodate 5 cards (or keep 4 by removing Megayacht and adding 2, making it 5 total)
+- Import `Waves` and `PartyPopper` icons (already imported as `Crown` can be replaced)
+
+---
+
+## Technical Summary
+
+### New Files
+- `src/lib/markdownRenderer.ts` -- Markdown-to-HTML converter
 
 ### Files to Modify
-- `src/lib/tourMapper.ts` -- Extend BookingFeatures interface with 5 new optional fields
-- `src/pages/TourDetail.tsx` -- Add 2-3 conditional sections + cross-sell CTA + dynamic related title
-- `src/components/admin/TourForm.tsx` -- Add conditional category-specific form card with list editors
+- `src/lib/tourMapper.ts` -- Add transfer and deck fields to BookingFeatures interface
+- `src/components/home/ActivitiesShowcase.tsx` -- Fix card height consistency
+- `src/components/home/ExperienceCategories.tsx` -- Replace Megayacht with 2 new cards
+- `src/components/tour-detail/BookingModal.tsx` -- Add transfer toggle and deck selector
+- `src/components/tour-detail/BookingSidebar.tsx` -- Show transfer/deck info
+- `src/components/admin/TourForm.tsx` -- Add transfer and deck admin fields
+- `src/pages/TourDetail.tsx` -- Render markdown in overview section
 
 ### No Database Changes Required
-All new fields are stored in the existing `booking_features` JSONB column. Optional fields default to empty arrays, so all existing tours continue to work without migration.
-
-### Estimated Scope
-- ~80 lines added to `tourMapper.ts`
-- ~150 lines added to `TourDetail.tsx`
-- ~120 lines added to `TourForm.tsx`
+All new fields use the existing `booking_features` JSONB column with optional defaults.
