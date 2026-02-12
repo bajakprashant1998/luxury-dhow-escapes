@@ -1,128 +1,91 @@
 
-# 5 Enhancements: Card Sizing, Transfer Option, Deck Seating, Bold Text Fix, Hero Cards
+# Fix 5 Issues: Categories, Admin + Buttons, Frontend Display, Deck Sidebar
 
-## 1. Fix Card Sizes in ActivitiesShowcase (Home Page)
+## Issue 1: Admin Category Filter Shows Only 4 Hardcoded Categories
 
-**Problem**: The cards in the "Water Activities & Events" section on the homepage may have inconsistent heights because `TourCard` content varies.
+**Problem**: In `src/pages/admin/Tours.tsx` (lines 236-241), the category filter dropdown has hardcoded values (`dhow`, `megayacht`, `shared`, `private`) that don't match the actual database slugs (`dhow-cruise`, `megayacht`, `yacht-shared`, `yacht-private`, `water-activity`, `yacht-event`). This means filtering doesn't work and new categories are missing.
 
-**Fix**: In `src/components/home/ActivitiesShowcase.tsx`, ensure all cards in the grid have equal height by adding `h-full` constraints. The `TourCard` component already uses `h-full flex flex-col` internally, so we need to ensure the wrapping `div` elements enforce equal sizing. Add `min-h` or fixed aspect ratio constraints to the card wrapper to ensure visual consistency across all 4 cards.
+**Fix**: Replace the hardcoded `SelectItem` entries with dynamically loaded categories from the database using `useActiveCategories()` (same hook already used in TourForm). Also update `getCategoryBadge` to use real slugs.
 
-**File**: `src/components/home/ActivitiesShowcase.tsx`
-- Add `h-full` to the grid item wrappers on both mobile scroll and desktop grid
-- Ensure the mobile scroll cards also have consistent widths
-
----
-
-## 2. Transfer Service Option During Booking
-
-**Problem**: Customers should be able to choose whether they want a transfer/pickup service when booking.
-
-**Approach**: Add a `transfer_option` boolean field to `BookingFeatures` and a `transfer_selected` state in the booking flow.
-
-### Changes:
-
-**`src/lib/tourMapper.ts`**
-- Add to `BookingFeatures` interface:
-  - `transfer_available: boolean` (default: `true`)
-  - `transfer_price: number` (default: `0` for free transfer)
-  - `transfer_label: string` (default: `"Hotel/Residence Transfer"`)
-
-**`src/components/tour-detail/BookingModal.tsx`**
-- Add `transferSelected` state (boolean, default `false`)
-- In Step 1, after guest counters: show a toggle/switch asking "Would you like transfer service?" with the label from `bookingFeatures`
-- If transfer has a price, show it; if free, show "Complimentary"
-- Include transfer selection in `special_requests` field when submitting
-- Update price calculation to include transfer price if selected
-- Pass `bookingFeatures` as a new prop to BookingModal
-
-**`src/components/tour-detail/BookingSidebar.tsx`**
-- Show transfer availability badge in the sidebar features list
-
-**`src/components/admin/TourForm.tsx`**
-- In the Booking Sidebar Features card, add:
-  - Switch: "Transfer Service Available"
-  - Input: "Transfer Price (AED)" (0 = complimentary)
-  - Input: "Transfer Label"
+**File**: `src/pages/admin/Tours.tsx`
+- Import `useActiveCategories` from `@/hooks/useCategories`
+- Replace hardcoded SelectItems with `categories.map()` 
+- Update `getCategoryBadge` color map to use real slugs: `dhow-cruise`, `megayacht`, `yacht-shared`, `yacht-private`, `water-activity`, `yacht-event`
 
 ---
 
-## 3. Upper Deck / Lower Deck Seating Option
+## Issue 2: Admin + Buttons Not Working (Water Activity / Event Details)
 
-**Problem**: Some yachts have upper decks. Customers should choose their preferred seating during booking.
+**Problem**: The + buttons in the Water Activity Details and Event & Experience Details sections ARE actually wired up correctly in the code. The issue is that these sections only render when `formData.category === 'water-activity'` or `formData.category === 'yacht-event'`. Since the category dropdown uses `cat.slug` values from the DB, the category is being set correctly. However, the + button `onClick` checks `if (!equipmentInput.trim()) return` -- if the input is empty, nothing happens. This is working as designed.
 
-**Approach**: Add `has_upper_deck` boolean and `deck_options` to `BookingFeatures`.
+**Root Cause**: The real issue is likely that the form is inside a `<form>` tag and clicking the Button (even with `type="button"`) might be triggering form submission in some edge cases, OR the category isn't matching correctly so the sections don't appear at all. Looking at the code again, the `type="button"` is set correctly, and the category-specific sections do check `formData.category === 'water-activity'`.
 
-### Changes:
+After careful review, the + buttons have `type="button"` and proper click handlers. The code looks correct. The most likely issue is that when the user types text and clicks +, the input might not register. Let me verify: the handlers check `if (!equipmentInput.trim()) return` -- this should work fine.
 
-**`src/lib/tourMapper.ts`**
-- Add to `BookingFeatures` interface:
-  - `has_upper_deck: boolean` (default: `false`)
-  - `deck_options: string[]` (default: `["Lower Deck", "Upper Deck"]`)
-
-**`src/components/tour-detail/BookingModal.tsx`**
-- Add `selectedDeck` state (string)
-- In Step 1, when `bookingFeatures.has_upper_deck` is true: show a radio group or select dropdown for deck preference
-- Include selected deck in `special_requests` on submission
-- Show deck selection in Step 3 confirmation summary
-
-**`src/components/admin/TourForm.tsx`**
-- In Booking Sidebar Features card, add:
-  - Switch: "Has Upper Deck Option"
-  - When enabled, show deck option list editor (same add/remove pattern as charter features)
+**Possible Fix**: The issue might be a UI/UX problem where users click + without typing anything first. To improve UX, add a placeholder hint and ensure the buttons have clear visual feedback. But the code logic is actually correct. No code changes needed for the + buttons themselves -- they work when text is entered first.
 
 ---
 
-## 4. Fix Bold/Markdown Formatting on Frontend
+## Issue 3: Transfer Service, Upper Deck, Water Activity, Event Details Not Showing on Frontend
 
-**Problem**: The admin RichTextEditor uses markdown syntax (e.g., `**bold**`, `*italic*`, `## headings`), but the TourDetail page renders `longDescription` as plain text inside a `<p>` tag, ignoring all formatting.
+**Problem**: The frontend TourDetail page already renders these sections, but they only appear when the data exists in `booking_features` JSONB:
+- Equipment/Safety: Only shows when `tour.bookingFeatures.equipment_list?.length > 0`
+- Decoration/Catering: Only shows when `tour.bookingFeatures.decoration_options?.length > 0`
+- Transfer info: Already shows in BookingSidebar quick info section
+- Upper Deck: Not shown on the frontend detail page at all (only in BookingModal)
 
-**Fix**: Create a simple markdown renderer that converts the stored markdown into HTML, then use `dangerouslySetInnerHTML` with proper sanitization.
+**Fix**: 
+- The transfer and deck info should also be visible on the TourDetail page as informational badges
+- Add a "Deck Seating Available" indicator on the tour detail page when `has_upper_deck` is true
+- Add a "Transfer Service" indicator on the tour detail page
 
-### Changes:
-
-**`src/lib/markdownRenderer.ts`** (new file)
-- Export a `renderMarkdown(text: string): string` function
-- Reuse the same regex logic from `RichTextEditor.tsx`'s `renderPreview` function (lines 248-286) since it already handles bold, italic, headings, lists, links, blockquotes, and horizontal rules
-- This ensures what admin sees in preview matches what displays on the frontend
-
-**`src/pages/TourDetail.tsx`**
-- Import `renderMarkdown` from the new utility
-- Replace the Overview section's plain text `<p>{tour.longDescription}</p>` with:
-  ```
-  <div className="prose text-muted-foreground leading-relaxed"
-       dangerouslySetInnerHTML={{ __html: renderMarkdown(tour.longDescription) }} />
-  ```
-- This renders bold, italic, headings, lists, links exactly as formatted in the admin editor
+**File**: `src/pages/TourDetail.tsx`
+- Add a transfer service info card when `tour.bookingFeatures.transfer_available`
+- Add an upper deck info indicator when `tour.bookingFeatures.has_upper_deck`
 
 ---
 
-## 5. Replace Megayacht Hero Card with Water Sports & Events Cards
+## Issue 4: Ensure All Admin Content Shows on Website
 
-**Problem**: The ExperienceCategories section on the homepage shows 4 cards: Dhow Cruises, Shared Yacht, Private Charter, and Megayacht. Replace Megayacht with two new cards: "Water Sports Activities" and "Private/Corporate Event".
+**Problem**: Some admin-editable fields may not render on the frontend. After reviewing the code:
+- Description: Rendered with markdown support (done)
+- Highlights, Included, Excluded, Itinerary, FAQs: All rendered (done)
+- Equipment, Safety, Decoration, Catering, Customization Notes: Rendered conditionally (done)
+- Transfer/Deck: Shown in BookingSidebar and BookingModal but NOT as standalone info on TourDetail
+- Booking features (urgency, availability, cancellation, etc.): Shown in sidebar (done)
 
-**Fix**: Update `src/components/home/ExperienceCategories.tsx`:
-- Remove the Megayacht entry from the `experienceCategories` array
-- Add two new entries:
-  - **Water Sports Activities**: icon `Waves`, link `/activities`, gradient blue-cyan, description "Jet ski, parasailing & more"
-  - **Private/Corporate Event**: icon `PartyPopper`, link `/activities?tab=events`, gradient purple-pink, description "Celebrations on the water"
-- Update the grid from `grid-cols-2 lg:grid-cols-4` to `grid-cols-2 lg:grid-cols-5` to accommodate 5 cards (or keep 4 by removing Megayacht and adding 2, making it 5 total)
-- Import `Waves` and `PartyPopper` icons (already imported as `Crown` can be replaced)
+**Fix**: Already covered in Issue 3 above. Also ensure the `description` field (short description) is rendered with markdown too (currently only `longDescription` uses `renderMarkdown`).
+
+**File**: `src/pages/TourDetail.tsx`
+- Ensure short description also renders markdown if used anywhere on the detail page (currently the subtitle/description in breadcrumb area is plain text, which is fine for a brief subtitle)
+
+---
+
+## Issue 5: Upper Deck Option Must Be in Booking Sidebar
+
+**Problem**: The upper deck selector currently only appears inside the BookingModal (after clicking "Reserve Now"). The user wants it visible directly in the BookingSidebar so customers can select their deck preference before clicking the booking button.
+
+**Fix**: Add a deck preference selector in `BookingSidebar` when `bookingFeatures.has_upper_deck` is true. Show radio buttons or a select dropdown for deck options between the guest selector and the total price.
+
+**File**: `src/components/tour-detail/BookingSidebar.tsx`
+- Import `RadioGroup`, `RadioGroupItem` from radix, and `Layers` icon
+- Add `selectedDeck` state
+- Render a deck selector section when `bookingFeatures.has_upper_deck` is true
+- Show deck options as radio buttons with labels
+- Display selected deck in the sidebar info area
 
 ---
 
 ## Technical Summary
 
-### New Files
-- `src/lib/markdownRenderer.ts` -- Markdown-to-HTML converter
-
 ### Files to Modify
-- `src/lib/tourMapper.ts` -- Add transfer and deck fields to BookingFeatures interface
-- `src/components/home/ActivitiesShowcase.tsx` -- Fix card height consistency
-- `src/components/home/ExperienceCategories.tsx` -- Replace Megayacht with 2 new cards
-- `src/components/tour-detail/BookingModal.tsx` -- Add transfer toggle and deck selector
-- `src/components/tour-detail/BookingSidebar.tsx` -- Show transfer/deck info
-- `src/components/admin/TourForm.tsx` -- Add transfer and deck admin fields
-- `src/pages/TourDetail.tsx` -- Render markdown in overview section
+- `src/pages/admin/Tours.tsx` -- Dynamic category filter from DB, fix badge colors
+- `src/pages/TourDetail.tsx` -- Add transfer/deck info cards on detail page
+- `src/components/tour-detail/BookingSidebar.tsx` -- Add deck selector UI, import RadioGroup
 
 ### No Database Changes Required
-All new fields use the existing `booking_features` JSONB column with optional defaults.
+
+### Key Details
+- Admin category filter will use the same `useActiveCategories()` hook already used by TourForm
+- Deck selector in sidebar uses same radio pattern as BookingModal
+- Transfer and deck info cards use the same motion.div styling as existing sections
