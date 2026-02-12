@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Clock, MapPin, Check, X, ChevronRight, Heart, Share2, Anchor, Utensils, Music, Camera, Shield, AlertTriangle, Sparkles, ChefHat, Info, Waves, PartyPopper, Users, Circle } from "lucide-react";
+import { Star, Clock, MapPin, Check, X, ChevronRight, Heart, Share2, Anchor, Utensils, Music, Camera, Shield, AlertTriangle, Sparkles, ChefHat, Info, Waves, PartyPopper, Users, Circle, Car, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -355,6 +355,29 @@ const TourDetail = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Quick Info Cards */}
             <QuickInfoCards duration={tour.duration} capacity={tour.capacity} />
+
+            {/* Transfer & Deck Info Badges */}
+            {(tour.bookingFeatures.transfer_available || tour.bookingFeatures.has_upper_deck) && (
+              <div className="flex flex-wrap gap-3">
+                {tour.bookingFeatures.transfer_available && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <Car className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm font-medium text-foreground">
+                      {tour.bookingFeatures.transfer_label || "Hotel Transfer"}{" "}
+                      <span className="text-muted-foreground">
+                        {(tour.bookingFeatures.transfer_price || 0) > 0 ? `(AED ${tour.bookingFeatures.transfer_price})` : "(Complimentary)"}
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {tour.bookingFeatures.has_upper_deck && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                    <Layers className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-foreground">Upper Deck Available</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Overview */}
             <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{

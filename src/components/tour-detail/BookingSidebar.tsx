@@ -12,7 +12,9 @@ import {
   CalendarIcon,
   Flame,
   Sparkles,
-  Check
+  Check,
+  Layers,
+  Car
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
 import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
@@ -56,6 +60,9 @@ const BookingSidebar = memo(({
   const [children, setChildren] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedDeck, setSelectedDeck] = useState<string>(
+    bookingFeatures.deck_options?.[0] || "Lower Deck"
+  );
   const { phone, phoneFormatted, whatsappLinkWithGreeting } = useContactConfig();
 
   // Derive booking type from tour data - no toggle needed
@@ -228,6 +235,37 @@ const BookingSidebar = memo(({
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Deck Seating Selector */}
+        {bookingFeatures.has_upper_deck && (
+          <div className="mb-6 relative">
+            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-secondary" />
+              Deck Preference
+            </label>
+            <RadioGroup value={selectedDeck} onValueChange={setSelectedDeck} className="mt-2 space-y-2">
+              {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option) => (
+                <div key={option} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
+                  <RadioGroupItem value={option} id={`deck-${option}`} />
+                  <Label htmlFor={`deck-${option}`} className="font-medium text-sm cursor-pointer flex-1">{option}</Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+        )}
+
+        {/* Transfer Service Info */}
+        {bookingFeatures.transfer_available && (
+          <div className="mb-6 p-3 bg-emerald-500/10 rounded-xl flex items-center gap-3 relative">
+            <Car className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-foreground">{bookingFeatures.transfer_label || "Hotel Transfer"}</p>
+              <p className="text-xs text-muted-foreground">
+                {(bookingFeatures.transfer_price || 0) > 0 ? `AED ${bookingFeatures.transfer_price}` : "Complimentary"}
+              </p>
             </div>
           </div>
         )}

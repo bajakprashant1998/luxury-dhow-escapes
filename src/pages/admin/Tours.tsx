@@ -42,6 +42,7 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Loader2, Ship, Star, M
 import type { Tables } from "@/integrations/supabase/types";
 import TablePagination from "@/components/admin/TablePagination";
 import { usePagination } from "@/hooks/usePagination";
+import { useCategories } from "@/hooks/useCategories";
 
 type Tour = Tables<"tours">;
 
@@ -53,6 +54,7 @@ const AdminTours = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { data: categories = [] } = useCategories();
 
   useEffect(() => {
     fetchTours();
@@ -122,10 +124,15 @@ const AdminTours = () => {
 
   const getCategoryBadge = (category: string) => {
     const colors: Record<string, string> = {
-      dhow: "bg-blue-500/10 text-blue-600",
-      megayacht: "bg-purple-500/10 text-purple-600",
-      shared: "bg-emerald-500/10 text-emerald-600",
-      private: "bg-amber-500/10 text-amber-600",
+      "dhow-cruise": "bg-blue-500/10 text-blue-600",
+      "dhow": "bg-blue-500/10 text-blue-600",
+      "megayacht": "bg-purple-500/10 text-purple-600",
+      "yacht-shared": "bg-emerald-500/10 text-emerald-600",
+      "shared": "bg-emerald-500/10 text-emerald-600",
+      "yacht-private": "bg-amber-500/10 text-amber-600",
+      "private": "bg-amber-500/10 text-amber-600",
+      "water-activity": "bg-cyan-500/10 text-cyan-600",
+      "yacht-event": "bg-pink-500/10 text-pink-600",
     };
     return colors[category] || "bg-muted text-muted-foreground";
   };
@@ -234,10 +241,9 @@ const AdminTours = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="dhow">Dhow Cruise</SelectItem>
-              <SelectItem value="megayacht">Megayacht</SelectItem>
-              <SelectItem value="shared">Shared Yacht</SelectItem>
-              <SelectItem value="private">Private Yacht</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
