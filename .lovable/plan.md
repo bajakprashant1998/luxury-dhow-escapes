@@ -1,91 +1,45 @@
 
-# Fix 5 Issues: Categories, Admin + Buttons, Frontend Display, Deck Sidebar
+# Seasonal Tour Toggle and Duplicate Feature
 
-## Issue 1: Admin Category Filter Shows Only 4 Hardcoded Categories
+## 1. Quick On/Off Toggle in Admin Tours Table
 
-**Problem**: In `src/pages/admin/Tours.tsx` (lines 236-241), the category filter dropdown has hardcoded values (`dhow`, `megayacht`, `shared`, `private`) that don't match the actual database slugs (`dhow-cruise`, `megayacht`, `yacht-shared`, `yacht-private`, `water-activity`, `yacht-event`). This means filtering doesn't work and new categories are missing.
+**Current State**: The tours table shows a "Status" column that only displays "Featured" or "Active" badges -- it never shows "Draft" or "Archived" status, and there's no way to quickly toggle a tour on or off without editing it.
 
-**Fix**: Replace the hardcoded `SelectItem` entries with dynamically loaded categories from the database using `useActiveCategories()` (same hook already used in TourForm). Also update `getCategoryBadge` to use real slugs.
+**Changes to `src/pages/admin/Tours.tsx`**:
+- Replace the current Status column badge (lines 309-319) with a **Switch toggle** that instantly activates/deactivates a tour
+- When toggled OFF, the tour status changes to `"draft"` (hidden from website)
+- When toggled ON, the tour status changes to `"active"` (visible on website)  
+- Add a `handleToggleStatus` function that updates the database and refreshes the local state
+- Show a colored dot indicator next to the switch: green for active, gray for draft/archived
+- Add a status filter dropdown option (Active / Draft / Archived / All) alongside the existing category filter
+- Update the stats cards to show inactive count as well
 
-**File**: `src/pages/admin/Tours.tsx`
-- Import `useActiveCategories` from `@/hooks/useCategories`
-- Replace hardcoded SelectItems with `categories.map()` 
-- Update `getCategoryBadge` color map to use real slugs: `dhow-cruise`, `megayacht`, `yacht-shared`, `yacht-private`, `water-activity`, `yacht-event`
+## 2. Duplicate/Copy Tour Feature
 
----
+**Changes to `src/pages/admin/Tours.tsx`**:
+- Add a "Duplicate" menu item in the existing dropdown menu (between "Edit" and "Delete")
+- Import the `Copy` icon from lucide-react
+- Add a `handleDuplicate` function that:
+  1. Fetches the full tour data by ID
+  2. Creates a new tour with all the same fields but:
+     - New generated UUID (handled by DB default)
+     - Title prefixed with "Copy of "
+     - Slug appended with `-copy` (and a timestamp suffix to avoid conflicts)
+     - seo_slug set to null (to be regenerated)
+     - Status set to `"draft"` so it doesn't go live immediately
+     - featured set to false
+  3. Shows a success toast with a link to edit the new tour
+  4. Refreshes the tours list
 
-## Issue 2: Admin + Buttons Not Working (Water Activity / Event Details)
+## 3. Status Filter Enhancement
 
-**Problem**: The + buttons in the Water Activity Details and Event & Experience Details sections ARE actually wired up correctly in the code. The issue is that these sections only render when `formData.category === 'water-activity'` or `formData.category === 'yacht-event'`. Since the category dropdown uses `cat.slug` values from the DB, the category is being set correctly. However, the + button `onClick` checks `if (!equipmentInput.trim()) return` -- if the input is empty, nothing happens. This is working as designed.
+**Changes to `src/pages/admin/Tours.tsx`**:
+- Add a new `statusFilter` state variable (default: `"all"`)
+- Add a second filter dropdown for Status: All / Active / Draft / Archived
+- Update `filteredTours` to also filter by status when not "all"
 
-**Root Cause**: The real issue is likely that the form is inside a `<form>` tag and clicking the Button (even with `type="button"`) might be triggering form submission in some edge cases, OR the category isn't matching correctly so the sections don't appear at all. Looking at the code again, the `type="button"` is set correctly, and the category-specific sections do check `formData.category === 'water-activity'`.
+## Files Modified
+- `src/pages/admin/Tours.tsx` -- Toggle switch, duplicate action, status filter
 
-After careful review, the + buttons have `type="button"` and proper click handlers. The code looks correct. The most likely issue is that when the user types text and clicks +, the input might not register. Let me verify: the handlers check `if (!equipmentInput.trim()) return` -- this should work fine.
-
-**Possible Fix**: The issue might be a UI/UX problem where users click + without typing anything first. To improve UX, add a placeholder hint and ensure the buttons have clear visual feedback. But the code logic is actually correct. No code changes needed for the + buttons themselves -- they work when text is entered first.
-
----
-
-## Issue 3: Transfer Service, Upper Deck, Water Activity, Event Details Not Showing on Frontend
-
-**Problem**: The frontend TourDetail page already renders these sections, but they only appear when the data exists in `booking_features` JSONB:
-- Equipment/Safety: Only shows when `tour.bookingFeatures.equipment_list?.length > 0`
-- Decoration/Catering: Only shows when `tour.bookingFeatures.decoration_options?.length > 0`
-- Transfer info: Already shows in BookingSidebar quick info section
-- Upper Deck: Not shown on the frontend detail page at all (only in BookingModal)
-
-**Fix**: 
-- The transfer and deck info should also be visible on the TourDetail page as informational badges
-- Add a "Deck Seating Available" indicator on the tour detail page when `has_upper_deck` is true
-- Add a "Transfer Service" indicator on the tour detail page
-
-**File**: `src/pages/TourDetail.tsx`
-- Add a transfer service info card when `tour.bookingFeatures.transfer_available`
-- Add an upper deck info indicator when `tour.bookingFeatures.has_upper_deck`
-
----
-
-## Issue 4: Ensure All Admin Content Shows on Website
-
-**Problem**: Some admin-editable fields may not render on the frontend. After reviewing the code:
-- Description: Rendered with markdown support (done)
-- Highlights, Included, Excluded, Itinerary, FAQs: All rendered (done)
-- Equipment, Safety, Decoration, Catering, Customization Notes: Rendered conditionally (done)
-- Transfer/Deck: Shown in BookingSidebar and BookingModal but NOT as standalone info on TourDetail
-- Booking features (urgency, availability, cancellation, etc.): Shown in sidebar (done)
-
-**Fix**: Already covered in Issue 3 above. Also ensure the `description` field (short description) is rendered with markdown too (currently only `longDescription` uses `renderMarkdown`).
-
-**File**: `src/pages/TourDetail.tsx`
-- Ensure short description also renders markdown if used anywhere on the detail page (currently the subtitle/description in breadcrumb area is plain text, which is fine for a brief subtitle)
-
----
-
-## Issue 5: Upper Deck Option Must Be in Booking Sidebar
-
-**Problem**: The upper deck selector currently only appears inside the BookingModal (after clicking "Reserve Now"). The user wants it visible directly in the BookingSidebar so customers can select their deck preference before clicking the booking button.
-
-**Fix**: Add a deck preference selector in `BookingSidebar` when `bookingFeatures.has_upper_deck` is true. Show radio buttons or a select dropdown for deck options between the guest selector and the total price.
-
-**File**: `src/components/tour-detail/BookingSidebar.tsx`
-- Import `RadioGroup`, `RadioGroupItem` from radix, and `Layers` icon
-- Add `selectedDeck` state
-- Render a deck selector section when `bookingFeatures.has_upper_deck` is true
-- Show deck options as radio buttons with labels
-- Display selected deck in the sidebar info area
-
----
-
-## Technical Summary
-
-### Files to Modify
-- `src/pages/admin/Tours.tsx` -- Dynamic category filter from DB, fix badge colors
-- `src/pages/TourDetail.tsx` -- Add transfer/deck info cards on detail page
-- `src/components/tour-detail/BookingSidebar.tsx` -- Add deck selector UI, import RadioGroup
-
-### No Database Changes Required
-
-### Key Details
-- Admin category filter will use the same `useActiveCategories()` hook already used by TourForm
-- Deck selector in sidebar uses same radio pattern as BookingModal
-- Transfer and deck info cards use the same motion.div styling as existing sections
+## No Database Changes Required
+The `status` column already exists on the `tours` table with text type supporting any value. The frontend `useTours` hook already filters by `status = 'active'`, so setting status to `"draft"` automatically hides tours from the website.
