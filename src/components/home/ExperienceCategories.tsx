@@ -13,11 +13,8 @@ const experienceCategories = [
     title: "Dhow Cruises",
     description: "Traditional dining experience",
     link: "/tours?category=dhow-cruise",
-    bgClass: "bg-gradient-to-br from-blue-950 to-cyan-900",
-    iconColor: "text-blue-400",
-    textColor: "text-blue-50",
-    mutedColor: "text-blue-200/70",
-    badgeBg: "bg-blue-400/20 text-blue-300",
+    gradient: "from-blue-500/20 to-cyan-500/20",
+    iconColor: "text-blue-500",
     previewImage: dhowCruiseImg,
     guestCount: "1,200+",
     guestLabel: "guests this month",
@@ -27,11 +24,8 @@ const experienceCategories = [
     title: "Shared Yacht",
     description: "Live BBQ on the water",
     link: "/tours?category=yacht-shared",
-    bgClass: "bg-gradient-to-br from-amber-900 to-orange-950",
-    iconColor: "text-amber-400",
-    textColor: "text-amber-50",
-    mutedColor: "text-amber-200/70",
-    badgeBg: "bg-amber-400/20 text-amber-300",
+    gradient: "from-orange-500/20 to-amber-500/20",
+    iconColor: "text-orange-500",
     previewImage: sharedYachtImg,
     guestCount: "800+",
     guestLabel: "guests this month",
@@ -41,11 +35,8 @@ const experienceCategories = [
     title: "Private Charter",
     description: "Exclusive yacht rental",
     link: "/tours?category=yacht-private",
-    bgClass: "bg-gradient-to-br from-emerald-950 to-teal-900",
-    iconColor: "text-emerald-400",
-    textColor: "text-emerald-50",
-    mutedColor: "text-emerald-200/70",
-    badgeBg: "bg-emerald-400/20 text-emerald-300",
+    gradient: "from-emerald-500/20 to-teal-500/20",
+    iconColor: "text-emerald-500",
     previewImage: privateCharterImg,
     guestCount: "350+",
     guestLabel: "groups this month",
@@ -55,11 +46,8 @@ const experienceCategories = [
     title: "Water Sports",
     description: "Jet ski, parasailing & more",
     link: "/activities",
-    bgClass: "bg-gradient-to-br from-sky-950 to-indigo-900",
-    iconColor: "text-sky-400",
-    textColor: "text-sky-50",
-    mutedColor: "text-sky-200/70",
-    badgeBg: "bg-sky-400/20 text-sky-300",
+    gradient: "from-cyan-500/20 to-blue-500/20",
+    iconColor: "text-cyan-500",
     previewImage: sharedYachtImg,
     guestCount: "600+",
     guestLabel: "guests this month",
@@ -69,11 +57,8 @@ const experienceCategories = [
     title: "Private Events",
     description: "Celebrations on the water",
     link: "/activities?tab=events",
-    bgClass: "bg-gradient-to-br from-purple-950 to-fuchsia-900",
-    iconColor: "text-purple-400",
-    textColor: "text-purple-50",
-    mutedColor: "text-purple-200/70",
-    badgeBg: "bg-purple-400/20 text-purple-300",
+    gradient: "from-purple-500/20 to-pink-500/20",
+    iconColor: "text-purple-500",
     previewImage: privateCharterImg,
     guestCount: "200+",
     guestLabel: "events this month",
@@ -86,13 +71,16 @@ const CategoryCard = memo(({ category, index }: { category: typeof experienceCat
   return (
     <Link
       to={category.link}
-      className={`group block ${category.bgClass} p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-white/10 hover:border-white/25 relative overflow-hidden touch-target hover:-translate-y-1`}
+      className="group block bg-card p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-border hover:border-secondary/30 relative overflow-hidden touch-target hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Background Gradient */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+
       {/* Preview Image on Hover (Desktop only) */}
       <div 
-        className={`absolute inset-0 hidden lg:block transition-opacity duration-300 ${isHovered ? 'opacity-15' : 'opacity-0'}`}
+        className={`absolute inset-0 hidden lg:block transition-opacity duration-300 ${isHovered ? 'opacity-20' : 'opacity-0'}`}
         style={{
           backgroundImage: `url(${category.previewImage})`,
           backgroundSize: 'cover',
@@ -102,26 +90,26 @@ const CategoryCard = memo(({ category, index }: { category: typeof experienceCat
 
       <div className="relative">
         <div className="flex items-start justify-between mb-2.5 sm:mb-4">
-          <div className="w-10 sm:w-14 h-10 sm:h-14 rounded-lg sm:rounded-xl bg-white/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-white/20 transition-all duration-300">
-            <category.icon className={`w-5 sm:w-7 h-5 sm:h-7 ${category.iconColor} transition-colors`} />
+          <div className="w-10 sm:w-14 h-10 sm:h-14 rounded-lg sm:rounded-xl bg-muted/50 flex items-center justify-center group-hover:scale-110 group-hover:bg-secondary/20 transition-all duration-300">
+            <category.icon className={`w-5 sm:w-7 h-5 sm:h-7 ${category.iconColor} group-hover:text-secondary transition-colors`} />
           </div>
           
           {/* Guest Count Indicator */}
-          <div className={`hidden sm:flex items-center gap-1 text-xs ${category.badgeBg} px-2 py-1 rounded-full`}>
+          <div className="hidden sm:flex items-center gap-1 text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">
             <TrendingUp className="w-3 h-3" />
             <span className="font-semibold">{category.guestCount}</span>
           </div>
         </div>
 
-        <h3 className={`font-display font-bold text-sm sm:text-base ${category.textColor} mb-0.5 sm:mb-1 transition-colors`}>
+        <h3 className="font-display font-bold text-sm sm:text-base text-foreground mb-0.5 sm:mb-1 group-hover:text-secondary transition-colors">
           {category.title}
         </h3>
-        <p className={`text-xs sm:text-sm ${category.mutedColor} line-clamp-1 mb-2`}>
+        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 mb-2">
           {category.description}
         </p>
 
         {/* Guest label - visible on larger screens */}
-        <div className={`hidden sm:flex items-center gap-1 text-[10px] ${category.mutedColor}`}>
+        <div className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground">
           <Users className="w-3 h-3" />
           <span>{category.guestCount} {category.guestLabel}</span>
         </div>
