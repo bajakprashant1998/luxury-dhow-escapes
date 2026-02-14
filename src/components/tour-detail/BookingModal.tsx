@@ -109,8 +109,9 @@ const BookingModal = ({
   const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
   const transferCost = selectedVehicle ? selectedVehicle.price : 0;
 
+  const totalGuests = adults + children;
   const selfDiscount = (travelType === "self" && bookingFeatures.self_travel_discount)
-    ? bookingFeatures.self_travel_discount
+    ? bookingFeatures.self_travel_discount * totalGuests
     : 0;
 
   const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
@@ -221,7 +222,7 @@ const BookingModal = ({
           bookingFeatures.travel_options_enabled ? `[TRAVEL: ${travelType}]` : null,
           selectedVehicle ? `[TRANSFER: ${selectedVehicle.name} - AED ${selectedVehicle.price}]` : null,
           selectedDeck ? `[DECK: ${selectedDeck}${deckSurcharge > 0 ? ` +AED ${deckSurcharge}` : ''}]` : null,
-          selfDiscount > 0 ? `[DIRECT TO BOAT DISCOUNT: -AED ${selfDiscount}]` : null,
+          selfDiscount > 0 ? `[DIRECT TO BOAT DISCOUNT: -AED ${selfDiscount} (${totalGuests} persons × AED ${bookingFeatures.self_travel_discount})]` : null,
           specialRequests.trim() || null,
         ].filter(Boolean).join(' ') || null,
         total_price: totalPrice,
@@ -444,12 +445,15 @@ const BookingModal = ({
                     </div>
                     <RadioGroup
                       value={travelType}
-                      onValueChange={(v) => setTravelType(v as "shared" | "self" | "personal")}
+                      onValueChange={(v) => {
+                        setTravelType(v as "shared" | "self" | "personal");
+                        if (v === "self") setSelectedVehicleIdx("");
+                      }}
                       className="space-y-2"
                     >
                       {[
                         { value: "shared", label: "Shared Transfers", desc: "Group transfer" },
-                        { value: "self", label: "Direct To Boat", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}` : "Arrive on your own" },
+                        { value: "self", label: "Direct To Boat", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}/person` : "Arrive on your own" },
                         { value: "personal", label: "Private Transfers", desc: "Exclusive Vehicle" },
                       ].map((opt) => (
                         <div key={opt.value} className={cn(
@@ -701,7 +705,7 @@ const BookingModal = ({
                         <MapPin className="w-4 h-4" />
                         Direct To Boat discount
                       </span>
-                      <span className="font-medium">- AED {selfDiscount}</span>
+                      <span className="font-medium">- AED {selfDiscount} ({totalGuests} × {bookingFeatures.self_travel_discount})</span>
                     </div>
                   )}
                   {transferCost > 0 && selectedVehicle && (
