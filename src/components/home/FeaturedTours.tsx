@@ -38,8 +38,8 @@ const FeaturedTours = memo(() => {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
               <div key={i} className="bg-card rounded-2xl overflow-hidden shadow-md">
                 <Skeleton className="aspect-[16/10] w-full" />
                 <div className="p-6 space-y-3">
@@ -62,7 +62,7 @@ const FeaturedTours = memo(() => {
             {/* Mobile: Horizontal scroll carousel */}
             <div className="lg:hidden -mx-4 px-4">
               <div className="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory scrollbar-hide">
-                {featuredTours.slice(0, 4).map((tour, index) => (
+                {featuredTours.slice(0, 12).map((tour) => (
                   <div
                     key={tour.id}
                     className="flex-shrink-0 w-[85%] sm:w-[75%] snap-start"
@@ -71,26 +71,17 @@ const FeaturedTours = memo(() => {
                   </div>
                 ))}
               </div>
-              {/* Scroll indicator */}
-              <div className="flex justify-center gap-1.5 mt-2">
-                {featuredTours.slice(0, 4).map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-all ${index === 0 ? 'bg-secondary w-4' : 'bg-muted-foreground/30'}`}
-                  />
-                ))}
-              </div>
             </div>
 
-            {/* Desktop: Grid layout */}
+            {/* Desktop: 4x3 Grid layout */}
             <motion.div
-              className="hidden lg:grid lg:grid-cols-2 gap-6"
+              className="hidden lg:grid lg:grid-cols-4 gap-6"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.4 }}
             >
-              {featuredTours.slice(0, 4).map((tour) => (
+              {featuredTours.slice(0, 12).map((tour) => (
                 <div key={tour.id} className="h-full">
                   <TourCard tour={tour} />
                 </div>
