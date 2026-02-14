@@ -64,7 +64,7 @@ export function useFeaturedTours() {
         .eq("status", "active")
         .eq("featured", true)
         .order("created_at", { ascending: false })
-        .limit(4);
+        .limit(12);
 
       if (error) throw error;
       return mapDbToursToTours(data || []);
