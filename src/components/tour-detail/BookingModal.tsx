@@ -13,7 +13,8 @@ import {
   Ship,
   Users,
   Car,
-  Layers
+  Layers,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,6 @@ import { sendBookingEmail } from "@/lib/sendBookingEmail";
 import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
 import { Discount } from "@/hooks/useDiscounts";
 import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
-import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
@@ -100,12 +100,25 @@ const BookingModal = ({
   // Discount state
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
 
-  // Transfer & deck state
-  const [transferSelected, setTransferSelected] = useState(false);
+  // Transfer, deck & travel state
+  const [selectedVehicleIdx, setSelectedVehicleIdx] = useState<string>("");
   const [selectedDeck, setSelectedDeck] = useState("");
+  const [travelType, setTravelType] = useState<"shared" | "self" | "personal">("shared");
 
-  const transferPrice = (transferSelected && bookingFeatures.transfer_price) ? bookingFeatures.transfer_price : 0;
-  const subtotal = (isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children)) + transferPrice;
+  const vehicles = bookingFeatures.transfer_vehicles || [];
+  const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
+  const transferCost = selectedVehicle ? selectedVehicle.price : 0;
+
+  const selfDiscount = (travelType === "self" && bookingFeatures.self_travel_discount)
+    ? bookingFeatures.self_travel_discount
+    : 0;
+
+  const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
+    ? bookingFeatures.upper_deck_surcharge
+    : 0;
+
+  const basePrice = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
+  const subtotal = Math.max(0, basePrice + transferCost + deckSurcharge - selfDiscount);
 
   const calculateDiscountAmount = () => {
     if (!appliedDiscount) return 0;
@@ -140,8 +153,9 @@ const BookingModal = ({
         setSpecialRequests("");
         setAppliedDiscount(null);
         setSubmitError(null);
-        setTransferSelected(false);
+        setSelectedVehicleIdx("");
         setSelectedDeck("");
+        setTravelType("shared");
       }, 300);
     }
   }, [isOpen]);
@@ -204,8 +218,10 @@ const BookingModal = ({
         customer_phone: phone.trim(),
         special_requests: [
           isFullYacht ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}]` : null,
-          transferSelected ? `[TRANSFER: ${bookingFeatures.transfer_label || 'Hotel Transfer'}]` : null,
-          selectedDeck ? `[DECK: ${selectedDeck}]` : null,
+          bookingFeatures.travel_options_enabled ? `[TRAVEL: ${travelType}]` : null,
+          selectedVehicle ? `[TRANSFER: ${selectedVehicle.name} - AED ${selectedVehicle.price}]` : null,
+          selectedDeck ? `[DECK: ${selectedDeck}${deckSurcharge > 0 ? ` +AED ${deckSurcharge}` : ''}]` : null,
+          selfDiscount > 0 ? `[SELF-TRAVEL DISCOUNT: -AED ${selfDiscount}]` : null,
           specialRequests.trim() || null,
         ].filter(Boolean).join(' ') || null,
         total_price: totalPrice,
@@ -419,28 +435,59 @@ const BookingModal = ({
                   </div>
                 )}
 
-                {/* Transfer Service Option */}
-                {bookingFeatures.transfer_available !== false && (
+                {/* Travel Type Selection */}
+                {bookingFeatures.travel_options_enabled && (
                   <div className="border border-border rounded-2xl p-4 bg-card/50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Car className="w-5 h-5 text-secondary" />
-                        <div>
-                          <p className="font-bold text-foreground text-sm">
-                            {bookingFeatures.transfer_label || "Hotel/Residence Transfer"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {(bookingFeatures.transfer_price || 0) > 0
-                              ? `AED ${bookingFeatures.transfer_price}`
-                              : "Complimentary"}
-                          </p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={transferSelected}
-                        onCheckedChange={setTransferSelected}
-                      />
+                    <div className="flex items-center gap-3 mb-3">
+                      <MapPin className="w-5 h-5 text-secondary" />
+                      <p className="font-bold text-foreground text-sm">Travel Type</p>
                     </div>
+                    <RadioGroup
+                      value={travelType}
+                      onValueChange={(v) => setTravelType(v as "shared" | "self" | "personal")}
+                      className="space-y-2"
+                    >
+                      {[
+                        { value: "shared", label: "Shared Travelling", desc: "Group transfer" },
+                        { value: "self", label: "Self Travelling", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}` : "Arrive on your own" },
+                        { value: "personal", label: "Personal Travelling", desc: "Private transfer" },
+                      ].map((opt) => (
+                        <div key={opt.value} className={cn(
+                          "flex items-center gap-2 p-3 rounded-xl border transition-colors",
+                          travelType === opt.value ? "border-secondary bg-secondary/10" : "border-border"
+                        )}>
+                          <RadioGroupItem value={opt.value} id={`modal-travel-${opt.value}`} />
+                          <Label htmlFor={`modal-travel-${opt.value}`} className="cursor-pointer flex-1">
+                            <span className="font-medium text-sm block">{opt.label}</span>
+                            <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+
+                {/* Transfer Vehicle Selection */}
+                {bookingFeatures.transfer_available !== false && vehicles.length > 0 && travelType !== "self" && (
+                  <div className="border border-border rounded-2xl p-4 bg-card/50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Car className="w-5 h-5 text-secondary" />
+                      <p className="font-bold text-foreground text-sm">
+                        {bookingFeatures.transfer_label || "Hotel/Residence Transfer"}
+                      </p>
+                    </div>
+                    <Select value={selectedVehicleIdx} onValueChange={setSelectedVehicleIdx}>
+                      <SelectTrigger className="rounded-xl border-2">
+                        <SelectValue placeholder="Select a vehicle" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card z-50 rounded-xl">
+                        {vehicles.map((v, idx) => (
+                          <SelectItem key={idx} value={String(idx)}>
+                            {v.name} — AED {v.price}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
@@ -456,10 +503,13 @@ const BookingModal = ({
                       onValueChange={setSelectedDeck}
                       className="flex flex-col sm:flex-row gap-3"
                     >
-                      {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option) => (
+                      {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option, idx) => (
                         <div key={option} className="flex items-center gap-2">
-                          <RadioGroupItem value={option} id={`deck-${option}`} />
-                          <Label htmlFor={`deck-${option}`} className="text-sm cursor-pointer">{option}</Label>
+                          <RadioGroupItem value={option} id={`modal-deck-${option}`} />
+                          <Label htmlFor={`modal-deck-${option}`} className="text-sm cursor-pointer">
+                            {option}
+                            {idx === 1 && bookingFeatures.upper_deck_surcharge ? ` (+AED ${bookingFeatures.upper_deck_surcharge})` : ''}
+                          </Label>
                         </div>
                       ))}
                     </RadioGroup>
@@ -591,10 +641,16 @@ const BookingModal = ({
                       <p className="font-semibold">{phone}</p>
                     </div>
                   </div>
-                  {transferSelected && (
+                  {bookingFeatures.travel_options_enabled && (
+                    <div className="pt-3 border-t border-border flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-secondary" />
+                      <p className="text-sm font-medium capitalize">{travelType} Travelling</p>
+                    </div>
+                  )}
+                  {selectedVehicle && (
                     <div className="pt-3 border-t border-border flex items-center gap-2">
                       <Car className="w-4 h-4 text-secondary" />
-                      <p className="text-sm font-medium">{bookingFeatures.transfer_label || 'Hotel Transfer'}</p>
+                      <p className="text-sm font-medium">{selectedVehicle.name} — AED {selectedVehicle.price}</p>
                     </div>
                   )}
                   {selectedDeck && (
@@ -639,13 +695,31 @@ const BookingModal = ({
                       )}
                     </>
                   )}
-                  {transferSelected && transferPrice > 0 && (
+                  {selfDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-secondary">
+                      <span className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Self-travel discount
+                      </span>
+                      <span className="font-medium">- AED {selfDiscount}</span>
+                    </div>
+                  )}
+                  {transferCost > 0 && selectedVehicle && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground flex items-center gap-2">
                         <Car className="w-4 h-4" />
-                        Transfer Service
+                        Transfer ({selectedVehicle.name})
                       </span>
-                      <span className="font-medium">AED {transferPrice}</span>
+                      <span className="font-medium">AED {transferCost}</span>
+                    </div>
+                  )}
+                  {deckSurcharge > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        <Layers className="w-4 h-4" />
+                        Upper deck surcharge
+                      </span>
+                      <span className="font-medium">AED {deckSurcharge}</span>
                     </div>
                   )}
                   {appliedDiscount && discountAmount > 0 && (
