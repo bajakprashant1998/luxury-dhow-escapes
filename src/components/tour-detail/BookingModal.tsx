@@ -110,7 +110,7 @@ const BookingModal = ({
   const transferCost = selectedVehicle ? selectedVehicle.price : 0;
 
   const totalGuests = adults + children;
-  const selfDiscount = (travelType === "self" && bookingFeatures.self_travel_discount)
+  const selfDiscount = ((travelType === "self" || travelType === "personal") && bookingFeatures.self_travel_discount)
     ? bookingFeatures.self_travel_discount * totalGuests
     : 0;
 
@@ -447,7 +447,7 @@ const BookingModal = ({
                       value={travelType}
                       onValueChange={(v) => {
                         setTravelType(v as "shared" | "self" | "personal");
-                        if (v === "self") setSelectedVehicleIdx("");
+                        if (v === "self" || v === "shared") setSelectedVehicleIdx("");
                       }}
                       className="space-y-2"
                     >
@@ -472,7 +472,7 @@ const BookingModal = ({
                 )}
 
                 {/* Transfer Vehicle Selection */}
-                {bookingFeatures.transfer_available !== false && vehicles.length > 0 && travelType !== "self" && (
+                {bookingFeatures.transfer_available !== false && vehicles.length > 0 && travelType === "personal" && (
                   <div className="border border-border rounded-2xl p-4 bg-card/50">
                     <div className="flex items-center gap-3 mb-3">
                       <Car className="w-5 h-5 text-secondary" />
@@ -703,7 +703,7 @@ const BookingModal = ({
                     <div className="flex justify-between text-sm text-secondary">
                       <span className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Direct To Boat discount
+                        {travelType === "self" ? "Direct To Boat discount" : "Standard transfer removed"}
                       </span>
                       <span className="font-medium">- AED {selfDiscount} ({totalGuests} × {bookingFeatures.self_travel_discount})</span>
                     </div>
