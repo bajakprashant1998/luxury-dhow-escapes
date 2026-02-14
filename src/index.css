@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter&display=swap");
+
 /* Fonts loaded via index.html preload to avoid render-blocking @import */
 
 @tailwind base;
@@ -16,15 +18,15 @@
     --popover-foreground: 220 25% 10%;
 
     --primary: 220 50% 20%;
-    --primary-foreground: 45 60% 65%;
+    --primary-foreground: 45 61% 55%;
 
-    --secondary: 45 60% 65%;
+    --secondary: 45 61% 55%;
     --secondary-foreground: 220 50% 20%;
 
     --muted: 220 20% 96%;
     --muted-foreground: 220 15% 45%;
 
-    --accent: 45 60% 65%;
+    --accent: 45 61% 55%;
     --accent-foreground: 220 50% 20%;
 
     --destructive: 0 84% 60%;
@@ -121,7 +123,7 @@
   .font-display {
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
-  
+
   .font-sans {
     font-family: 'Inter', sans-serif;
   }
@@ -290,7 +292,7 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  
+
   .animate-float-slow,
   .animate-float-slower,
   .animate-bounce-slow,
@@ -307,18 +309,18 @@
   .animate-float-slower {
     animation-duration: 12s; /* Slower = less CPU */
   }
-  
+
   /* Disable heavy animations on mobile */
   .parallax-disable-mobile {
     transform: none !important;
     animation: none !important;
   }
-  
+
   /* Use CSS containment for better rendering performance */
   .mobile-contain {
     contain: layout style;
   }
-  
+
   /* Reduce blur effects on mobile (GPU intensive) */
   .backdrop-blur-lg,
   .backdrop-blur-md {
