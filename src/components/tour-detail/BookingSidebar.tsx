@@ -1,19 +1,21 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, memo } from "react";
 import { format } from "date-fns";
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  Shield, 
-  Phone, 
+import {
+  Calendar,
+  Clock,
+  Users,
+  Shield,
+  Phone,
   MessageCircle,
   Minus,
   Plus,
   CalendarIcon,
   Flame,
   Sparkles,
-  Check
+  Check,
+  Layers,
+  Car,
+  MapPin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
 import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
@@ -40,13 +51,13 @@ interface BookingSidebarProps {
   bookingFeatures?: BookingFeatures;
 }
 
-const BookingSidebar = ({ 
-  price, 
-  originalPrice, 
-  duration, 
-  reviewCount, 
-  tourTitle, 
-  tourId, 
+const BookingSidebar = memo(({
+  price,
+  originalPrice,
+  duration,
+  reviewCount,
+  tourTitle,
+  tourId,
   pricingType = "per_person",
   fullYachtPrice,
   capacity,
@@ -57,6 +68,11 @@ const BookingSidebar = ({
   const [children, setChildren] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedDeck, setSelectedDeck] = useState<string>(
+    bookingFeatures.deck_options?.[0] || "Lower Deck"
+  );
+  const [travelType, setTravelType] = useState<"shared" | "self" | "personal">("shared");
+  const [selectedVehicleIdx, setSelectedVehicleIdx] = useState<string>("");
   const { phone, phoneFormatted, whatsappLinkWithGreeting } = useContactConfig();
 
   // Derive booking type from tour data - no toggle needed
@@ -64,11 +80,25 @@ const BookingSidebar = ({
   const bookingType = isFullYacht ? "full_yacht" : "per_person";
 
   const discount = Math.round((1 - price / originalPrice) * 100);
-  
-  // Calculate total based on booking type
-  const totalPrice = isFullYacht
+
+  // Calculate total based on booking type with add-ons
+  const basePrice = isFullYacht
     ? fullYachtPrice
     : price * adults + price * 0.7 * children;
+
+  const selfDiscount = (travelType === "self" && bookingFeatures.self_travel_discount)
+    ? bookingFeatures.self_travel_discount
+    : 0;
+
+  const vehicles = bookingFeatures.transfer_vehicles || [];
+  const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
+  const transferCost = selectedVehicle ? selectedVehicle.price : 0;
+
+  const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
+    ? bookingFeatures.upper_deck_surcharge
+    : 0;
+
+  const totalPrice = Math.max(0, basePrice - selfDiscount + transferCost + deckSurcharge);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -78,71 +108,36 @@ const BookingSidebar = ({
   };
 
   return (
-    <motion.div 
-      className="sticky top-28 space-y-4"
-      initial={{ opacity: 0, x: 30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
+    <div className="sticky top-28 space-y-4">
       {/* Main Booking Card */}
-      <motion.div 
-        className="bg-card rounded-2xl p-6 shadow-xl border border-border overflow-hidden relative"
-        whileHover={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)" }}
-        transition={{ duration: 0.3 }}
-      >
+      <div className="bg-card rounded-2xl p-6 shadow-xl border border-border overflow-hidden relative hover:shadow-2xl transition-shadow duration-300">
         {/* Background Gradient */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        
+
         {/* Urgency Badge */}
         {bookingFeatures.urgency_enabled && (
-          <motion.div 
-            className="flex items-center gap-2 mb-4 p-2.5 bg-destructive/10 rounded-xl relative"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
+          <div className="flex items-center gap-2 mb-4 p-2.5 bg-destructive/10 rounded-xl relative">
+            <div className="animate-pulse">
               <Flame className="w-4 h-4 text-destructive" />
-            </motion.div>
+            </div>
             <span className="text-sm font-medium text-destructive">
               {bookingFeatures.urgency_text}
             </span>
-          </motion.div>
+          </div>
         )}
 
 
         {/* Price */}
-        <motion.div 
-          className="mb-6 relative"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="mb-6 relative">
           {isFullYacht ? (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <motion.span 
-                className="inline-block bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-semibold mb-2"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 400 }}
-              >
+            <div>
+              <span className="inline-block bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-semibold mb-2">
                 Private Charter
-              </motion.span>
+              </span>
               <div className="flex items-baseline gap-2">
-                <motion.span 
-                  className="text-3xl font-bold text-foreground"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                >
+                <span className="text-3xl font-bold text-foreground">
                   AED {fullYachtPrice.toLocaleString()}
-                </motion.span>
+                </span>
               </div>
               <p className="text-muted-foreground text-sm">Per Hour</p>
               {capacity && (
@@ -159,40 +154,26 @@ const BookingSidebar = ({
                   ))}
                 </div>
               )}
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
+            <div>
               {discount > 0 && (
-                <motion.span 
-                  className="inline-block bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold mb-2"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 400, delay: 0.5 }}
-                >
+                <span className="inline-block bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-semibold mb-2">
                   {discount}% OFF
-                </motion.span>
+                </span>
               )}
               <div className="flex items-baseline gap-2">
-                <motion.span 
-                  className="text-3xl font-bold text-foreground"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
+                <span className="text-3xl font-bold text-foreground">
                   AED {price}
-                </motion.span>
+                </span>
                 {originalPrice > price && (
                   <span className="text-muted-foreground line-through text-lg">AED {originalPrice}</span>
                 )}
               </div>
               <p className="text-muted-foreground text-sm">{pricingType === "per_hour" ? "per hour" : "per person"}</p>
-            </motion.div>
+            </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Date Picker */}
         <div className="mb-4 relative">
@@ -225,144 +206,211 @@ const BookingSidebar = ({
 
         {/* Guest Selectors - Only show for per_person booking */}
         {!isFullYacht && (
-            <motion.div 
-              className="mb-6 space-y-3 relative"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+          <div className="mb-6 space-y-3 relative">
+            <label className="text-sm font-medium text-foreground block">Guests</label>
+
+            {/* Adults */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
+              <div>
+                <p className="font-medium text-sm">Adults</p>
+                <p className="text-xs text-muted-foreground">Age 12+</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAdults(Math.max(1, adults - 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
+                  disabled={adults <= 1}
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-6 text-center font-semibold">
+                  {adults}
+                </span>
+                <button
+                  onClick={() => setAdults(Math.min(10, adults + 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Children */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
+              <div>
+                <p className="font-medium text-sm">Children</p>
+                <p className="text-xs text-muted-foreground">Age 2-11 (30% off)</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setChildren(Math.max(0, children - 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
+                  disabled={children <= 0}
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-6 text-center font-semibold">
+                  {children}
+                </span>
+                <button
+                  onClick={() => setChildren(Math.min(6, children + 1))}
+                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Travel Type Selector */}
+        {bookingFeatures.travel_options_enabled && (
+          <div className="mb-6 relative">
+            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-secondary" />
+              Travel Type
+            </label>
+            <RadioGroup
+              value={travelType}
+              onValueChange={(v) => setTravelType(v as "shared" | "self" | "personal")}
+              className="mt-2 space-y-2"
             >
-              <label className="text-sm font-medium text-foreground block">Guests</label>
-              
-              {/* Adults */}
-              <motion.div 
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
-                whileHover={{ scale: 1.01 }}
-              >
-                <div>
-                  <p className="font-medium text-sm">Adults</p>
-                  <p className="text-xs text-muted-foreground">Age 12+</p>
+              {[
+                { value: "shared", label: "Shared Travelling", desc: "Group transfer included" },
+                { value: "self", label: "Self Travelling", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}` : "Arrive on your own" },
+                { value: "personal", label: "Personal Travelling", desc: "Private transfer" },
+              ].map((opt) => (
+                <div key={opt.value} className={cn(
+                  "flex items-center space-x-3 p-3 rounded-xl border transition-colors cursor-pointer",
+                  travelType === opt.value ? "border-secondary bg-secondary/10" : "border-border bg-muted/50 hover:bg-muted/70"
+                )}>
+                  <RadioGroupItem value={opt.value} id={`travel-${opt.value}`} />
+                  <Label htmlFor={`travel-${opt.value}`} className="cursor-pointer flex-1">
+                    <span className="font-medium text-sm block">{opt.label}</span>
+                    <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                  </Label>
                 </div>
-                <div className="flex items-center gap-3">
-                  <motion.button
-                    onClick={() => setAdults(Math.max(1, adults - 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50"
-                    disabled={adults <= 1}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </motion.button>
-                  <motion.span 
-                    className="w-6 text-center font-semibold"
-                    key={adults}
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                  >
-                    {adults}
-                  </motion.span>
-                  <motion.button
-                    onClick={() => setAdults(Math.min(10, adults + 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all"
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </motion.button>
-                </div>
-              </motion.div>
+              ))}
+            </RadioGroup>
+          </div>
+        )}
 
-              {/* Children */}
-              <motion.div 
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors"
-                whileHover={{ scale: 1.01 }}
-              >
-                <div>
-                  <p className="font-medium text-sm">Children</p>
-                  <p className="text-xs text-muted-foreground">Age 2-11 (30% off)</p>
+        {/* Transfer Vehicle Selector */}
+        {bookingFeatures.transfer_available && vehicles.length > 0 && travelType !== "self" && (
+          <div className="mb-6 relative">
+            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <Car className="w-4 h-4 text-secondary" />
+              Transfer Vehicle
+            </label>
+            <Select value={selectedVehicleIdx} onValueChange={setSelectedVehicleIdx}>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select a vehicle" />
+              </SelectTrigger>
+              <SelectContent>
+                {vehicles.map((v, idx) => (
+                  <SelectItem key={idx} value={String(idx)}>
+                    {v.name} — AED {v.price}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Deck Seating Selector */}
+        {bookingFeatures.has_upper_deck && (
+          <div className="mb-6 relative">
+            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-secondary" />
+              Deck Preference
+            </label>
+            <RadioGroup value={selectedDeck} onValueChange={setSelectedDeck} className="mt-2 space-y-2">
+              {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option, idx) => (
+                <div key={option} className={cn(
+                  "flex items-center justify-between p-3 rounded-xl border transition-colors",
+                  selectedDeck === option ? "border-secondary bg-secondary/10" : "border-border bg-muted/50 hover:bg-muted/70"
+                )}>
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value={option} id={`deck-${option}`} />
+                    <Label htmlFor={`deck-${option}`} className="font-medium text-sm cursor-pointer">{option}</Label>
+                  </div>
+                  {idx === 1 && bookingFeatures.upper_deck_surcharge ? (
+                    <span className="text-xs font-semibold text-secondary">+AED {bookingFeatures.upper_deck_surcharge}</span>
+                  ) : null}
                 </div>
-                <div className="flex items-center gap-3">
-                  <motion.button
-                    onClick={() => setChildren(Math.max(0, children - 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50"
-                    disabled={children <= 0}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </motion.button>
-                  <motion.span 
-                    className="w-6 text-center font-semibold"
-                    key={children}
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                  >
-                    {children}
-                  </motion.span>
-                  <motion.button
-                    onClick={() => setChildren(Math.min(6, children + 1))}
-                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all"
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </motion.button>
-                </div>
-              </motion.div>
-            </motion.div>
+              ))}
+            </RadioGroup>
+          </div>
+        )}
+
+        {/* Price Breakdown */}
+        <div className="mb-6 p-4 bg-secondary/10 rounded-xl relative overflow-hidden space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">{isFullYacht ? "Charter price" : `Base (${adults}A${children > 0 ? ` + ${children}C` : ''})`}</span>
+            <span>AED {basePrice.toLocaleString()}</span>
+          </div>
+          {selfDiscount > 0 && (
+            <div className="flex justify-between text-sm text-secondary">
+              <span>Self-travel discount</span>
+              <span>- AED {selfDiscount}</span>
+            </div>
           )}
-
-        {/* Total Price */}
-        <motion.div 
-          className="flex items-center justify-between p-4 bg-secondary/10 rounded-xl mb-6 relative overflow-hidden"
-          layout
-        >
-          <span className="font-medium">Total</span>
-          <motion.span 
-            className="text-xl font-bold text-foreground"
-            key={totalPrice}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            AED {totalPrice.toLocaleString()}
-          </motion.span>
-        </motion.div>
+          {transferCost > 0 && selectedVehicle && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Transfer ({selectedVehicle.name})</span>
+              <span>AED {transferCost}</span>
+            </div>
+          )}
+          {deckSurcharge > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Upper deck</span>
+              <span>AED {deckSurcharge}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <span className="font-medium">Total</span>
+            <span className="text-xl font-bold text-foreground">
+              AED {totalPrice.toLocaleString()}
+            </span>
+          </div>
+        </div>
 
         {/* Quick Info */}
         <div className="space-y-3 mb-6 pb-6 border-b border-border relative">
           {[
-            { icon: Calendar, text: bookingFeatures.availability_text, show: true },
-            { icon: Clock, text: bookingFeatures.minimum_duration || duration, show: true },
-            { icon: Users, text: bookingFeatures.hotel_pickup_text, show: bookingFeatures.hotel_pickup },
-            { icon: Shield, text: bookingFeatures.cancellation_text, show: true },
+            { icon: Calendar, text: bookingFeatures.availability_text, show: !!bookingFeatures.availability_text },
+            { icon: Clock, text: bookingFeatures.minimum_duration || duration, show: !!(bookingFeatures.minimum_duration || duration) },
+            { icon: Users, text: bookingFeatures.hotel_pickup_text, show: bookingFeatures.hotel_pickup && !!bookingFeatures.hotel_pickup_text },
+            { icon: Shield, text: bookingFeatures.cancellation_text, show: !!bookingFeatures.cancellation_text },
           ].filter(item => item.show).map((item, index) => (
-            <motion.div 
+            <div
               key={index}
               className="flex items-center gap-3"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 + index * 0.1 }}
             >
               <item.icon className="w-5 h-5 text-secondary" />
               <span className="text-sm text-muted-foreground">{item.text}</span>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* CTAs */}
         <div className="space-y-3 relative">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button 
+          <div>
+            <Button
               onClick={() => setIsBookingModalOpen(true)}
-              className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-12 text-lg shadow-lg group"
+              className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-12 text-lg shadow-lg group hover:scale-[1.02] active:scale-[0.98] transition-transform"
             >
               <Sparkles className="w-5 h-5 mr-2 group-hover:animate-pulse" />
               Reserve Now
             </Button>
-          </motion.div>
+          </div>
           <a href={whatsappLinkWithGreeting(`Hi! I'm interested in booking ${tourTitle}. Can you help?`)} target="_blank" rel="noopener noreferrer" className="block">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="outline" className="w-full h-12 hover:border-secondary/50">
+            <div>
+              <Button variant="outline" className="w-full h-12 hover:border-secondary/50 hover:scale-[1.02] active:scale-[0.98] transition-transform">
                 <MessageCircle className="w-5 h-5 mr-2" />
                 WhatsApp Us
               </Button>
-            </motion.div>
+            </div>
           </a>
           <a href={`tel:${phone}`} className="block">
             <Button variant="ghost" className="w-full h-12 text-muted-foreground hover:text-foreground">
@@ -373,39 +421,25 @@ const BookingSidebar = ({
         </div>
 
         {/* Trust Badge */}
-        <motion.div 
-          className="mt-6 pt-6 border-t border-border text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
+        <div className="mt-6 pt-6 border-t border-border text-center">
           <p className="text-sm text-muted-foreground">
             ✓ Instant Confirmation<br />
             ✓ Best Price Guaranteed
           </p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Social Proof Card */}
-      <motion.div 
-        className="bg-card rounded-xl p-4 shadow-md border border-border/50"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        whileHover={{ y: -2, boxShadow: "0 10px 20px -5px rgba(0,0,0,0.1)" }}
-      >
+      <div className="bg-card rounded-xl p-4 shadow-md border border-border/50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
             {['J', 'M', 'S'].map((initial, i) => (
-              <motion.div
+              <div
                 key={i}
                 className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary to-primary border-2 border-card flex items-center justify-center text-primary-foreground font-semibold text-xs"
-                initial={{ scale: 0, x: -10 }}
-                animate={{ scale: 1, x: 0 }}
-                transition={{ delay: 0.7 + i * 0.1, type: "spring" }}
               >
                 {initial}
-              </motion.div>
+              </div>
             ))}
           </div>
           <div className="text-sm">
@@ -413,7 +447,7 @@ const BookingSidebar = ({
             <p className="text-muted-foreground text-xs">booked this experience</p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Booking Modal */}
       <BookingModal
@@ -424,9 +458,12 @@ const BookingSidebar = ({
         price={price}
         fullYachtPrice={fullYachtPrice}
         capacity={capacity}
+        bookingFeatures={bookingFeatures}
       />
-    </motion.div>
+    </div>
   );
-};
+});
+
+BookingSidebar.displayName = "BookingSidebar";
 
 export default BookingSidebar;

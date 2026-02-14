@@ -36,12 +36,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Loader2, Ship, Star, MapPin } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Loader2, Ship, Star, MapPin, Copy, EyeOff } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import TablePagination from "@/components/admin/TablePagination";
 import { usePagination } from "@/hooks/usePagination";
+import { useCategories } from "@/hooks/useCategories";
 
 type Tour = Tables<"tours">;
 
@@ -50,9 +52,13 @@ const AdminTours = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const { data: categories = [] } = useCategories();
 
   useEffect(() => {
     fetchTours();
@@ -72,6 +78,79 @@ const AdminTours = () => {
       toast.error("Failed to load tours");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (tour: Tour) => {
+    const newStatus = tour.status === "active" ? "draft" : "active";
+    setTogglingIds((prev) => new Set(prev).add(tour.id));
+    try {
+      const { error } = await supabase
+        .from("tours")
+        .update({ status: newStatus })
+        .eq("id", tour.id);
+
+      if (error) throw error;
+
+      setTours((prev) =>
+        prev.map((t) => (t.id === tour.id ? { ...t, status: newStatus } : t))
+      );
+      toast.success(`Tour ${newStatus === "active" ? "activated" : "deactivated"}`);
+    } catch (error: any) {
+      console.error("Error toggling tour status:", error);
+      toast.error("Failed to update tour status");
+    } finally {
+      setTogglingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(tour.id);
+        return next;
+      });
+    }
+  };
+
+  const handleDuplicate = async (tour: Tour) => {
+    setDuplicatingId(tour.id);
+    try {
+      const { data: fullTour, error: fetchError } = await supabase
+        .from("tours")
+        .select("*")
+        .eq("id", tour.id)
+        .single();
+
+      if (fetchError || !fullTour) throw fetchError || new Error("Tour not found");
+
+      const timestamp = Date.now();
+      const { id, created_at, updated_at, seo_slug, ...tourData } = fullTour;
+
+      const { data: newTour, error: insertError } = await supabase
+        .from("tours")
+        .insert({
+          ...tourData,
+          title: `Copy of ${fullTour.title}`,
+          slug: `${fullTour.slug}-copy-${timestamp}`,
+          seo_slug: null,
+          status: "draft",
+          featured: false,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setTours((prev) => [newTour, ...prev]);
+      toast.success("Tour duplicated successfully", {
+        action: newTour
+          ? {
+              label: "Edit Copy",
+              onClick: () => window.location.assign(`/admin/tours/edit/${newTour.slug}`),
+            }
+          : undefined,
+      });
+    } catch (error: any) {
+      console.error("Error duplicating tour:", error);
+      toast.error(error.message || "Failed to duplicate tour");
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -107,7 +186,8 @@ const AdminTours = () => {
   const filteredTours = tours.filter((tour) => {
     const matchesSearch = tour.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || tour.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesStatus = statusFilter === "all" || tour.status === statusFilter;
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   // Stats
@@ -115,6 +195,7 @@ const AdminTours = () => {
     total: tours.length,
     featured: tours.filter((t) => t.featured).length,
     active: tours.filter((t) => t.status === "active").length,
+    inactive: tours.filter((t) => t.status !== "active").length,
     avgPrice: tours.length > 0 ? tours.reduce((sum, t) => sum + Number(t.price), 0) / tours.length : 0,
   };
 
@@ -122,10 +203,15 @@ const AdminTours = () => {
 
   const getCategoryBadge = (category: string) => {
     const colors: Record<string, string> = {
-      dhow: "bg-blue-500/10 text-blue-600",
-      megayacht: "bg-purple-500/10 text-purple-600",
-      shared: "bg-emerald-500/10 text-emerald-600",
-      private: "bg-amber-500/10 text-amber-600",
+      "dhow-cruise": "bg-blue-500/10 text-blue-600",
+      "dhow": "bg-blue-500/10 text-blue-600",
+      "megayacht": "bg-purple-500/10 text-purple-600",
+      "yacht-shared": "bg-emerald-500/10 text-emerald-600",
+      "shared": "bg-emerald-500/10 text-emerald-600",
+      "yacht-private": "bg-amber-500/10 text-amber-600",
+      "private": "bg-amber-500/10 text-amber-600",
+      "water-activity": "bg-cyan-500/10 text-cyan-600",
+      "yacht-event": "bg-pink-500/10 text-pink-600",
     };
     return colors[category] || "bg-muted text-muted-foreground";
   };
@@ -179,19 +265,6 @@ const AdminTours = () => {
           <Card className="bg-card border-border">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10">
-                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Featured</p>
-                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.featured}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/10">
                   <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                 </div>
@@ -205,12 +278,25 @@ const AdminTours = () => {
           <Card className="bg-card border-border">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
-                  <Ship className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                <div className="p-1.5 sm:p-2 rounded-lg bg-orange-500/10">
+                  <EyeOff className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Avg Price</p>
-                  <p className="text-lg sm:text-2xl font-bold text-foreground">AED {stats.avgPrice.toFixed(0)}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Inactive</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.inactive}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Featured</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.featured}</p>
                 </div>
               </div>
             </CardContent>
@@ -234,10 +320,20 @@ const AdminTours = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="dhow">Dhow Cruise</SelectItem>
-              <SelectItem value="megayacht">Megayacht</SelectItem>
-              <SelectItem value="shared">Shared Yacht</SelectItem>
-              <SelectItem value="private">Private Yacht</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -252,7 +348,7 @@ const AdminTours = () => {
                   <TableHead className="hidden sm:table-cell">Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead className="hidden md:table-cell">Duration</TableHead>
-                  <TableHead className="hidden lg:table-cell">Status</TableHead>
+                  <TableHead className="hidden lg:table-cell">Visible</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -265,7 +361,7 @@ const AdminTours = () => {
                   </TableRow>
                 ) : (
                   pagination.paginatedItems.map((tour) => (
-                    <TableRow key={tour.id}>
+                    <TableRow key={tour.id} className={tour.status !== "active" ? "opacity-60" : ""}>
                       <TableCell>
                         <div className="flex items-center gap-2 sm:gap-3">
                           {tour.image_url ? (
@@ -301,16 +397,18 @@ const AdminTours = () => {
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-sm">{tour.duration || "-"}</TableCell>
                       <TableCell className="hidden lg:table-cell">
-                        <Badge
-                          className={
-                            tour.featured
-                              ? "bg-amber-500/10 text-amber-600"
-                              : "bg-emerald-500/10 text-emerald-600"
-                          }
-                          variant="secondary"
-                        >
-                          {tour.featured ? "Featured" : "Active"}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              tour.status === "active" ? "bg-emerald-500" : "bg-muted-foreground/40"
+                            }`}
+                          />
+                          <Switch
+                            checked={tour.status === "active"}
+                            disabled={togglingIds.has(tour.id)}
+                            onCheckedChange={() => handleToggleStatus(tour)}
+                          />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -331,6 +429,35 @@ const AdminTours = () => {
                                 <Edit className="w-4 h-4 mr-2" />
                                 Edit
                               </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              disabled={duplicatingId === tour.id}
+                              onClick={() => handleDuplicate(tour)}
+                            >
+                              {duplicatingId === tour.id ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <Copy className="w-4 h-4 mr-2" />
+                              )}
+                              Duplicate
+                            </DropdownMenuItem>
+                            {/* Toggle on mobile (visible column is hidden) */}
+                            <DropdownMenuItem
+                              onClick={() => handleToggleStatus(tour)}
+                              disabled={togglingIds.has(tour.id)}
+                              className="lg:hidden"
+                            >
+                              {tour.status === "active" ? (
+                                <>
+                                  <EyeOff className="w-4 h-4 mr-2" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Activate
+                                </>
+                              )}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               className="text-destructive"

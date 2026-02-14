@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.convert-image-webp]
 verify_jwt = false
+
+[functions.render-og]
+verify_jwt = false

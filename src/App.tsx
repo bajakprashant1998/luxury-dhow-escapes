@@ -22,6 +22,8 @@ const Auth = lazy(() => import("./pages/Auth"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const CancellationPolicy = lazy(() => import("./pages/CancellationPolicy"));
+const YachtPromoLanding = lazy(() => import("./pages/YachtPromoLanding"));
+const Activities = lazy(() => import("./pages/Activities"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages - lazy load entire admin section
@@ -43,6 +45,7 @@ const AdminActivityLog = lazy(() => import("./pages/admin/ActivityLog"));
 const AdminLegalPages = lazy(() => import("./pages/admin/LegalPages"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
 const AdminLiveChat = lazy(() => import("./pages/admin/LiveChat"));
+const AdminMarketingBookings = lazy(() => import("./pages/admin/MarketingBookings"));
 
 // RequireSession must be loaded synchronously as it's a wrapper component
 import RequireSession from "./components/admin/RequireSession";
@@ -87,6 +90,7 @@ const App = () => (
             <Route path="/dubai/:categoryPath" element={<Tours />} />
             {/* Legacy route - kept for backwards compatibility */}
             <Route path="/tours/:slug" element={<TourDetail />} />
+            <Route path="/activities" element={<Activities />} />
             <Route path="/saved-tours" element={<SavedTours />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/about" element={<About />} />
@@ -240,6 +244,15 @@ const App = () => (
                 </RequireSession>
               }
             />
+            <Route
+              path="/admin/marketing-bookings"
+              element={
+                <RequireSession>
+                  <AdminMarketingBookings />
+                </RequireSession>
+              }
+            />
+            <Route path="/entalyachtdubaipromotion-1" element={<YachtPromoLanding />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

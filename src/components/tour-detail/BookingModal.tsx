@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  Minus, 
-  Plus, 
-  CalendarIcon, 
-  Check, 
+import {
+  ArrowRight,
+  ArrowLeft,
+  Minus,
+  Plus,
+  CalendarIcon,
+  Check,
   Loader2,
   AlertCircle,
   Sparkles,
   Ship,
-  Users
+  Users,
+  Car,
+  Layers,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +44,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendBookingEmail } from "@/lib/sendBookingEmail";
 import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
 import { Discount } from "@/hooks/useDiscounts";
+import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -50,6 +56,7 @@ interface BookingModalProps {
   price: number;
   fullYachtPrice?: number | null;
   capacity?: string;
+  bookingFeatures?: BookingFeatures;
 }
 
 const steps = [
@@ -58,14 +65,15 @@ const steps = [
   { number: 3, label: "Confirm" },
 ];
 
-const BookingModal = ({ 
-  isOpen, 
-  onClose, 
-  tourTitle, 
-  tourId, 
+const BookingModal = ({
+  isOpen,
+  onClose,
+  tourTitle,
+  tourId,
   price,
   fullYachtPrice,
-  capacity
+  capacity,
+  bookingFeatures = defaultBookingFeatures
 }: BookingModalProps) => {
   // Derive booking type from tour data - no toggle needed
   const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
@@ -75,14 +83,14 @@ const BookingModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   // Step 1 state
   const [date, setDate] = useState<Date>();
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  
+
   // Step 2 state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -92,8 +100,26 @@ const BookingModal = ({
   // Discount state
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
 
-  const subtotal = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
-  
+  // Transfer, deck & travel state
+  const [selectedVehicleIdx, setSelectedVehicleIdx] = useState<string>("");
+  const [selectedDeck, setSelectedDeck] = useState("");
+  const [travelType, setTravelType] = useState<"shared" | "self" | "personal">("shared");
+
+  const vehicles = bookingFeatures.transfer_vehicles || [];
+  const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
+  const transferCost = selectedVehicle ? selectedVehicle.price : 0;
+
+  const selfDiscount = (travelType === "self" && bookingFeatures.self_travel_discount)
+    ? bookingFeatures.self_travel_discount
+    : 0;
+
+  const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
+    ? bookingFeatures.upper_deck_surcharge
+    : 0;
+
+  const basePrice = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
+  const subtotal = Math.max(0, basePrice + transferCost + deckSurcharge - selfDiscount);
+
   const calculateDiscountAmount = () => {
     if (!appliedDiscount) return 0;
     if (appliedDiscount.type === "percentage") {
@@ -127,6 +153,9 @@ const BookingModal = ({
         setSpecialRequests("");
         setAppliedDiscount(null);
         setSubmitError(null);
+        setSelectedVehicleIdx("");
+        setSelectedDeck("");
+        setTravelType("shared");
       }, 300);
     }
   }, [isOpen]);
@@ -169,9 +198,15 @@ const BookingModal = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
-    
+
     try {
+      // Get current user if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const bookingId = crypto.randomUUID();
+
       const bookingData: any = {
+        id: bookingId,
         tour_id: tourId,
         tour_name: tourTitle,
         booking_date: format(date!, "yyyy-MM-dd"),
@@ -181,15 +216,25 @@ const BookingModal = ({
         customer_name: name.trim(),
         customer_email: email.trim(),
         customer_phone: phone.trim(),
-        special_requests: isFullYacht 
-          ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}] ${specialRequests.trim() || ''}`
-          : (specialRequests.trim() || null),
+        special_requests: [
+          isFullYacht ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}]` : null,
+          bookingFeatures.travel_options_enabled ? `[TRAVEL: ${travelType}]` : null,
+          selectedVehicle ? `[TRANSFER: ${selectedVehicle.name} - AED ${selectedVehicle.price}]` : null,
+          selectedDeck ? `[DECK: ${selectedDeck}${deckSurcharge > 0 ? ` +AED ${deckSurcharge}` : ''}]` : null,
+          selfDiscount > 0 ? `[SELF-TRAVEL DISCOUNT: -AED ${selfDiscount}]` : null,
+          specialRequests.trim() || null,
+        ].filter(Boolean).join(' ') || null,
         total_price: totalPrice,
         status: "pending",
         booking_type: bookingType,
       };
 
-      const { data: savedBooking, error } = await supabase.from("bookings").insert(bookingData).select().single();
+      if (user?.id) {
+        bookingData.user_id = user.id;
+      }
+
+      // Insert without selecting return data to avoid RLS issues for guest users
+      const { error } = await supabase.from("bookings").insert(bookingData);
 
       if (error) {
         console.error("Booking error:", error);
@@ -199,9 +244,11 @@ const BookingModal = ({
         throw new Error(error.message);
       }
 
+
+
       // Send confirmation email (don't block on failure)
-      if (savedBooking?.id) {
-        sendBookingEmail(savedBooking.id, "pending")
+      if (bookingId) {
+        sendBookingEmail(bookingId, "pending")
           .then(result => {
             if (!result.success) {
               console.warn("Email notification failed, but booking was created");
@@ -210,39 +257,33 @@ const BookingModal = ({
           .catch(console.warn);
       }
 
-      toast({ 
-        title: "🎉 Booking submitted!", 
-        description: "Check your email for confirmation. We'll contact you shortly." 
+      toast({
+        title: "🎉 Booking submitted!",
+        description: "Check your email for confirmation. We'll contact you shortly."
       });
       onClose();
     } catch (error: any) {
       console.error("Booking submission error:", error);
       setSubmitError(error.message || "Something went wrong. Please try again.");
-      toast({ 
-        title: "Booking failed", 
-        description: error.message || "Please try again or contact support.", 
-        variant: "destructive" 
+      toast({
+        title: "Booking failed",
+        description: error.message || "Please try again or contact support.",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const GuestCounter = ({ 
-    label, 
-    sublabel, 
-    value, 
-    onChange, 
-    min = 0, 
-    max = 10 
-  }: { 
-    label: string; 
-    sublabel: string; 
-    value: number; 
-    onChange: (v: number) => void; 
-    min?: number; 
-    max?: number; 
-  }) => (
+  // Guest counter component - defined inline without ref to avoid forwardRef warning
+  const renderGuestCounter = (
+    label: string,
+    sublabel: string,
+    value: number,
+    onChange: (v: number) => void,
+    min: number = 0,
+    max: number = 10
+  ) => (
     <div className="flex-1 min-w-0 border border-border rounded-2xl p-4 transition-all duration-300 hover:border-secondary/50 hover:shadow-md bg-card/50">
       <div className="flex items-center justify-between sm:block">
         <div className="sm:mb-4">
@@ -251,6 +292,7 @@ const BookingModal = ({
         </div>
         <div className="flex items-center gap-3 sm:gap-0 sm:justify-between">
           <button
+            type="button"
             onClick={() => onChange(Math.max(min, value - 1))}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed touch-target"
             disabled={value <= min}
@@ -259,6 +301,7 @@ const BookingModal = ({
           </button>
           <span className="text-xl sm:text-2xl font-bold tabular-nums w-10 text-center">{value}</span>
           <button
+            type="button"
             onClick={() => onChange(Math.min(max, value + 1))}
             className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
           >
@@ -296,7 +339,7 @@ const BookingModal = ({
                 </div>
                 {index < steps.length - 1 && (
                   <div className="w-12 sm:w-20 md:w-28 h-1 mx-2 sm:mx-3 bg-muted rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className={cn(
                         "h-full bg-secondary rounded-full transition-all duration-700 ease-out",
                         currentStep > step.number ? "w-full" : "w-0"
@@ -385,26 +428,91 @@ const BookingModal = ({
                   <div>
                     <label className="text-sm font-bold text-foreground mb-3 block">Number of Guests *</label>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                      <GuestCounter
-                        label="Adults"
-                        sublabel="12+ years"
-                        value={adults}
-                        onChange={setAdults}
-                        min={1}
-                      />
-                      <GuestCounter
-                        label="Children"
-                        sublabel="4-11 yrs • 50% off"
-                        value={children}
-                        onChange={setChildren}
-                      />
-                      <GuestCounter
-                        label="Infants"
-                        sublabel="0-3 yrs • Free"
-                        value={infants}
-                        onChange={setInfants}
-                      />
+                      {renderGuestCounter("Adults", "12+ years", adults, setAdults, 1, 10)}
+                      {renderGuestCounter("Children", "4-11 yrs • 50% off", children, setChildren, 0, 10)}
+                      {renderGuestCounter("Infants", "0-3 yrs • Free", infants, setInfants, 0, 10)}
                     </div>
+                  </div>
+                )}
+
+                {/* Travel Type Selection */}
+                {bookingFeatures.travel_options_enabled && (
+                  <div className="border border-border rounded-2xl p-4 bg-card/50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <MapPin className="w-5 h-5 text-secondary" />
+                      <p className="font-bold text-foreground text-sm">Travel Type</p>
+                    </div>
+                    <RadioGroup
+                      value={travelType}
+                      onValueChange={(v) => setTravelType(v as "shared" | "self" | "personal")}
+                      className="space-y-2"
+                    >
+                      {[
+                        { value: "shared", label: "Shared Travelling", desc: "Group transfer" },
+                        { value: "self", label: "Self Travelling", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}` : "Arrive on your own" },
+                        { value: "personal", label: "Personal Travelling", desc: "Private transfer" },
+                      ].map((opt) => (
+                        <div key={opt.value} className={cn(
+                          "flex items-center gap-2 p-3 rounded-xl border transition-colors",
+                          travelType === opt.value ? "border-secondary bg-secondary/10" : "border-border"
+                        )}>
+                          <RadioGroupItem value={opt.value} id={`modal-travel-${opt.value}`} />
+                          <Label htmlFor={`modal-travel-${opt.value}`} className="cursor-pointer flex-1">
+                            <span className="font-medium text-sm block">{opt.label}</span>
+                            <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
+
+                {/* Transfer Vehicle Selection */}
+                {bookingFeatures.transfer_available !== false && vehicles.length > 0 && travelType !== "self" && (
+                  <div className="border border-border rounded-2xl p-4 bg-card/50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Car className="w-5 h-5 text-secondary" />
+                      <p className="font-bold text-foreground text-sm">
+                        {bookingFeatures.transfer_label || "Hotel/Residence Transfer"}
+                      </p>
+                    </div>
+                    <Select value={selectedVehicleIdx} onValueChange={setSelectedVehicleIdx}>
+                      <SelectTrigger className="rounded-xl border-2">
+                        <SelectValue placeholder="Select a vehicle" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card z-50 rounded-xl">
+                        {vehicles.map((v, idx) => (
+                          <SelectItem key={idx} value={String(idx)}>
+                            {v.name} — AED {v.price}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Deck Seating Option */}
+                {bookingFeatures.has_upper_deck && (
+                  <div className="border border-border rounded-2xl p-4 bg-card/50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Layers className="w-5 h-5 text-secondary" />
+                      <p className="font-bold text-foreground text-sm">Preferred Seating</p>
+                    </div>
+                    <RadioGroup
+                      value={selectedDeck}
+                      onValueChange={setSelectedDeck}
+                      className="flex flex-col sm:flex-row gap-3"
+                    >
+                      {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option, idx) => (
+                        <div key={option} className="flex items-center gap-2">
+                          <RadioGroupItem value={option} id={`modal-deck-${option}`} />
+                          <Label htmlFor={`modal-deck-${option}`} className="text-sm cursor-pointer">
+                            {option}
+                            {idx === 1 && bookingFeatures.upper_deck_surcharge ? ` (+AED ${bookingFeatures.upper_deck_surcharge})` : ''}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
                   </div>
                 )}
 
@@ -490,7 +598,7 @@ const BookingModal = ({
 
                 <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 space-y-3">
                   <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-2">{tourTitle}</h3>
-                  
+
                   {/* Full Yacht Badge in Summary */}
                   {isFullYacht && (
                     <div className="flex items-center gap-2 p-2 bg-secondary/10 rounded-xl w-fit">
@@ -533,6 +641,24 @@ const BookingModal = ({
                       <p className="font-semibold">{phone}</p>
                     </div>
                   </div>
+                  {bookingFeatures.travel_options_enabled && (
+                    <div className="pt-3 border-t border-border flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-secondary" />
+                      <p className="text-sm font-medium capitalize">{travelType} Travelling</p>
+                    </div>
+                  )}
+                  {selectedVehicle && (
+                    <div className="pt-3 border-t border-border flex items-center gap-2">
+                      <Car className="w-4 h-4 text-secondary" />
+                      <p className="text-sm font-medium">{selectedVehicle.name} — AED {selectedVehicle.price}</p>
+                    </div>
+                  )}
+                  {selectedDeck && (
+                    <div className="pt-3 border-t border-border flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-secondary" />
+                      <p className="text-sm font-medium">{selectedDeck}</p>
+                    </div>
+                  )}
                   {specialRequests && (
                     <div className="pt-3 border-t border-border">
                       <p className="text-muted-foreground text-xs mb-1">Special Requests</p>
@@ -568,6 +694,33 @@ const BookingModal = ({
                         </div>
                       )}
                     </>
+                  )}
+                  {selfDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-secondary">
+                      <span className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Self-travel discount
+                      </span>
+                      <span className="font-medium">- AED {selfDiscount}</span>
+                    </div>
+                  )}
+                  {transferCost > 0 && selectedVehicle && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        <Car className="w-4 h-4" />
+                        Transfer ({selectedVehicle.name})
+                      </span>
+                      <span className="font-medium">AED {transferCost}</span>
+                    </div>
+                  )}
+                  {deckSurcharge > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        <Layers className="w-4 h-4" />
+                        Upper deck surcharge
+                      </span>
+                      <span className="font-medium">AED {deckSurcharge}</span>
+                    </div>
                   )}
                   {appliedDiscount && discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-secondary font-semibold">
@@ -610,9 +763,9 @@ const BookingModal = ({
           {/* Navigation Buttons - Enhanced */}
           <div className="flex gap-3 sm:gap-4 mt-8 sm:mt-10 pb-safe">
             {currentStep > 1 && (
-              <Button 
-                variant="outline" 
-                onClick={handleBack} 
+              <Button
+                variant="outline"
+                onClick={handleBack}
                 disabled={isSubmitting}
                 className="flex-1 h-12 sm:h-14 text-sm sm:text-base rounded-xl border-2"
               >
@@ -621,16 +774,16 @@ const BookingModal = ({
               </Button>
             )}
             {currentStep < 3 ? (
-              <Button 
-                onClick={handleNext} 
+              <Button
+                onClick={handleNext}
                 className="flex-1 h-12 sm:h-14 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base rounded-xl font-semibold shadow-lg shadow-secondary/30 transition-all hover:shadow-xl hover:shadow-secondary/40"
               >
                 Continue to {currentStep === 1 ? "Details" : "Confirm"}
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             ) : (
-              <Button 
-                onClick={handleSubmit} 
+              <Button
+                onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="flex-1 h-12 sm:h-14 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base rounded-xl font-semibold shadow-lg shadow-secondary/30 transition-all hover:shadow-xl hover:shadow-secondary/40"
               >

@@ -1,9 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter&display=swap");
+
+/* Fonts loaded via index.html preload to avoid render-blocking @import */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Font loading with display swap for better performance */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -17,15 +18,15 @@
     --popover-foreground: 220 25% 10%;
 
     --primary: 220 50% 20%;
-    --primary-foreground: 45 60% 65%;
+    --primary-foreground: 46 45% 58%;
 
-    --secondary: 45 60% 65%;
+    --secondary: 46 45% 58%;
     --secondary-foreground: 220 50% 20%;
 
     --muted: 220 20% 96%;
     --muted-foreground: 220 15% 45%;
 
-    --accent: 45 60% 65%;
+    --accent: 46 45% 58%;
     --accent-foreground: 220 50% 20%;
 
     --destructive: 0 84% 60%;
@@ -122,7 +123,7 @@
   .font-display {
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
-  
+
   .font-sans {
     font-family: 'Inter', sans-serif;
   }
@@ -281,8 +282,17 @@
   50% { transform: translateY(8px); opacity: 0.5; }
 }
 
-/* Reduce motion for users who prefer it and on mobile for performance */
+/* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
   .animate-float-slow,
   .animate-float-slower,
   .animate-bounce-slow,
@@ -294,15 +304,27 @@
 
 /* Performance optimizations for mobile */
 @media (max-width: 768px) {
+  /* Reduce animation complexity on mobile for better scroll performance */
   .animate-float-slow,
   .animate-float-slower {
     animation-duration: 12s; /* Slower = less CPU */
   }
-  
-  /* Disable parallax-like effects on mobile for smoother scrolling */
+
+  /* Disable heavy animations on mobile */
   .parallax-disable-mobile {
     transform: none !important;
     animation: none !important;
+  }
+
+  /* Use CSS containment for better rendering performance */
+  .mobile-contain {
+    contain: layout style;
+  }
+
+  /* Reduce blur effects on mobile (GPU intensive) */
+  .backdrop-blur-lg,
+  .backdrop-blur-md {
+    backdrop-filter: blur(8px);
   }
 }
 
@@ -312,9 +334,28 @@
   will-change: transform;
 }
 
+/* GPU acceleration hints for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Container query support for modern browsers */
 @supports (container-type: inline-size) {
   .container-query-parent {
     container-type: inline-size;
   }
+}
+
+/* Content visibility for below-fold sections - improves initial render */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
+/* Optimize font rendering */
+.optimize-legibility {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

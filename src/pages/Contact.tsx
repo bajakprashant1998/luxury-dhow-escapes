@@ -3,12 +3,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Calendar, 
-  Users, 
-  Phone, 
-  Mail, 
-  MapPin, 
+import {
+  Calendar,
+  Users,
+  Phone,
+  Mail,
+  MapPin,
   Clock,
   MessageCircle,
   CheckCircle2,
@@ -49,12 +49,15 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import Layout from "@/components/layout/Layout";
+import PageMeta from "@/components/PageMeta";
 import { tours } from "@/data/tours";
 import { useToast } from "@/hooks/use-toast";
 import heroDhowCruise from "@/assets/hero-dhow-cruise.webp";
 import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
 import { Discount } from "@/hooks/useDiscounts";
 import { useContactConfig } from "@/hooks/useContactConfig";
+import { supabase } from "@/integrations/supabase/client";
+import { sendBookingEmail } from "@/lib/sendBookingEmail";
 
 const bookingSchema = z.object({
   tourId: z.string().min(1, "Please select a tour"),
@@ -82,17 +85,17 @@ const Confetti = () => {
             left: `${Math.random() * 100}%`,
             backgroundColor: ['#d4a853', '#1a2d4f', '#f0e6d3', '#4a7c59', '#c44536'][Math.floor(Math.random() * 5)],
           }}
-          initial={{ 
-            top: -20, 
+          initial={{
+            top: -20,
             rotate: 0,
-            opacity: 1 
+            opacity: 1
           }}
-          animate={{ 
+          animate={{
             top: '100vh',
             rotate: 720,
             opacity: 0
           }}
-          transition={{ 
+          transition={{
             duration: 3 + Math.random() * 2,
             delay: Math.random() * 0.5,
             ease: "easeOut"
@@ -132,29 +135,74 @@ const Contact = () => {
 
   const onSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    console.log("Booking submitted:", data);
-    setShowConfetti(true);
-    
-    toast({
-      title: "🎉 Booking Request Submitted!",
-      description: "We'll contact you shortly to confirm your reservation.",
-    });
-    
-    // Hide confetti after 4 seconds
-    setTimeout(() => setShowConfetti(false), 4000);
-    
-    form.reset();
-    setAdults(2);
-    setChildren(0);
-    setInfants(0);
-    setSelectedTour("");
-    setStep(1);
-    setAppliedDiscount(null);
-    setIsSubmitting(false);
+
+    try {
+      // Get current user if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      const bookingId = crypto.randomUUID();
+
+      const bookingData: any = {
+        id: bookingId,
+        tour_id: data.tourId,
+        tour_name: tours.find(t => t.id === data.tourId)?.title || "Unknown Tour",
+        booking_date: data.date,
+        adults: data.adults,
+        children: data.children,
+        infants: data.infants,
+        customer_name: data.name,
+        customer_email: data.email,
+        customer_phone: data.phone,
+        special_requests: data.specialRequests || null,
+        total_price: finalPrice,
+        status: "pending",
+        booking_type: "per_person",
+      };
+
+      if (user?.id) {
+        bookingData.user_id = user.id;
+      }
+
+      const { error } = await supabase.from("bookings").insert(bookingData);
+
+      if (error) {
+        console.error("Booking error:", error);
+        if (error.code === "42501") {
+          throw new Error("Unable to create booking. Permission denied.");
+        }
+        throw new Error(error.message);
+      }
+
+      // Send confirmation email
+      sendBookingEmail(bookingId, "pending").catch(console.warn);
+
+      console.log("Booking submitted successfully:", bookingId);
+      setShowConfetti(true);
+
+      toast({
+        title: "🎉 Booking Request Submitted!",
+        description: "We'll contact you shortly to confirm your reservation.",
+      });
+
+      // Hide confetti after 4 seconds
+      setTimeout(() => setShowConfetti(false), 4000);
+
+      form.reset();
+      setAdults(2);
+      setChildren(0);
+      setInfants(0);
+      setSelectedTour("");
+      setStep(1);
+      setAppliedDiscount(null);
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      toast({
+        title: "Booking Failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const tour = tours.find((t) => t.id === selectedTour);
@@ -222,6 +270,11 @@ const Contact = () => {
 
   return (
     <Layout>
+      <PageMeta
+        title="Contact Us - Rental Yacht Dubai"
+        description="Get in touch with Rental Yacht Dubai. Book your dream cruise or ask us anything about our yacht experiences."
+        canonicalPath="/contact"
+      />
       {/* Confetti Effect */}
       <AnimatePresence>
         {showConfetti && <Confetti />}
@@ -229,7 +282,7 @@ const Contact = () => {
 
       {/* Hero Section */}
       <section className="relative py-24 md:py-32 overflow-hidden">
-        <motion.div 
+        <motion.div
           className="absolute inset-0"
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -242,15 +295,15 @@ const Contact = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-primary/70" />
         </motion.div>
-        
+
         <div className="container relative z-10">
-          <motion.div 
+          <motion.div
             className="max-w-2xl"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <motion.div 
+            <motion.div
               className="inline-flex items-center gap-2 bg-secondary/20 backdrop-blur-sm text-secondary px-4 py-2 rounded-full mb-6"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -259,7 +312,7 @@ const Contact = () => {
               <Sparkles className="w-4 h-4" />
               <span className="text-sm font-semibold">Secure Your Spot Today</span>
             </motion.div>
-            <motion.h1 
+            <motion.h1
               className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -267,7 +320,7 @@ const Contact = () => {
             >
               Book Your <span className="text-secondary">Dream Cruise</span>
             </motion.h1>
-            <motion.p 
+            <motion.p
               className="text-primary-foreground/80 text-lg md:text-xl leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -279,9 +332,9 @@ const Contact = () => {
         </div>
 
         {/* Floating Stats with Stagger Animation */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 z-20">
+        <div className="absolute  left-0 right-0 translate-y-1/2 z-20">
           <div className="container">
-            <motion.div 
+            <motion.div
               className="grid grid-cols-2 md:grid-cols-4 gap-4"
               initial="hidden"
               animate="visible"
@@ -303,7 +356,7 @@ const Contact = () => {
                   }}
                   whileHover={{ y: -2 }}
                 >
-                  <motion.div 
+                  <motion.div
                     className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0"
                     whileHover={{ rotate: 10, scale: 1.1 }}
                   >
@@ -326,7 +379,7 @@ const Contact = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Booking Form */}
             <div className="lg:col-span-2">
-              <motion.div 
+              <motion.div
                 className="bg-card rounded-2xl p-6 md:p-8 shadow-xl border border-border"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -343,12 +396,11 @@ const Contact = () => {
                       <div key={s.num} className="flex items-center flex-1">
                         <div className="flex flex-col items-center">
                           <motion.div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-                              step >= s.num
-                                ? "bg-secondary text-secondary-foreground"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                            animate={{ 
+                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= s.num
+                              ? "bg-secondary text-secondary-foreground"
+                              : "bg-muted text-muted-foreground"
+                              }`}
+                            animate={{
                               scale: step === s.num ? 1.1 : 1,
                             }}
                             transition={{ type: "spring", stiffness: 300 }}
@@ -374,8 +426,8 @@ const Contact = () => {
                             <motion.div
                               className="h-full bg-secondary"
                               initial={{ width: "0%" }}
-                              animate={{ 
-                                width: step > s.num ? "100%" : "0%" 
+                              animate={{
+                                width: step > s.num ? "100%" : "0%"
                               }}
                               transition={{ duration: 0.5 }}
                             />
@@ -384,9 +436,9 @@ const Contact = () => {
                       </div>
                     ))}
                   </div>
-                  
+
                   {/* Progress percentage */}
-                  <motion.div 
+                  <motion.div
                     className="text-center text-sm text-muted-foreground"
                     key={step}
                     initial={{ opacity: 0 }}
@@ -401,7 +453,7 @@ const Contact = () => {
                     <AnimatePresence mode="wait">
                       {/* Step 1: Tour Selection */}
                       {step === 1 && (
-                        <motion.div 
+                        <motion.div
                           key="step1"
                           className="space-y-6"
                           variants={stepVariants}
@@ -440,9 +492,9 @@ const Contact = () => {
                                     {tours.map((t) => (
                                       <SelectItem key={t.id} value={t.id} className="py-3">
                                         <div className="flex items-center gap-3">
-                                          <img 
-                                            src={t.image} 
-                                            alt={t.title} 
+                                          <img
+                                            src={t.image}
+                                            alt={t.title}
                                             className="w-10 h-10 rounded-lg object-cover"
                                           />
                                           <div className="flex-1">
@@ -527,7 +579,7 @@ const Contact = () => {
                             <FormLabel className="text-base mb-4 block">Number of Guests *</FormLabel>
                             <div className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-4">
                               {/* Adults */}
-                              <motion.div 
+                              <motion.div
                                 className="bg-muted/50 rounded-xl p-3 sm:p-4 border border-border"
                                 whileHover={{ borderColor: "hsl(var(--secondary))" }}
                               >
@@ -551,7 +603,7 @@ const Contact = () => {
                                     >
                                       <Minus className="w-4 h-4" />
                                     </Button>
-                                    <motion.span 
+                                    <motion.span
                                       className="font-bold text-lg sm:text-xl text-foreground w-8 text-center"
                                       key={adults}
                                       initial={{ scale: 1.2 }}
@@ -577,7 +629,7 @@ const Contact = () => {
                               </motion.div>
 
                               {/* Children */}
-                              <motion.div 
+                              <motion.div
                                 className="bg-muted/50 rounded-xl p-3 sm:p-4 border border-border"
                                 whileHover={{ borderColor: "hsl(var(--secondary))" }}
                               >
@@ -601,7 +653,7 @@ const Contact = () => {
                                     >
                                       <Minus className="w-4 h-4" />
                                     </Button>
-                                    <motion.span 
+                                    <motion.span
                                       className="font-bold text-lg sm:text-xl text-foreground w-8 text-center"
                                       key={children}
                                       initial={{ scale: 1.2 }}
@@ -627,7 +679,7 @@ const Contact = () => {
                               </motion.div>
 
                               {/* Infants */}
-                              <motion.div 
+                              <motion.div
                                 className="bg-muted/50 rounded-xl p-3 sm:p-4 border border-border"
                                 whileHover={{ borderColor: "hsl(var(--secondary))" }}
                               >
@@ -651,7 +703,7 @@ const Contact = () => {
                                     >
                                       <Minus className="w-4 h-4" />
                                     </Button>
-                                    <motion.span 
+                                    <motion.span
                                       className="font-bold text-lg sm:text-xl text-foreground w-8 text-center"
                                       key={infants}
                                       initial={{ scale: 1.2 }}
@@ -707,7 +759,7 @@ const Contact = () => {
 
                       {/* Step 2: Contact Information */}
                       {step === 2 && (
-                        <motion.div 
+                        <motion.div
                           key="step2"
                           className="space-y-6"
                           variants={stepVariants}
@@ -731,10 +783,10 @@ const Contact = () => {
                                 <FormItem>
                                   <FormLabel className="text-base">Full Name *</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      placeholder="John Smith" 
-                                      className="h-12 transition-all focus:ring-2 focus:ring-secondary/30" 
-                                      {...field} 
+                                    <Input
+                                      placeholder="John Smith"
+                                      className="h-12 transition-all focus:ring-2 focus:ring-secondary/30"
+                                      {...field}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -749,10 +801,10 @@ const Contact = () => {
                                 <FormItem>
                                   <FormLabel className="text-base">Phone Number *</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      placeholder="+971 50 123 4567" 
-                                      className="h-12 transition-all focus:ring-2 focus:ring-secondary/30" 
-                                      {...field} 
+                                    <Input
+                                      placeholder="+971 50 123 4567"
+                                      className="h-12 transition-all focus:ring-2 focus:ring-secondary/30"
+                                      {...field}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -768,11 +820,11 @@ const Contact = () => {
                               <FormItem>
                                 <FormLabel className="text-base">Email Address *</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="your@email.com" 
-                                    type="email" 
-                                    className="h-12 transition-all focus:ring-2 focus:ring-secondary/30" 
-                                    {...field} 
+                                  <Input
+                                    placeholder="your@email.com"
+                                    type="email"
+                                    className="h-12 transition-all focus:ring-2 focus:ring-secondary/30"
+                                    {...field}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -840,7 +892,7 @@ const Contact = () => {
 
                       {/* Step 3: Confirmation */}
                       {step === 3 && (
-                        <motion.div 
+                        <motion.div
                           key="step3"
                           className="space-y-6"
                           variants={stepVariants}
@@ -857,7 +909,7 @@ const Contact = () => {
                           </div>
 
                           {/* Booking Summary */}
-                          <motion.div 
+                          <motion.div
                             className="bg-muted/50 rounded-xl p-6 space-y-4"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -865,9 +917,9 @@ const Contact = () => {
                           >
                             <div className="flex items-start gap-4">
                               {tour && (
-                                <motion.img 
-                                  src={tour.image} 
-                                  alt={tour.title} 
+                                <motion.img
+                                  src={tour.image}
+                                  alt={tour.title}
                                   className="w-20 h-20 rounded-lg object-cover"
                                   whileHover={{ scale: 1.05 }}
                                 />
@@ -927,7 +979,7 @@ const Contact = () => {
 
                           {/* Price Summary */}
                           {tour && (
-                            <motion.div 
+                            <motion.div
                               className="bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-xl p-6 border border-secondary/20"
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -957,7 +1009,7 @@ const Contact = () => {
                                       <span>Subtotal</span>
                                       <span>AED {totalPrice}</span>
                                     </div>
-                                    <motion.div 
+                                    <motion.div
                                       className="flex justify-between text-secondary"
                                       initial={{ opacity: 0, x: -10 }}
                                       animate={{ opacity: 1, x: 0 }}
@@ -970,7 +1022,7 @@ const Contact = () => {
                                   </>
                                 )}
                                 <hr className="border-border my-3" />
-                                <motion.div 
+                                <motion.div
                                   className="flex justify-between font-bold text-xl"
                                   initial={{ scale: 0.95 }}
                                   animate={{ scale: 1 }}
@@ -996,9 +1048,9 @@ const Contact = () => {
                                 Back
                               </Button>
                             </motion.div>
-                            <motion.div 
-                              whileHover={{ scale: 1.02 }} 
-                              whileTap={{ scale: 0.98 }} 
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
                               className="flex-1"
                             >
                               <Button
@@ -1026,7 +1078,7 @@ const Contact = () => {
                             </motion.div>
                           </div>
 
-                          <motion.p 
+                          <motion.p
                             className="text-center text-sm text-muted-foreground"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -1045,7 +1097,7 @@ const Contact = () => {
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-6">
               {/* Contact Info Card */}
-              <motion.div 
+              <motion.div
                 className="bg-card rounded-2xl p-6 shadow-lg border border-border"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1083,7 +1135,7 @@ const Contact = () => {
                       <p className="font-semibold text-foreground">WhatsApp</p>
                       <p className="text-sm text-muted-foreground">Chat with us now</p>
                     </div>
-                    <motion.div 
+                    <motion.div
                       className="ml-auto"
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
@@ -1109,7 +1161,7 @@ const Contact = () => {
               </motion.div>
 
               {/* Map Card */}
-              <motion.div 
+              <motion.div
                 className="bg-card rounded-2xl p-6 shadow-lg border border-border"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1139,7 +1191,7 @@ const Contact = () => {
               </motion.div>
 
               {/* Trust Badges */}
-              <motion.div 
+              <motion.div
                 className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl p-6 text-primary-foreground"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1155,8 +1207,8 @@ const Contact = () => {
                     "50,000+ Happy Guests",
                     "Best Price Guarantee",
                   ].map((item, index) => (
-                    <motion.li 
-                      key={index} 
+                    <motion.li
+                      key={index}
                       className="flex items-center gap-3"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -1176,7 +1228,7 @@ const Contact = () => {
       {/* FAQ Section */}
       <section className="py-16 bg-cream">
         <div className="container">
-          <motion.div 
+          <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1190,7 +1242,7 @@ const Contact = () => {
             </p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

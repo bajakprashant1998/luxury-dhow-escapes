@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Share2, Download, ZoomIn, Images } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import PageMeta from "@/components/PageMeta";
 import { useGallery, useGalleryCategories } from "@/hooks/useGallery";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,11 @@ const Gallery = () => {
 
   return (
     <Layout>
+      <PageMeta
+        title="Gallery - Rental Yacht Dubai"
+        description="Browse our stunning gallery of yacht experiences, dhow cruises, and luxury marine moments in Dubai."
+        canonicalPath="/gallery"
+      />
       {/* Hero Section */}
       <section className="relative py-24 md:py-32 bg-primary text-primary-foreground overflow-hidden">
         <motion.div 

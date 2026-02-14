@@ -9,6 +9,13 @@ import {
   defaultWhatToBring,
   defaultGoodToKnow,
 } from "@/lib/tourMapper";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ImportantInfoEditorProps {
   bookingFeatures: BookingFeatures;
@@ -18,23 +25,50 @@ interface ImportantInfoEditorProps {
 const ImportantInfoEditor = ({ bookingFeatures, onChange }: ImportantInfoEditorProps) => {
   const updateList = (
     field: "cancellation_info" | "what_to_bring" | "good_to_know",
-    newList: string[]
+    newList: (string | { text: string; icon: "check" | "cross" | "info" | "dot" })[]
   ) => {
     onChange({ ...bookingFeatures, [field]: newList });
   };
 
   const addItem = (field: "cancellation_info" | "what_to_bring" | "good_to_know") => {
     const currentList = bookingFeatures[field] || [];
-    updateList(field, [...currentList, ""]);
+    // Default to strict object structure for new items
+    updateList(field, [...currentList, { text: "", icon: "check" }]);
   };
 
-  const updateItem = (
+  const updateItemText = (
     field: "cancellation_info" | "what_to_bring" | "good_to_know",
     index: number,
-    value: string
+    text: string
   ) => {
-    const newList = [...(bookingFeatures[field] || [])];
-    newList[index] = value;
+    const currentList = bookingFeatures[field] || [];
+    const newList = [...currentList];
+    const item = newList[index];
+
+    if (typeof item === 'string') {
+      // Convert string to object if it was a string
+      newList[index] = { text, icon: "check" };
+    } else {
+      newList[index] = { ...item, text };
+    }
+    updateList(field, newList);
+  };
+
+  const updateItemIcon = (
+    field: "cancellation_info" | "what_to_bring" | "good_to_know",
+    index: number,
+    icon: "check" | "cross" | "info" | "dot"
+  ) => {
+    const currentList = bookingFeatures[field] || [];
+    const newList = [...currentList];
+    const item = newList[index];
+
+    if (typeof item === 'string') {
+      // Convert string to object
+      newList[index] = { text: item, icon };
+    } else {
+      newList[index] = { ...item, icon };
+    }
     updateList(field, newList);
   };
 
@@ -58,7 +92,7 @@ const ImportantInfoEditor = ({ bookingFeatures, onChange }: ImportantInfoEditorP
   const renderListEditor = (
     field: "cancellation_info" | "what_to_bring" | "good_to_know",
     label: string,
-    icon: React.ReactNode,
+    sectionIcon: React.ReactNode,
     placeholder: string
   ) => {
     const items = bookingFeatures[field] || [];
@@ -66,28 +100,49 @@ const ImportantInfoEditor = ({ bookingFeatures, onChange }: ImportantInfoEditorP
     return (
       <div className="space-y-3">
         <Label className="flex items-center gap-2 text-sm font-semibold">
-          {icon}
+          {sectionIcon}
           {label}
         </Label>
         <div className="space-y-2">
-          {items.map((item, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <Input
-                value={item}
-                onChange={(e) => updateItem(field, index, e.target.value)}
-                placeholder={placeholder}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeItem(field, index)}
-                className="shrink-0"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
+          {items.map((item, index) => {
+            const text = typeof item === 'string' ? item : item.text;
+            const icon = typeof item === 'string' ? 'check' : item.icon;
+
+            return (
+              <div key={index} className="flex items-center gap-2">
+                <Select
+                  value={icon}
+                  onValueChange={(value: "check" | "cross" | "info" | "dot") =>
+                    updateItemIcon(field, index, value)
+                  }
+                >
+                  <SelectTrigger className="w-[100px] shrink-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="check">Check</SelectItem>
+                    <SelectItem value="cross">Cross</SelectItem>
+                    <SelectItem value="info">Info</SelectItem>
+                    <SelectItem value="dot">Dot</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={text}
+                  onChange={(e) => updateItemText(field, index, e.target.value)}
+                  placeholder={placeholder}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeItem(field, index)}
+                  className="shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            );
+          })}
           <Button
             type="button"
             variant="outline"
@@ -127,21 +182,21 @@ const ImportantInfoEditor = ({ bookingFeatures, onChange }: ImportantInfoEditorP
           "cancellation_info",
           "Cancellation Policy",
           <AlertCircle className="w-4 h-4 text-destructive" />,
-          "✓ Free cancellation up to 24 hours..."
+          "Free cancellation up to 24 hours..."
         )}
 
         {renderListEditor(
           "what_to_bring",
           "What to Bring",
           <Briefcase className="w-4 h-4 text-secondary" />,
-          "• Comfortable shoes and smart casual attire..."
+          "Comfortable shoes..."
         )}
 
         {renderListEditor(
           "good_to_know",
           "Good to Know",
           <Info className="w-4 h-4 text-secondary" />,
-          "• Arrive 20-30 minutes before departure..."
+          "Arrive 20-30 minutes before..."
         )}
       </CardContent>
     </Card>

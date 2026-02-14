@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/layout/Layout";
 import TourCard from "@/components/TourCard";
+import PageMeta from "@/components/PageMeta";
 import { useTours } from "@/hooks/useTours";
 import { useActiveCategories } from "@/hooks/useCategories";
 import { getCategoryFromPath, getCategoryUrl } from "@/lib/seoUtils";
@@ -16,6 +17,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
   "yacht-shared": <Users className="w-4 h-4" />,
   "yacht-private": <Ship className="w-4 h-4" />,
   "megayacht": <Crown className="w-4 h-4" />,
+  "water-activity": <Ship className="w-4 h-4" />,
+  "yacht-event": <Crown className="w-4 h-4" />,
 };
 
 const containerVariants = {
@@ -43,7 +46,7 @@ const itemVariants = {
 const Tours = () => {
   const { categoryPath } = useParams<{ categoryPath?: string }>();
   const [searchParams] = useSearchParams();
-  
+
   // Determine selected category from URL
   const getCategoryFromUrl = (): string => {
     // New SEO-friendly URL: /dubai/:categoryPath
@@ -61,7 +64,7 @@ const Tours = () => {
   const [selectedCategory, setSelectedCategory] = useState(getCategoryFromUrl());
   const [sortBy, setSortBy] = useState<"popular" | "price-low" | "price-high">("popular");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  
+
   const { data: tours = [], isLoading: toursLoading, error: toursError } = useTours();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useActiveCategories();
 
@@ -96,8 +99,8 @@ const Tours = () => {
     })),
   ];
 
-  const filteredTours = selectedCategory === "all" 
-    ? tours 
+  const filteredTours = selectedCategory === "all"
+    ? tours
     : tours.filter(tour => tour.category === selectedCategory);
 
   const sortedTours = [...filteredTours].sort((a, b) => {
@@ -119,10 +122,15 @@ const Tours = () => {
 
   return (
     <Layout>
+      <PageMeta
+        title="Tours - Rental Yacht Dubai"
+        description="Browse all yacht charters and dhow cruises in Dubai. Find the perfect marine experience for your Dubai adventure."
+        canonicalPath={categoryPath ? `/dubai/${categoryPath}` : "/tours"}
+      />
       {/* Hero Section with Parallax Effect */}
       <section className="relative py-24 md:py-32 bg-primary text-primary-foreground overflow-hidden">
         {/* Background with parallax */}
-        <motion.div 
+        <motion.div
           className="absolute inset-0"
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -135,19 +143,19 @@ const Tours = () => {
             className="w-full h-full object-cover"
           />
         </motion.div>
-        
+
         {/* Floating particles effect */}
         <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
           {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute w-2 h-2 bg-secondary/30 rounded-full"
-              initial={{ 
-                x: Math.random() * 100 + "%", 
+              initial={{
+                x: Math.random() * 100 + "%",
                 y: "100%",
-                opacity: 0 
+                opacity: 0
               }}
-              animate={{ 
+              animate={{
                 y: "-20%",
                 opacity: [0, 0.6, 0],
               }}
@@ -162,13 +170,13 @@ const Tours = () => {
         </div>
 
         <div className="container relative z-20">
-          <motion.div 
+          <motion.div
             className="max-w-2xl"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <motion.p 
+            <motion.p
               className="text-secondary font-semibold tracking-wider uppercase mb-4"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -176,7 +184,7 @@ const Tours = () => {
             >
               Explore Our Experiences
             </motion.p>
-            <motion.h1 
+            <motion.h1
               className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -184,21 +192,21 @@ const Tours = () => {
             >
               Dhow Cruises & Yacht Charters
             </motion.h1>
-            <motion.p 
+            <motion.p
               className="text-primary-foreground/80 text-lg md:text-xl leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
             >
-              Choose from our selection of carefully curated cruise experiences. 
-              From traditional dhow cruises to luxury private yacht charters, 
+              Choose from our selection of carefully curated cruise experiences.
+              From traditional dhow cruises to luxury private yacht charters,
               find the perfect voyage for your Dubai adventure.
             </motion.p>
           </motion.div>
         </div>
 
         {/* Scroll indicator */}
-        <motion.div 
+        <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -209,7 +217,7 @@ const Tours = () => {
             animate={{ y: [0, 5, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <motion.div 
+            <motion.div
               className="w-1.5 h-2.5 bg-secondary rounded-full"
               animate={{ opacity: [1, 0.3, 1], y: [0, 4, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -236,11 +244,10 @@ const Tours = () => {
                   to={category.url}
                 >
                   <motion.button
-                    className={`relative flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-medium transition-all flex-shrink-0 snap-start touch-target text-sm sm:text-base whitespace-nowrap ${
-                      selectedCategory === category.id
+                    className={`relative flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-medium transition-all flex-shrink-0 snap-start touch-target text-sm sm:text-base whitespace-nowrap ${selectedCategory === category.id
                         ? "bg-primary text-primary-foreground shadow-lg"
                         : "bg-card text-foreground hover:bg-muted border border-border"
-                    }`}
+                      }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     layout
@@ -248,11 +255,10 @@ const Tours = () => {
                     {categoryIcons[category.id] || <Filter className="w-4 h-4" />}
                     <span>{category.label}</span>
                     {category.count !== undefined && category.count > 0 && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        selectedCategory === category.id 
-                          ? "bg-primary-foreground/20" 
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCategory === category.id
+                          ? "bg-primary-foreground/20"
                           : "bg-muted"
-                      }`}>
+                        }`}>
                         {category.count}
                       </span>
                     )}
@@ -275,7 +281,7 @@ const Tours = () => {
       <section className="py-8 sm:py-12">
         <div className="container px-4 sm:px-6">
           {/* Stats Bar */}
-          <motion.div 
+          <motion.div
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-border"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -301,7 +307,7 @@ const Tours = () => {
           {/* Category Description */}
           <AnimatePresence mode="wait">
             {selectedCategory !== "all" && selectedCategoryData?.description && (
-              <motion.div 
+              <motion.div
                 key={selectedCategory}
                 className="mb-8 p-6 bg-gradient-to-r from-cream to-cream/50 rounded-xl border border-border/50"
                 initial={{ opacity: 0, y: -10, height: 0 }}
@@ -320,8 +326,8 @@ const Tours = () => {
           {isLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <motion.div 
-                  key={i} 
+                <motion.div
+                  key={i}
                   className="bg-card rounded-xl overflow-hidden shadow-md"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -348,7 +354,7 @@ const Tours = () => {
 
           {/* Error State */}
           {toursError && (
-            <motion.div 
+            <motion.div
               className="text-center py-12"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -360,7 +366,7 @@ const Tours = () => {
 
           {/* Tours Grid with Staggered Animation */}
           {!isLoading && !toursError && (
-            <motion.div 
+            <motion.div
               className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
               variants={containerVariants}
               initial="hidden"
@@ -377,6 +383,7 @@ const Tours = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: index * 0.05 }}
+                    className="h-full"
                   >
                     <TourCard tour={tour} />
                   </motion.div>
@@ -386,7 +393,7 @@ const Tours = () => {
           )}
 
           {!isLoading && !toursError && sortedTours.length === 0 && (
-            <motion.div 
+            <motion.div
               className="text-center py-12"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -402,9 +409,9 @@ const Tours = () => {
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-        
+
         <div className="container relative z-10">
-          <motion.div 
+          <motion.div
             className="max-w-3xl mx-auto text-center"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -415,12 +422,12 @@ const Tours = () => {
               Looking for Something Special?
             </h2>
             <p className="text-muted-foreground mb-8">
-              Whether it's a surprise proposal, corporate event, or custom celebration, 
+              Whether it's a surprise proposal, corporate event, or custom celebration,
               we can create a tailored experience just for you. Contact us to discuss your requirements.
             </p>
             <Link to="/contact">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold group"
               >
                 Request Custom Package
