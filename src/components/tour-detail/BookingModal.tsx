@@ -114,7 +114,7 @@ const BookingModal = ({
     : 0;
 
   const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
-    ? bookingFeatures.upper_deck_surcharge
+    ? bookingFeatures.upper_deck_surcharge * (adults + children)
     : 0;
 
   const basePrice = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
@@ -221,7 +221,7 @@ const BookingModal = ({
           bookingFeatures.travel_options_enabled ? `[TRAVEL: ${travelType}]` : null,
           selectedVehicle ? `[TRANSFER: ${selectedVehicle.name} - AED ${selectedVehicle.price}]` : null,
           selectedDeck ? `[DECK: ${selectedDeck}${deckSurcharge > 0 ? ` +AED ${deckSurcharge}` : ''}]` : null,
-          selfDiscount > 0 ? `[SELF-TRAVEL DISCOUNT: -AED ${selfDiscount}]` : null,
+          selfDiscount > 0 ? `[DIRECT TO BOAT DISCOUNT: -AED ${selfDiscount}]` : null,
           specialRequests.trim() || null,
         ].filter(Boolean).join(' ') || null,
         total_price: totalPrice,
@@ -448,9 +448,9 @@ const BookingModal = ({
                       className="space-y-2"
                     >
                       {[
-                        { value: "shared", label: "Shared Travelling", desc: "Group transfer" },
-                        { value: "self", label: "Self Travelling", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}` : "Arrive on your own" },
-                        { value: "personal", label: "Personal Travelling", desc: "Private transfer" },
+                        { value: "shared", label: "Shared Transfers", desc: "Group transfer" },
+                        { value: "self", label: "Direct To Boat", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}` : "Arrive on your own" },
+                        { value: "personal", label: "Private Transfers", desc: "Exclusive Vehicle" },
                       ].map((opt) => (
                         <div key={opt.value} className={cn(
                           "flex items-center gap-2 p-3 rounded-xl border transition-colors",
@@ -508,7 +508,7 @@ const BookingModal = ({
                           <RadioGroupItem value={option} id={`modal-deck-${option}`} />
                           <Label htmlFor={`modal-deck-${option}`} className="text-sm cursor-pointer">
                             {option}
-                            {idx === 1 && bookingFeatures.upper_deck_surcharge ? ` (+AED ${bookingFeatures.upper_deck_surcharge})` : ''}
+                            {idx === 1 && bookingFeatures.upper_deck_surcharge ? ` (+AED ${bookingFeatures.upper_deck_surcharge}/person)` : ''}
                           </Label>
                         </div>
                       ))}
@@ -644,7 +644,7 @@ const BookingModal = ({
                   {bookingFeatures.travel_options_enabled && (
                     <div className="pt-3 border-t border-border flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-secondary" />
-                      <p className="text-sm font-medium capitalize">{travelType} Travelling</p>
+                      <p className="text-sm font-medium">{travelType === "shared" ? "Shared Transfers" : travelType === "self" ? "Direct To Boat" : "Private Transfers"}</p>
                     </div>
                   )}
                   {selectedVehicle && (
@@ -699,7 +699,7 @@ const BookingModal = ({
                     <div className="flex justify-between text-sm text-secondary">
                       <span className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Self-travel discount
+                        Direct To Boat discount
                       </span>
                       <span className="font-medium">- AED {selfDiscount}</span>
                     </div>
@@ -717,7 +717,7 @@ const BookingModal = ({
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground flex items-center gap-2">
                         <Layers className="w-4 h-4" />
-                        Upper deck surcharge
+                        Upper deck (+AED {bookingFeatures.upper_deck_surcharge}/person)
                       </span>
                       <span className="font-medium">AED {deckSurcharge}</span>
                     </div>

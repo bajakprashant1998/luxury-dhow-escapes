@@ -13,9 +13,6 @@ import {
   Flame,
   Sparkles,
   Check,
-  Layers,
-  Car,
-  MapPin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,15 +22,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
 import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
@@ -68,11 +56,6 @@ const BookingSidebar = memo(({
   const [children, setChildren] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [selectedDeck, setSelectedDeck] = useState<string>(
-    bookingFeatures.deck_options?.[0] || "Lower Deck"
-  );
-  const [travelType, setTravelType] = useState<"shared" | "self" | "personal">("shared");
-  const [selectedVehicleIdx, setSelectedVehicleIdx] = useState<string>("");
   const { phone, phoneFormatted, whatsappLinkWithGreeting } = useContactConfig();
 
   // Derive booking type from tour data - no toggle needed
@@ -81,24 +64,10 @@ const BookingSidebar = memo(({
 
   const discount = Math.round((1 - price / originalPrice) * 100);
 
-  // Calculate total based on booking type with add-ons
+  // Calculate base price only (advanced options in modal)
   const basePrice = isFullYacht
     ? fullYachtPrice
     : price * adults + price * 0.7 * children;
-
-  const selfDiscount = (travelType === "self" && bookingFeatures.self_travel_discount)
-    ? bookingFeatures.self_travel_discount
-    : 0;
-
-  const vehicles = bookingFeatures.transfer_vehicles || [];
-  const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
-  const transferCost = selectedVehicle ? selectedVehicle.price : 0;
-
-  const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
-    ? bookingFeatures.upper_deck_surcharge
-    : 0;
-
-  const totalPrice = Math.max(0, basePrice - selfDiscount + transferCost + deckSurcharge);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -263,114 +232,16 @@ const BookingSidebar = memo(({
           </div>
         )}
 
-        {/* Travel Type Selector */}
-        {bookingFeatures.travel_options_enabled && (
-          <div className="mb-6 relative">
-            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-secondary" />
-              Travel Type
-            </label>
-            <RadioGroup
-              value={travelType}
-              onValueChange={(v) => setTravelType(v as "shared" | "self" | "personal")}
-              className="mt-2 space-y-2"
-            >
-              {[
-                { value: "shared", label: "Shared Travelling", desc: "Group transfer included" },
-                { value: "self", label: "Self Travelling", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}` : "Arrive on your own" },
-                { value: "personal", label: "Personal Travelling", desc: "Private transfer" },
-              ].map((opt) => (
-                <div key={opt.value} className={cn(
-                  "flex items-center space-x-3 p-3 rounded-xl border transition-colors cursor-pointer",
-                  travelType === opt.value ? "border-secondary bg-secondary/10" : "border-border bg-muted/50 hover:bg-muted/70"
-                )}>
-                  <RadioGroupItem value={opt.value} id={`travel-${opt.value}`} />
-                  <Label htmlFor={`travel-${opt.value}`} className="cursor-pointer flex-1">
-                    <span className="font-medium text-sm block">{opt.label}</span>
-                    <span className="text-xs text-muted-foreground">{opt.desc}</span>
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        )}
-
-        {/* Transfer Vehicle Selector */}
-        {bookingFeatures.transfer_available && vehicles.length > 0 && travelType !== "self" && (
-          <div className="mb-6 relative">
-            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-              <Car className="w-4 h-4 text-secondary" />
-              Transfer Vehicle
-            </label>
-            <Select value={selectedVehicleIdx} onValueChange={setSelectedVehicleIdx}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select a vehicle" />
-              </SelectTrigger>
-              <SelectContent>
-                {vehicles.map((v, idx) => (
-                  <SelectItem key={idx} value={String(idx)}>
-                    {v.name} — AED {v.price}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* Deck Seating Selector */}
-        {bookingFeatures.has_upper_deck && (
-          <div className="mb-6 relative">
-            <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-secondary" />
-              Deck Preference
-            </label>
-            <RadioGroup value={selectedDeck} onValueChange={setSelectedDeck} className="mt-2 space-y-2">
-              {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option, idx) => (
-                <div key={option} className={cn(
-                  "flex items-center justify-between p-3 rounded-xl border transition-colors",
-                  selectedDeck === option ? "border-secondary bg-secondary/10" : "border-border bg-muted/50 hover:bg-muted/70"
-                )}>
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value={option} id={`deck-${option}`} />
-                    <Label htmlFor={`deck-${option}`} className="font-medium text-sm cursor-pointer">{option}</Label>
-                  </div>
-                  {idx === 1 && bookingFeatures.upper_deck_surcharge ? (
-                    <span className="text-xs font-semibold text-secondary">+AED {bookingFeatures.upper_deck_surcharge}</span>
-                  ) : null}
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        )}
-
-        {/* Price Breakdown */}
+        {/* Price Display */}
         <div className="mb-6 p-4 bg-secondary/10 rounded-xl relative overflow-hidden space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{isFullYacht ? "Charter price" : `Base (${adults}A${children > 0 ? ` + ${children}C` : ''})`}</span>
             <span>AED {basePrice.toLocaleString()}</span>
           </div>
-          {selfDiscount > 0 && (
-            <div className="flex justify-between text-sm text-secondary">
-              <span>Self-travel discount</span>
-              <span>- AED {selfDiscount}</span>
-            </div>
-          )}
-          {transferCost > 0 && selectedVehicle && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Transfer ({selectedVehicle.name})</span>
-              <span>AED {transferCost}</span>
-            </div>
-          )}
-          {deckSurcharge > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Upper deck</span>
-              <span>AED {deckSurcharge}</span>
-            </div>
-          )}
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <span className="font-medium">Total</span>
             <span className="text-xl font-bold text-foreground">
-              AED {totalPrice.toLocaleString()}
+              AED {basePrice.toLocaleString()}
             </span>
           </div>
         </div>

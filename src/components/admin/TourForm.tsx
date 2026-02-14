@@ -888,7 +888,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                 </div>
                 {formData.booking_features.travel_options_enabled && (
                   <div className="space-y-1">
-                    <Label className="text-xs">Self-Travel Discount (AED)</Label>
+                    <Label className="text-xs">Direct To Boat Discount (AED)</Label>
                     <Input
                       type="number"
                       value={formData.booking_features.self_travel_discount || ""}
