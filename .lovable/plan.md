@@ -1,45 +1,104 @@
 
-# Seasonal Tour Toggle and Duplicate Feature
 
-## 1. Quick On/Off Toggle in Admin Tours Table
+# Dynamic Travel Options, Transfer Vehicles, and Deck Pricing
 
-**Current State**: The tours table shows a "Status" column that only displays "Featured" or "Active" badges -- it never shows "Draft" or "Archived" status, and there's no way to quickly toggle a tour on or off without editing it.
+## Overview
 
-**Changes to `src/pages/admin/Tours.tsx`**:
-- Replace the current Status column badge (lines 309-319) with a **Switch toggle** that instantly activates/deactivates a tour
-- When toggled OFF, the tour status changes to `"draft"` (hidden from website)
-- When toggled ON, the tour status changes to `"active"` (visible on website)  
-- Add a `handleToggleStatus` function that updates the database and refreshes the local state
-- Show a colored dot indicator next to the switch: green for active, gray for draft/archived
-- Add a status filter dropdown option (Active / Draft / Archived / All) alongside the existing category filter
-- Update the stats cards to show inactive count as well
+This plan adds five interconnected features -- all fully controlled from the admin panel and reflected in the customer booking experience.
 
-## 2. Duplicate/Copy Tour Feature
+## 1. New Data Fields (in `booking_features` JSONB)
 
-**Changes to `src/pages/admin/Tours.tsx`**:
-- Add a "Duplicate" menu item in the existing dropdown menu (between "Edit" and "Delete")
-- Import the `Copy` icon from lucide-react
-- Add a `handleDuplicate` function that:
-  1. Fetches the full tour data by ID
-  2. Creates a new tour with all the same fields but:
-     - New generated UUID (handled by DB default)
-     - Title prefixed with "Copy of "
-     - Slug appended with `-copy` (and a timestamp suffix to avoid conflicts)
-     - seo_slug set to null (to be regenerated)
-     - Status set to `"draft"` so it doesn't go live immediately
-     - featured set to false
-  3. Shows a success toast with a link to edit the new tour
-  4. Refreshes the tours list
+No database migration needed -- these are stored in the existing `booking_features` JSONB column on the `tours` table.
 
-## 3. Status Filter Enhancement
+New fields to add to `BookingFeatures` interface in `src/lib/tourMapper.ts`:
 
-**Changes to `src/pages/admin/Tours.tsx`**:
-- Add a new `statusFilter` state variable (default: `"all"`)
-- Add a second filter dropdown for Status: All / Active / Draft / Archived
-- Update `filteredTours` to also filter by status when not "all"
+```text
+travel_options_enabled: boolean          -- Enable the 3 travel types
+self_travel_discount: number             -- AED amount to deduct for self-travel
+transfer_vehicles: [                     -- Array of vehicle options
+  { name: "6-Seater", price: 150 },
+  { name: "14-Seater", price: 250 },
+  { name: "22-Seater", price: 400 }
+]
+upper_deck_surcharge: number             -- Extra AED for upper deck selection
+```
 
-## Files Modified
-- `src/pages/admin/Tours.tsx` -- Toggle switch, duplicate action, status filter
+## 2. Admin Panel -- Tour Form Updates
+
+**File**: `src/components/admin/TourForm.tsx`
+
+### Travel Options Section (new card or inside Booking Features card)
+- Toggle: "Enable Travel Type Selection"
+- Input: "Self-Travel Discount (AED)" -- the amount to deduct when customer picks Self Travelling
+
+### Transfer Vehicle Management
+- When "Transfer Service Available" is ON, show a repeatable vehicle list:
+  - Each row: Vehicle Name (text input) + Price in AED (number input) + Remove button
+  - "+ Add Vehicle" button to add more rows
+- Replaces the current single `transfer_price` field with multi-vehicle pricing
+
+### Upper Deck Pricing
+- When "Has Upper Deck Option" is ON, show a new field:
+  - "Upper Deck Surcharge (AED)" -- extra cost added when customer selects upper deck
+
+## 3. Booking Sidebar Updates
+
+**File**: `src/components/tour-detail/BookingSidebar.tsx`
+
+### Travel Type Selector (new section, after date picker)
+- Three radio cards: "Shared Travelling", "Self Travelling", "Personal Travelling"
+- Default: Shared Travelling
+- When "Self Travelling" is selected, the total price is reduced by the admin-set discount amount
+
+### Transfer Vehicle Dropdown (replaces current static transfer info)
+- When transfer is toggled ON by the customer, show a dropdown with the admin-configured vehicles
+- Each option shows: vehicle name + price (e.g., "6-Seater -- AED 150")
+- Selected vehicle price is added to the total
+
+### Deck Pricing (update existing deck selector)
+- The existing deck radio buttons remain
+- When "Upper Deck" is selected, the surcharge is added to the total and shown as a line item
+- Display the surcharge amount next to the Upper Deck option label
+
+### Price Breakdown (update total section)
+- Show itemized breakdown:
+  - Base price (per person x guests, or per hour)
+  - Self-travel discount (if selected, shown as negative)
+  - Transfer vehicle (if selected, with vehicle name)
+  - Upper deck surcharge (if selected)
+  - Total
+
+## 4. Booking Modal Updates
+
+**File**: `src/components/tour-detail/BookingModal.tsx`
+
+- Mirror the same travel type, transfer vehicle, and deck surcharge logic
+- Pass selected options into the booking special_requests field for admin visibility
+- Update total price calculation to include all add-ons/discounts
+
+## 5. Price Calculation Logic
+
+```text
+basePrice = (per_person) ? price * adults + price * 0.7 * children
+          : (full_yacht) ? fullYachtPrice
+
+selfDiscount = (travelType === "self") ? -self_travel_discount : 0
+transferCost = (transferSelected) ? selectedVehicle.price : 0
+deckSurcharge = (selectedDeck === "Upper Deck") ? upper_deck_surcharge : 0
+
+totalPrice = basePrice + selfDiscount + transferCost + deckSurcharge
+```
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/lib/tourMapper.ts` | Add new fields to `BookingFeatures` interface and defaults |
+| `src/components/admin/TourForm.tsx` | Add travel options toggle, self-travel discount input, vehicle list manager, upper deck surcharge input |
+| `src/components/tour-detail/BookingSidebar.tsx` | Add travel type radio cards, transfer vehicle dropdown, deck surcharge display, itemized price breakdown |
+| `src/components/tour-detail/BookingModal.tsx` | Add travel type selector, vehicle dropdown, deck surcharge, updated price calc, pass selections to booking data |
 
 ## No Database Changes Required
-The `status` column already exists on the `tours` table with text type supporting any value. The frontend `useTours` hook already filters by `status = 'active'`, so setting status to `"draft"` automatically hides tours from the website.
+
+All new data lives inside the existing `booking_features` JSONB column, which already supports arbitrary keys.
+
