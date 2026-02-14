@@ -11,13 +11,13 @@ export interface ContactConfig {
 }
 
 const DEFAULT_CONFIG: ContactConfig = {
-  phone: "+971509425692",
-  phoneFormatted: "+971 50 942 5692",
+  phone: "+971585725692",
+  phoneFormatted: "+971 58 572 5692",
   email: "info@rentalyachtdubai.com",
-  whatsapp: "+971509425692",
-  whatsappLink: "https://wa.me/971509425692",
+  whatsapp: "+971585725692",
+  whatsappLink: "https://wa.me/971585725692",
   whatsappLinkWithGreeting: (greeting = "Hi! I'm interested in your yacht and dhow cruise experiences. Can you help me with booking?") => 
-    `https://wa.me/971509425692?text=${encodeURIComponent(greeting)}`,
+    `https://wa.me/971585725692?text=${encodeURIComponent(greeting)}`,
   address: "Dubai Marina Walk, Dubai, United Arab Emirates",
 };
 

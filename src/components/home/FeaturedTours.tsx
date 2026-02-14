@@ -91,7 +91,7 @@ const FeaturedTours = memo(() => {
               transition={{ duration: 0.4 }}
             >
               {featuredTours.slice(0, 4).map((tour) => (
-                <div key={tour.id} className="h-full">
+                <div key={tour.id}>
                   <TourCard tour={tour} />
                 </div>
               ))}

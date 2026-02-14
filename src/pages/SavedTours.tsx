@@ -4,7 +4,6 @@ import { Heart, Trash2, ChevronRight, Star, Clock, Ship } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/layout/Layout";
-import PageMeta from "@/components/PageMeta";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -110,11 +109,6 @@ const SavedTours = () => {
 
   return (
     <Layout>
-      <PageMeta
-        title="Saved Tours - Rental Yacht Dubai"
-        description="View your saved yacht tours and dhow cruises. Plan your perfect Dubai experience."
-        canonicalPath="/saved-tours"
-      />
       {/* Breadcrumb */}
       <div className="bg-muted py-3">
         <div className="container">

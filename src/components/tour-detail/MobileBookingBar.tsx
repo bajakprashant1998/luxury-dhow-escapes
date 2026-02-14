@@ -1,5 +1,5 @@
-import { useState, memo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ChevronUp, Ship } from "lucide-react";
 import BookingModal from "./BookingModal";
@@ -17,7 +17,7 @@ interface MobileBookingBarProps {
   bookingFeatures?: BookingFeatures;
 }
 
-const MobileBookingBar = memo(({ 
+const MobileBookingBar = ({ 
   price, 
   originalPrice, 
   tourTitle = "", 
@@ -42,8 +42,11 @@ const MobileBookingBar = memo(({
 
   return (
     <>
-      <div 
-        className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-2xl lg:hidden pb-safe"
+      <motion.div 
+        className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-2xl lg:hidden pb-safe"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.5 }}
       >
         {/* Expandable Info Panel */}
         <AnimatePresence>
@@ -97,27 +100,41 @@ const MobileBookingBar = memo(({
             onClick={() => setIsExpanded(!isExpanded)}
             className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-6 bg-card border border-border rounded-t-lg flex items-center justify-center shadow-sm"
           >
-            <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
               <ChevronUp className="w-4 h-4 text-muted-foreground" />
-            </div>
+            </motion.div>
           </button>
 
           <div className="flex items-center justify-between gap-4">
             {/* Price */}
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-foreground">
+                <motion.span 
+                  className="text-xl font-bold text-foreground"
+                  key={displayPrice}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
                   AED {displayPrice.toLocaleString()}
-                </span>
+                </motion.span>
                 {!isFullYacht && originalPrice > price && (
                   <span className="text-sm text-muted-foreground line-through">AED {originalPrice}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 {!isFullYacht && discount > 0 && (
-                  <span className="text-xs font-semibold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
+                  <motion.span 
+                    className="text-xs font-semibold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.8 }}
+                  >
                     {discount}% OFF
-                  </span>
+                  </motion.span>
                 )}
                 {isFullYacht && (
                   <span className="text-xs font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
@@ -130,27 +147,28 @@ const MobileBookingBar = memo(({
 
             {/* Buttons */}
             <div className="flex gap-2">
-              <a 
+              <motion.a 
                 href={whatsappLinkWithGreeting(`Hi! I'm interested in booking ${tourTitle}. Can you help?`)} 
                 target="_blank" 
                 rel="noopener noreferrer"
+                whileTap={{ scale: 0.95 }}
               >
-                <Button variant="outline" size="icon" className="h-11 w-11 touch-target active:scale-95 transition-transform">
+                <Button variant="outline" size="icon" className="h-11 w-11 touch-target">
                   <MessageCircle className="w-5 h-5" />
                 </Button>
-              </a>
-              <div>
+              </motion.a>
+              <motion.div whileTap={{ scale: 0.98 }}>
                 <Button 
                   onClick={() => setIsBookingModalOpen(true)}
-                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-11 px-5 sm:px-6 shadow-lg touch-target active:scale-[0.98] transition-transform"
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-11 px-5 sm:px-6 shadow-lg touch-target animate-pulse-glow"
                 >
                   Book Now
                 </Button>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Booking Modal */}
       <BookingModal
@@ -164,8 +182,6 @@ const MobileBookingBar = memo(({
       />
     </>
   );
-});
-
-MobileBookingBar.displayName = "MobileBookingBar";
+};
 
 export default MobileBookingBar;

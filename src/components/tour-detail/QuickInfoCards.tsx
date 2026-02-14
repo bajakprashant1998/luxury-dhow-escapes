@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { motion } from "framer-motion";
 import { Clock, Users, Globe, Calendar, MapPin } from "lucide-react";
 
 interface QuickInfoCardsProps {
@@ -6,7 +6,20 @@ interface QuickInfoCardsProps {
   capacity?: string;
 }
 
-const QuickInfoCards = memo(({ duration, capacity }: QuickInfoCardsProps) => {
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20, scale: 0.9 },
+  show: { opacity: 1, y: 0, scale: 1 }
+};
+
+const QuickInfoCards = ({ duration, capacity }: QuickInfoCardsProps) => {
   const infoItems = [
     {
       icon: Clock,
@@ -41,26 +54,36 @@ const QuickInfoCards = memo(({ duration, capacity }: QuickInfoCardsProps) => {
   ];
 
   return (
-    <div className="flex overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-5 gap-3 scrollbar-hide snap-x-mandatory">
+    <motion.div 
+      className="flex overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-5 gap-3 scrollbar-hide snap-x-mandatory"
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-50px" }}
+    >
       {infoItems.map((infoItem, index) => (
-        <div
+        <motion.div
           key={index}
-          className="flex-shrink-0 snap-start w-[140px] md:w-auto flex flex-col items-center p-3 md:p-4 bg-card rounded-xl border border-border/50 shadow-sm text-center hover:shadow-lg hover:border-secondary/30 hover:-translate-y-1 transition-all duration-200 cursor-default group relative overflow-hidden touch-target"
+          variants={item}
+          whileHover={{ y: -4, scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          className="flex-shrink-0 snap-start w-[140px] md:w-auto flex flex-col items-center p-3 md:p-4 bg-card rounded-xl border border-border/50 shadow-sm text-center hover:shadow-lg hover:border-secondary/30 transition-all duration-300 cursor-default group relative overflow-hidden touch-target"
         >
           {/* Gradient Background on Hover */}
           <div className={`absolute inset-0 bg-gradient-to-br ${infoItem.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
           
-          <div className="relative w-10 md:w-12 h-10 md:h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-2 md:mb-3 group-hover:bg-secondary/20 transition-colors">
+          <motion.div 
+            className="relative w-10 md:w-12 h-10 md:h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-2 md:mb-3 group-hover:bg-secondary/20 transition-colors"
+            whileHover={{ rotate: 5 }}
+          >
             <infoItem.icon className="w-5 md:w-6 h-5 md:h-6 text-secondary" />
-          </div>
+          </motion.div>
           <p className="relative text-[10px] md:text-xs text-muted-foreground mb-0.5 md:mb-1">{infoItem.label}</p>
           <p className="relative text-xs md:text-sm font-semibold text-foreground">{infoItem.value}</p>
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
-});
-
-QuickInfoCards.displayName = "QuickInfoCards";
+};
 
 export default QuickInfoCards;

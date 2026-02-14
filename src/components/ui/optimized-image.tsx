@@ -1,4 +1,4 @@
-import { useState, memo, useRef, useEffect, useMemo } from "react";
+import { useState, memo, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface ImageSource {
@@ -27,8 +27,6 @@ interface OptimizedImageProps {
   webpSrc?: string;
   /** Enable blur-up placeholder effect */
   blurUp?: boolean;
-  /** Dominant color for placeholder (optional - improves perceived performance) */
-  placeholderColor?: string;
 }
 
 /**
@@ -37,10 +35,10 @@ interface OptimizedImageProps {
  */
 function getWebpUrl(src: string): string | null {
   if (!src) return null;
-
+  
   // If already a WebP, return as-is
   if (src.endsWith(".webp")) return src;
-
+  
   // Check if this is a Supabase storage URL
   if (src.includes("supabase") && src.includes("/storage/")) {
     // Try to construct WebP path
@@ -48,7 +46,7 @@ function getWebpUrl(src: string): string | null {
     const urlParts = src.split("/");
     const fileName = urlParts.pop() || "";
     const folder = urlParts.pop() || "";
-
+    
     // Only attempt WebP for images in main or gallery folders
     if (folder === "main" || folder === "gallery") {
       const baseName = fileName.replace(/\.(jpg|jpeg|png)$/i, "");
@@ -56,17 +54,8 @@ function getWebpUrl(src: string): string | null {
       return webpPath;
     }
   }
-
+  
   return null;
-}
-
-/**
- * Generates a tiny SVG blur placeholder
- * This creates a very small inline SVG that mimics the image colors
- */
-function generateBlurPlaceholder(color: string = "#e5e7eb"): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><filter id="b" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation=".5"/></filter><rect width="100%" height="100%" fill="${color}" filter="url(#b)"/></svg>`;
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
 /**
@@ -77,7 +66,6 @@ function generateBlurPlaceholder(color: string = "#e5e7eb"): string {
  * - Smooth fade-in animation
  * - Priority loading for LCP images
  * - Intersection Observer for lazy loading
- * - Native lazy loading fallback
  */
 const OptimizedImage = memo(({
   src,
@@ -92,7 +80,6 @@ const OptimizedImage = memo(({
   onLoad,
   webpSrc,
   blurUp = true,
-  placeholderColor,
 }: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -102,29 +89,14 @@ const OptimizedImage = memo(({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Generate srcset string from sources array
-  const srcSet = useMemo(
-    () => sources?.map((s) => `${s.src} ${s.width}w`).join(", "),
-    [sources]
-  );
-
+  const srcSet = sources?.map((s) => `${s.src} ${s.width}w`).join(", ");
+  
   // Get WebP URL (either provided or auto-detected)
-  const webpUrl = useMemo(() => webpSrc || getWebpUrl(src), [webpSrc, src]);
-
-  // Generate blur placeholder
-  const blurPlaceholder = useMemo(
-    () => (blurUp ? generateBlurPlaceholder(placeholderColor) : null),
-    [blurUp, placeholderColor]
-  );
+  const webpUrl = webpSrc || getWebpUrl(src);
 
   // Intersection Observer for lazy loading
   useEffect(() => {
     if (priority || !containerRef.current) {
-      setIsInView(true);
-      return;
-    }
-
-    // Check if IntersectionObserver is available
-    if (!("IntersectionObserver" in window)) {
       setIsInView(true);
       return;
     }
@@ -137,7 +109,7 @@ const OptimizedImage = memo(({
         }
       },
       {
-        rootMargin: "100px 0px", // Start loading 100px before element is in view
+        rootMargin: "50px 0px", // Start loading 50px before element is in view
         threshold: 0.01,
       }
     );
@@ -169,7 +141,7 @@ const OptimizedImage = memo(({
   }[objectFit];
 
   return (
-    <div
+    <div 
       ref={containerRef}
       className={cn(
         "relative overflow-hidden bg-muted",
@@ -178,25 +150,10 @@ const OptimizedImage = memo(({
       )}
       style={aspectRatio ? { aspectRatio } : undefined}
     >
-      {/* Blur-up placeholder - shows a blurred image until real image loads */}
+      {/* Blur-up placeholder - shows a blurred gradient until image loads */}
       {blurUp && !loaded && !error && (
-        <div
-          className="absolute inset-0 will-change-transform"
-          style={{
-            backgroundImage: blurPlaceholder ? `url(${blurPlaceholder})` : undefined,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(20px)",
-            transform: "scale(1.1)", // Prevent blur edges from showing
-          }}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Loading shimmer animation */}
-      {!loaded && !error && (
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-muted via-muted/50 to-muted animate-pulse"
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse"
           aria-hidden="true"
         />
       )}
@@ -228,7 +185,7 @@ const OptimizedImage = memo(({
               onError={handleWebpError as any}
             />
           )}
-
+          
           {/* Fallback image */}
           <img
             ref={imgRef}
@@ -238,11 +195,11 @@ const OptimizedImage = memo(({
             sizes={sizes}
             loading={priority ? "eager" : "lazy"}
             decoding={priority ? "sync" : "async"}
-            fetchPriority={priority ? "high" : "auto"}
+            fetchPriority={priority ? "high" : undefined}
             onLoad={handleLoad}
             onError={handleError}
             className={cn(
-              "w-full h-full transition-opacity duration-300 ease-out",
+              "w-full h-full transition-opacity duration-500",
               objectFitClass,
               loaded ? "opacity-100" : "opacity-0",
               className

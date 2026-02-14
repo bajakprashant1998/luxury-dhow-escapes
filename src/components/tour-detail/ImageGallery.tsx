@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Camera, ZoomIn } from "lucide-react";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
@@ -10,19 +10,10 @@ interface ImageGalleryProps {
   title: string;
 }
 
-const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
+const ImageGallery = ({ images, title }: ImageGalleryProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
-  const [isMobile, setIsMobile] = useState(false);
- 
-  // Detect mobile for reduced animations
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const handleImageLoad = (index: number) => {
     setLoadedImages(prev => ({ ...prev, [index]: true }));
@@ -69,10 +60,13 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
       <div className="md:hidden -mx-4">
         <div className="flex overflow-x-auto snap-x-mandatory scrollbar-hide">
           {images.map((image, index) => (
-            <div
+            <motion.div
               key={index}
               className="flex-shrink-0 w-full snap-center cursor-pointer relative"
               onClick={() => openLightbox(index)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
             >
               {!loadedImages[index] && (
                 <Skeleton className="absolute inset-0 w-full h-[280px]" />
@@ -92,7 +86,7 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
                   {index + 1} / {images.length}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
         {/* Swipe indicator dots */}
@@ -117,12 +111,14 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
         className="hidden md:grid grid-cols-4 gap-2 md:gap-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
         {/* Main Large Image */}
-        <div 
+        <motion.div 
           className="col-span-4 md:col-span-2 row-span-2 cursor-pointer group relative overflow-hidden rounded-xl md:rounded-2xl"
           onClick={() => openLightbox(0)}
+          whileHover={{ scale: 1.01 }}
+          transition={{ duration: 0.3 }}
         >
           {!loadedImages[0] && (
             <Skeleton className="absolute inset-0 w-full h-[420px]" />
@@ -131,37 +127,45 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
             src={images[0]}
             alt={title}
             onLoad={() => handleImageLoad(0)}
-            fetchPriority="high"
             className={cn(
-              "w-full h-[420px] object-cover transition-transform duration-500 group-hover:scale-105",
+              "w-full h-[420px] object-cover transition-all duration-700 group-hover:scale-110",
               loadedImages[0] ? "opacity-100" : "opacity-0"
             )}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Zoom Icon */}
-          <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <motion.div 
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            whileHover={{ scale: 1.1 }}
+          >
             <ZoomIn className="w-5 h-5 text-foreground" />
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
             onClick={(e) => {
               e.stopPropagation();
               openLightbox(0);
             }}
-            className="absolute bottom-4 right-4 bg-card/95 backdrop-blur-sm hover:bg-card px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg flex items-center gap-2 transition-all hover:scale-105 touch-target"
+            className="absolute bottom-4 right-4 bg-card/95 backdrop-blur-sm hover:bg-card px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg flex items-center gap-2 transition-all touch-target"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.98 }}
           >
             <Camera className="w-4 h-4" />
             View all {images.length} photos
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Smaller Images */}
         {images.slice(1, 5).map((image, index) => (
-          <div
+          <motion.div
             key={index}
-            className="cursor-pointer group relative overflow-hidden rounded-lg md:rounded-xl transition-transform hover:scale-[1.02]"
+            className="cursor-pointer group relative overflow-hidden rounded-lg md:rounded-xl"
             onClick={() => openLightbox(index + 1)}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 + index * 0.05 }}
+            whileHover={{ scale: 1.03 }}
           >
             {!loadedImages[index + 1] && (
               <Skeleton className="absolute inset-0 w-full h-[200px]" />
@@ -172,7 +176,7 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
               loading="lazy"
               onLoad={() => handleImageLoad(index + 1)}
               className={cn(
-                "w-full h-[200px] object-cover transition-transform duration-300 group-hover:scale-105",
+                "w-full h-[200px] object-cover transition-all duration-500 group-hover:scale-110",
                 loadedImages[index + 1] ? "opacity-100" : "opacity-0"
               )}
             />
@@ -180,13 +184,16 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
             
             {/* Show More overlay on last visible image */}
             {index === 3 && images.length > 5 && (
-              <div className="absolute inset-0 bg-black/60 hover:bg-black/70 flex items-center justify-center transition-colors">
+              <motion.div 
+                className="absolute inset-0 bg-black/60 flex items-center justify-center"
+                whileHover={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+              >
                 <span className="text-white font-semibold text-lg">
                   +{images.length - 5} more
                 </span>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         ))}
       </motion.div>
 
@@ -200,68 +207,69 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
             </DialogClose>
 
             {/* Navigation Arrows - Larger touch targets on mobile */}
-            <button
+            <motion.button
               onClick={goToPrevious}
-              className="absolute left-2 md:left-4 z-50 w-14 h-14 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95 touch-target"
+              className="absolute left-2 md:left-4 z-50 w-14 h-14 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors touch-target"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
               <ChevronLeft className="w-7 h-7 md:w-6 md:h-6 text-white" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={goToNext}
-              className="absolute right-2 md:right-4 z-50 w-14 h-14 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95 touch-target"
+              className="absolute right-2 md:right-4 z-50 w-14 h-14 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors touch-target"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
               <ChevronRight className="w-7 h-7 md:w-6 md:h-6 text-white" />
-            </button>
+            </motion.button>
 
             {/* Main Image with Animation */}
-            {isMobile ? (
-              <img
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={selectedIndex}
                 src={images[selectedIndex]}
                 alt={`${title} - ${selectedIndex + 1}`}
                 className="max-w-full max-h-[80vh] object-contain"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
               />
-            ) : (
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={selectedIndex}
-                  src={images[selectedIndex]}
-                  alt={`${title} - ${selectedIndex + 1}`}
-                  className="max-w-full max-h-[80vh] object-contain"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                />
-              </AnimatePresence>
-            )}
+            </AnimatePresence>
 
             {/* Image Counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full">
+            <motion.div 
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               <span className="text-white font-medium">
                 {selectedIndex + 1} / {images.length}
               </span>
-            </div>
+            </motion.div>
 
             {/* Thumbnail Strip */}
             <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 max-w-[80vw] overflow-x-auto py-2 px-4 scrollbar-hide">
               {images.map((image, index) => (
-                <button
+                <motion.button
                   key={index}
                   onClick={() => setSelectedIndex(index)}
                   className={cn(
-                    "flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden transition-all duration-150",
+                    "flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden transition-all duration-200",
                     selectedIndex === index
                       ? "ring-2 ring-secondary opacity-100 scale-110"
                       : "opacity-50 hover:opacity-80"
                   )}
+                  whileHover={{ scale: selectedIndex === index ? 1.1 : 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <img
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
-                    loading="lazy"
                     className="w-full h-full object-cover"
                   />
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -269,8 +277,6 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
       </Dialog>
     </>
   );
-});
-
-ImageGallery.displayName = "ImageGallery";
+};
 
 export default ImageGallery;

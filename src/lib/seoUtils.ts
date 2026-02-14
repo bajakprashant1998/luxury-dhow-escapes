@@ -6,8 +6,6 @@ export const categoryPaths: Record<string, string> = {
   "yacht-shared": "shared-yacht-tours",
   "yacht-private": "private-yacht-charter",
   "megayacht": "megayacht-experiences",
-  "water-activity": "water-activities",
-  "yacht-event": "yacht-events",
 };
 
 // Reverse mapping for looking up category from path
@@ -16,8 +14,6 @@ export const pathToCategory: Record<string, string> = {
   "shared-yacht-tours": "yacht-shared",
   "private-yacht-charter": "yacht-private",
   "megayacht-experiences": "megayacht",
-  "water-activities": "water-activity",
-  "yacht-events": "yacht-event",
 };
 
 /**

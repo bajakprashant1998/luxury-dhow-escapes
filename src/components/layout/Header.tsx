@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, Mail, ChevronDown, Ship, Anchor, Crown, Users, Search, MessageCircle, Sparkles, Waves, PartyPopper } from "lucide-react";
+import { Menu, X, Phone, Mail, ChevronDown, Ship, Anchor, Crown, Users, Search, MessageCircle, Sparkles } from "lucide-react";
 import rentalYachtLogo from "@/assets/rental-yacht-logo-new.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,20 +89,6 @@ const Header = () => {
       path: "/dubai/megayacht-experiences",
       icon: Crown,
       description: "Premium multi-deck cruise experience",
-    },
-    {
-      name: "Water Activities",
-      path: "/dubai/water-activities",
-      icon: Waves,
-      description: "Jet ski, parasailing, and water sports",
-      badge: "New",
-    },
-    {
-      name: "Events & Experiences",
-      path: "/dubai/yacht-events",
-      icon: PartyPopper,
-      description: "Birthday parties, weddings & celebrations",
-      badge: "New",
     },
   ];
 

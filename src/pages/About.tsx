@@ -4,7 +4,6 @@ import { motion, useInView, useSpring, useTransform } from "framer-motion";
 import { Award, Users, Heart, Shield, ArrowRight, Linkedin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
-import PageMeta from "@/components/PageMeta";
 import { useHomepageStats } from "@/hooks/useHomepageContent";
 import { useSiteSetting } from "@/hooks/useSiteSettings";
 
@@ -131,11 +130,6 @@ const About = () => {
 
   return (
     <Layout>
-      <PageMeta
-        title="About Us - Rental Yacht Dubai"
-        description="Learn about Rental Yacht Dubai — Dubai's premier yacht charter and dhow cruise company since 2015."
-        canonicalPath="/about"
-      />
       {/* Hero Section with Parallax */}
       <section className="relative py-24 md:py-32 bg-primary text-primary-foreground overflow-hidden">
         <motion.div 

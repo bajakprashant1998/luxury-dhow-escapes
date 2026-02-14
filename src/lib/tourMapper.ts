@@ -11,28 +11,9 @@ export interface BookingFeatures {
   cancellation_text: string;
   charter_features: string[];
   // Important Information section content
-  cancellation_info: (string | { text: string; icon: "check" | "cross" | "info" | "dot" })[];
-  what_to_bring: (string | { text: string; icon: "check" | "cross" | "info" | "dot" })[];
-  good_to_know: (string | { text: string; icon: "check" | "cross" | "info" | "dot" })[];
-  // Water activity fields
-  equipment_list?: string[];
-  safety_info?: string[];
-  // Event fields
-  decoration_options?: string[];
-  catering_options?: string[];
-  customization_notes?: string;
-  // Transfer service
-  transfer_available?: boolean;
-  transfer_price?: number;
-  transfer_label?: string;
-  transfer_vehicles?: { name: string; price: number }[];
-  // Deck seating
-  has_upper_deck?: boolean;
-  deck_options?: string[];
-  upper_deck_surcharge?: number;
-  // Travel options
-  travel_options_enabled?: boolean;
-  self_travel_discount?: number;
+  cancellation_info: string[];
+  what_to_bring: string[];
+  good_to_know: string[];
 }
 
 // Default Important Information content
@@ -92,7 +73,7 @@ export interface Tour {
   excluded: string[];
   itinerary: { time: string; activity: string }[];
   faqs: { question: string; answer: string }[];
-  category: "dhow-cruise" | "yacht-shared" | "yacht-private" | "megayacht" | "water-activity" | "yacht-event";
+  category: "dhow-cruise" | "yacht-shared" | "yacht-private" | "megayacht";
   capacity?: string;
   featured: boolean;
   pricingType: "per_person" | "per_hour";

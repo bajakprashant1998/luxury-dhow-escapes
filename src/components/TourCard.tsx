@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, Clock, Users, ChevronRight, Ship, Ticket, Heart, Award, TrendingUp, Waves, PartyPopper } from "lucide-react";
+import { Star, Clock, Users, ChevronRight, Ship, Ticket, Heart, Award, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { Tour } from "@/lib/tourMapper";
@@ -17,17 +17,6 @@ const categoryLabels: Record<string, string> = {
   "yacht-shared": "Shared Yacht",
   "yacht-private": "Private Charter",
   "megayacht": "Megayacht",
-  "water-activity": "Water Activity",
-  "yacht-event": "Yacht Event",
-};
-
-const categoryIcons: Record<string, typeof Ship> = {
-  "dhow-cruise": Ship,
-  "yacht-shared": Ship,
-  "yacht-private": Ship,
-  "megayacht": Ship,
-  "water-activity": Waves,
-  "yacht-event": PartyPopper,
 };
 
 const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
@@ -65,7 +54,7 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
   };
 
   return (
-    <Link to={getTourUrl(tour)} className="group block h-full">
+    <Link to={getTourUrl(tour)} className="group block">
       <div className={`bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col ${featured ? 'lg:flex-row' : ''}`}>
         {/* Image with WebP support and srcset */}
         <div className={`relative overflow-hidden ${featured ? 'lg:w-1/2 lg:min-h-[300px]' : ''}`}>
@@ -81,10 +70,11 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
           {/* Wishlist Button */}
           <button
             onClick={handleSave}
-            className={`absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isSaved
+            className={`absolute top-4 right-4 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+              isSaved
                 ? "bg-destructive text-destructive-foreground"
                 : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-background"
-              }`}
+            }`}
             aria-label={isSaved ? "Remove from saved" : "Save tour"}
           >
             <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
@@ -124,8 +114,8 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
 
           {/* Category Badge */}
           <div className="absolute bottom-4 left-4 bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 z-10">
-            {(() => { const Icon = categoryIcons[tour.category] || Ship; return <Icon className="w-3 h-3" />; })()}
-            {categoryLabels[tour.category] || tour.category}
+            <Ship className="w-3 h-3" />
+            {categoryLabels[tour.category]}
           </div>
         </div>
 
@@ -205,8 +195,8 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
                 </>
               )}
             </div>
-            <Button
-              variant="ghost"
+            <Button 
+              variant="ghost" 
               size="sm"
               className="text-secondary hover:text-secondary hover:bg-secondary/10 font-semibold touch-target px-2 sm:px-3"
             >
