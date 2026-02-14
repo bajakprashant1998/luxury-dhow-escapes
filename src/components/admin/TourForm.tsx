@@ -869,7 +869,43 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                 </div>
               </div>
 
-              {/* Transfer Service */}
+              {/* Travel Options */}
+              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-secondary" />
+                    Enable Travel Type Selection
+                  </Label>
+                  <Switch
+                    checked={formData.booking_features.travel_options_enabled || false}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        booking_features: { ...prev.booking_features, travel_options_enabled: checked },
+                      }))
+                    }
+                  />
+                </div>
+                {formData.booking_features.travel_options_enabled && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Self-Travel Discount (AED)</Label>
+                    <Input
+                      type="number"
+                      value={formData.booking_features.self_travel_discount || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          booking_features: { ...prev.booking_features, self_travel_discount: parseFloat(e.target.value) || 0 },
+                        }))
+                      }
+                      placeholder="Amount deducted for Self Travelling"
+                    />
+                    <p className="text-xs text-muted-foreground">Subtracted from total when customer travels on their own</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Transfer Service with Vehicles */}
               <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-2">
@@ -887,21 +923,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                   />
                 </div>
                 {formData.booking_features.transfer_available !== false && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Transfer Price (AED)</Label>
-                      <Input
-                        type="number"
-                        value={formData.booking_features.transfer_price || ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            booking_features: { ...prev.booking_features, transfer_price: parseFloat(e.target.value) || 0 },
-                          }))
-                        }
-                        placeholder="0 = Complimentary"
-                      />
-                    </div>
+                  <div className="space-y-3">
                     <div className="space-y-1">
                       <Label className="text-xs">Transfer Label</Label>
                       <Input
@@ -914,6 +936,72 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                         }
                         placeholder="Hotel/Residence Transfer"
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold">Transfer Vehicles & Pricing</Label>
+                      {(formData.booking_features.transfer_vehicles || []).map((vehicle, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <Input
+                            value={vehicle.name}
+                            onChange={(e) => {
+                              const newVehicles = [...(formData.booking_features.transfer_vehicles || [])];
+                              newVehicles[index] = { ...newVehicles[index], name: e.target.value };
+                              setFormData((prev) => ({
+                                ...prev,
+                                booking_features: { ...prev.booking_features, transfer_vehicles: newVehicles },
+                              }));
+                            }}
+                            placeholder="e.g. 6-Seater"
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            value={vehicle.price || ""}
+                            onChange={(e) => {
+                              const newVehicles = [...(formData.booking_features.transfer_vehicles || [])];
+                              newVehicles[index] = { ...newVehicles[index], price: parseFloat(e.target.value) || 0 };
+                              setFormData((prev) => ({
+                                ...prev,
+                                booking_features: { ...prev.booking_features, transfer_vehicles: newVehicles },
+                              }));
+                            }}
+                            placeholder="Price (AED)"
+                            className="w-28"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const newVehicles = (formData.booking_features.transfer_vehicles || []).filter((_, i) => i !== index);
+                              setFormData((prev) => ({
+                                ...prev,
+                                booking_features: { ...prev.booking_features, transfer_vehicles: newVehicles },
+                              }));
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const current = formData.booking_features.transfer_vehicles || [];
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: {
+                              ...prev.booking_features,
+                              transfer_vehicles: [...current, { name: "", price: 0 }],
+                            },
+                          }));
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Vehicle
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -937,56 +1025,72 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                   />
                 </div>
                 {formData.booking_features.has_upper_deck && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Deck Options</Label>
-                    {(formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"]).map((option, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          value={option}
-                          onChange={(e) => {
-                            const newOptions = [...(formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"])];
-                            newOptions[index] = e.target.value;
-                            setFormData((prev) => ({
-                              ...prev,
-                              booking_features: { ...prev.booking_features, deck_options: newOptions },
-                            }));
-                          }}
-                          placeholder="Deck name"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const newOptions = (formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"]).filter((_, i) => i !== index);
-                            setFormData((prev) => ({
-                              ...prev,
-                              booking_features: { ...prev.booking_features, deck_options: newOptions },
-                            }));
-                          }}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const current = formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"];
-                        setFormData((prev) => ({
-                          ...prev,
-                          booking_features: {
-                            ...prev.booking_features,
-                            deck_options: [...current, ""],
-                          },
-                        }));
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Deck Option
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Upper Deck Surcharge (AED)</Label>
+                      <Input
+                        type="number"
+                        value={formData.booking_features.upper_deck_surcharge || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: { ...prev.booking_features, upper_deck_surcharge: parseFloat(e.target.value) || 0 },
+                          }))
+                        }
+                        placeholder="Extra charge for Upper Deck"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Deck Options</Label>
+                      {(formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"]).map((option, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <Input
+                            value={option}
+                            onChange={(e) => {
+                              const newOptions = [...(formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"])];
+                              newOptions[index] = e.target.value;
+                              setFormData((prev) => ({
+                                ...prev,
+                                booking_features: { ...prev.booking_features, deck_options: newOptions },
+                              }));
+                            }}
+                            placeholder="Deck name"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const newOptions = (formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"]).filter((_, i) => i !== index);
+                              setFormData((prev) => ({
+                                ...prev,
+                                booking_features: { ...prev.booking_features, deck_options: newOptions },
+                              }));
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const current = formData.booking_features.deck_options || ["Lower Deck", "Upper Deck"];
+                          setFormData((prev) => ({
+                            ...prev,
+                            booking_features: {
+                              ...prev.booking_features,
+                              deck_options: [...current, ""],
+                            },
+                          }));
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Deck Option
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>

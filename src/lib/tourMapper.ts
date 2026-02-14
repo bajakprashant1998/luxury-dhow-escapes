@@ -25,9 +25,14 @@ export interface BookingFeatures {
   transfer_available?: boolean;
   transfer_price?: number;
   transfer_label?: string;
+  transfer_vehicles?: { name: string; price: number }[];
   // Deck seating
   has_upper_deck?: boolean;
   deck_options?: string[];
+  upper_deck_surcharge?: number;
+  // Travel options
+  travel_options_enabled?: boolean;
+  self_travel_discount?: number;
 }
 
 // Default Important Information content
