@@ -2,11 +2,14 @@ import Layout from "@/components/layout/Layout";
 import PageMeta from "@/components/PageMeta";
 import HeroSection from "@/components/home/HeroSection";
 import ExperienceCategories from "@/components/home/ExperienceCategories";
+import SocialProofBar from "@/components/home/SocialProofBar";
 import HighlightsSection from "@/components/home/HighlightsSection";
 import FeaturedTours from "@/components/home/FeaturedTours";
+import HowItWorks from "@/components/home/HowItWorks";
 import ActivitiesShowcase from "@/components/home/ActivitiesShowcase";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import TestimonialsCarousel from "@/components/home/TestimonialsCarousel";
+import HomeFAQ from "@/components/home/HomeFAQ";
 import CTASection from "@/components/home/CTASection";
 
 const Home = () => {
@@ -19,11 +22,14 @@ const Home = () => {
       />
       <HeroSection />
       <ExperienceCategories />
+      <SocialProofBar />
       <HighlightsSection />
       <FeaturedTours />
+      <HowItWorks />
       <ActivitiesShowcase />
       <WhyChooseUs />
       <TestimonialsCarousel />
+      <HomeFAQ />
       <CTASection />
     </Layout>
   );
