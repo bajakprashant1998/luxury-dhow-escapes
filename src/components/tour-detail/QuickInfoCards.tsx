@@ -54,7 +54,7 @@ const QuickInfoCards = memo(({ duration, capacity }: QuickInfoCardsProps) => {
             <infoItem.icon className="w-5 md:w-6 h-5 md:h-6 text-secondary" />
           </div>
           <p className="relative text-[10px] md:text-xs text-muted-foreground mb-0.5 md:mb-1">{infoItem.label}</p>
-          <p className="relative text-xs md:text-sm font-semibold text-foreground">{infoItem.value}</p>
+          <p className="relative text-xs md:text-sm font-bold text-foreground">{infoItem.value}</p>
         </div>
       ))}
     </div>

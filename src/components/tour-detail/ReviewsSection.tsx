@@ -161,7 +161,7 @@ const ReviewsSection = ({ rating, reviewCount, tourId }: ReviewsSectionProps) =>
   return (
     <div className="bg-card rounded-xl p-6 shadow-md">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-2xl font-bold text-foreground">
+        <h2 className="font-display text-2xl font-extrabold text-foreground tracking-tight">
           Customer Reviews
         </h2>
         {isAdmin && (
@@ -175,7 +175,7 @@ const ReviewsSection = ({ rating, reviewCount, tourId }: ReviewsSectionProps) =>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
         {/* Overall Rating */}
         <div className="text-center md:border-r border-border pr-8">
-          <div className="text-5xl font-bold text-foreground mb-2">{actualRating}</div>
+          <div className="text-5xl font-extrabold text-foreground mb-2">{actualRating}</div>
           <div className="flex items-center justify-center gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star

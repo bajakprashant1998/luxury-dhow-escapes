@@ -104,7 +104,7 @@ const BookingSidebar = memo(({
                 Private Charter
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-foreground">
+                <span className="text-3xl font-extrabold text-foreground tracking-tight">
                   AED {fullYachtPrice.toLocaleString()}
                 </span>
               </div>
@@ -132,7 +132,7 @@ const BookingSidebar = memo(({
                 </span>
               )}
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-foreground">
+                <span className="text-3xl font-extrabold text-foreground tracking-tight">
                   AED {price}
                 </span>
                 {originalPrice > price && (
@@ -240,7 +240,7 @@ const BookingSidebar = memo(({
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <span className="font-medium">Total</span>
-            <span className="text-xl font-bold text-foreground">
+            <span className="text-xl font-extrabold text-foreground tracking-tight">
               AED {basePrice.toLocaleString()}
             </span>
           </div>

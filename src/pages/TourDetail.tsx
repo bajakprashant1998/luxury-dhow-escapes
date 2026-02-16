@@ -291,7 +291,7 @@ const TourDetail = () => {
               )}
             </div>
             
-            <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3">
+            <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold text-foreground mb-3 tracking-tight">
               {tour.title}
             </h1>
             
@@ -300,7 +300,7 @@ const TourDetail = () => {
                 <div className="flex items-center">
                   {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`w-3.5 h-3.5 ${star <= Math.round(tour.rating) ? "fill-secondary text-secondary" : "text-muted-foreground/30"}`} />)}
                 </div>
-                <span className="font-bold text-sm text-foreground">{tour.rating}</span>
+                <span className="font-extrabold text-sm text-foreground">{tour.rating}</span>
                 <span className="text-muted-foreground text-sm">({tour.reviewCount.toLocaleString()})</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
@@ -390,7 +390,7 @@ const TourDetail = () => {
             }} transition={{
               duration: 0.5
             }}>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-4 flex items-center gap-2 tracking-tight">
                 <div className="w-1 h-6 bg-secondary rounded-full" />
                 Overview
               </h2>
@@ -413,7 +413,7 @@ const TourDetail = () => {
             }} transition={{
               duration: 0.5
             }}>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-5 flex items-center gap-2">
+              <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-5 flex items-center gap-2 tracking-tight">
                 <div className="w-1 h-6 bg-secondary rounded-full" />
                 Highlights
               </h2>
@@ -440,7 +440,7 @@ const TourDetail = () => {
             {/* Water Activity: Equipment & Gear */}
             {tour.category === 'water-activity' && (tour.bookingFeatures.equipment_list?.length || 0) > 0 && (
               <motion.div className="bg-card rounded-2xl p-6 sm:p-8 shadow-sm border border-border/50" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
-                <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-4 flex items-center gap-2 tracking-tight">
                   <div className="w-1 h-6 bg-secondary rounded-full" />
                   <Shield className="w-5 h-5 text-secondary" />
                   Equipment & Gear Provided
@@ -459,7 +459,7 @@ const TourDetail = () => {
             {/* Water Activity: Safety Information */}
             {tour.category === 'water-activity' && (tour.bookingFeatures.safety_info?.length || 0) > 0 && (
               <motion.div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-amber-400" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <h2 className="font-display text-2xl font-extrabold text-foreground mb-4 flex items-center gap-2 tracking-tight">
                   <AlertTriangle className="w-6 h-6 text-amber-500" />
                   Safety Information
                 </h2>
@@ -477,7 +477,7 @@ const TourDetail = () => {
             {/* Event: Decoration Options */}
             {tour.category === 'yacht-event' && (tour.bookingFeatures.decoration_options?.length || 0) > 0 && (
               <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <h2 className="font-display text-2xl font-extrabold text-foreground mb-4 flex items-center gap-2 tracking-tight">
                   <Sparkles className="w-6 h-6 text-secondary" />
                   Decoration & Setup Options
                 </h2>
@@ -495,7 +495,7 @@ const TourDetail = () => {
             {/* Event: Catering Options */}
             {tour.category === 'yacht-event' && (tour.bookingFeatures.catering_options?.length || 0) > 0 && (
               <motion.div className="bg-card rounded-xl p-6 shadow-md" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5 }}>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <h2 className="font-display text-2xl font-extrabold text-foreground mb-4 flex items-center gap-2 tracking-tight">
                   <ChefHat className="w-6 h-6 text-secondary" />
                   Catering & Dining Packages
                 </h2>
@@ -579,7 +579,7 @@ const TourDetail = () => {
             }} transition={{
               duration: 0.5
             }}>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-6 flex items-center gap-2 tracking-tight">
                 <div className="w-1 h-6 bg-secondary rounded-full" />
                 Your Experience
               </h2>
@@ -615,7 +615,7 @@ const TourDetail = () => {
                       }} />}
                     </div>
                     <div className="flex-1 pb-4">
-                      <p className="text-secondary font-bold text-lg">{item.time}</p>
+                      <p className="text-secondary font-extrabold text-lg">{item.time}</p>
                       <p className="text-foreground">{item.activity}</p>
                     </div>
                   </motion.div>;
@@ -641,13 +641,13 @@ const TourDetail = () => {
             }} transition={{
               duration: 0.5
             }}>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-6 flex items-center gap-2 tracking-tight">
                 <div className="w-1 h-6 bg-secondary rounded-full" />
                 Frequently Asked Questions
               </h2>
               <Accordion type="single" collapsible className="w-full space-y-2">
                 {tour.faqs.map((faq, index) => <AccordionItem key={index} value={`faq-${index}`} className="border border-border/50 rounded-xl px-4 data-[state=open]:border-secondary/30 transition-colors">
-                  <AccordionTrigger className="text-left font-medium hover:text-secondary transition-colors text-sm sm:text-base hover:no-underline">
+                  <AccordionTrigger className="text-left font-bold hover:text-secondary transition-colors text-sm sm:text-base hover:no-underline">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground text-sm sm:text-base">
@@ -670,7 +670,7 @@ const TourDetail = () => {
             }} transition={{
               duration: 0.5
             }}>
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-5 flex items-center gap-2">
+              <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground mb-5 flex items-center gap-2 tracking-tight">
                 <div className="w-1 h-6 bg-secondary rounded-full" />
                 Important Information
               </h2>
@@ -739,8 +739,8 @@ const TourDetail = () => {
           once: true
         }}>
           <div>
-            <p className="text-secondary font-semibold tracking-wider uppercase text-sm mb-2">More Experiences</p>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+            <p className="text-secondary font-bold tracking-widest uppercase text-sm mb-2">More Experiences</p>
+            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
               {tour.category === 'water-activity' ? 'More Water Adventures' : tour.category === 'yacht-event' ? 'More Celebration Packages' : 'You Might Also Like'}
             </h2>
           </div>
