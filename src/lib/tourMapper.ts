@@ -1,5 +1,30 @@
 import { Tables } from "@/integrations/supabase/types";
 
+// Guest category for dynamic guest counters
+export interface GuestCategory {
+  name: string;
+  label: string;
+  price: number;
+  min: number;
+  max: number;
+}
+
+// Quantity config for quantity-based booking
+export interface QuantityConfig {
+  label: string;
+  price: number;
+  min: number;
+  max: number;
+}
+
+// Add-on item
+export interface BookingAddon {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+}
+
 // Booking features interface
 export interface BookingFeatures {
   urgency_enabled: boolean;
@@ -33,6 +58,11 @@ export interface BookingFeatures {
   // Travel options
   travel_options_enabled?: boolean;
   self_travel_discount?: number;
+  // Dynamic booking mode
+  booking_mode?: "guests" | "quantity";
+  guest_categories?: GuestCategory[];
+  quantity_config?: QuantityConfig;
+  addons?: BookingAddon[];
 }
 
 // Default Important Information content
@@ -56,6 +86,21 @@ export const defaultGoodToKnow = [
   "• Dress code: Smart casual (no shorts/flip-flops)",
 ];
 
+// Default guest categories
+export const defaultGuestCategories: GuestCategory[] = [
+  { name: "Adult", label: "12+ years", price: 0, min: 1, max: 10 },
+  { name: "Child", label: "4-11 years", price: 0, min: 0, max: 10 },
+  { name: "Infant", label: "0-3 years", price: 0, min: 0, max: 5 },
+];
+
+// Default quantity config
+export const defaultQuantityConfig: QuantityConfig = {
+  label: "Number of Tickets",
+  price: 0,
+  min: 1,
+  max: 50,
+};
+
 // Default booking features
 export const defaultBookingFeatures: BookingFeatures = {
   urgency_enabled: true,
@@ -69,6 +114,10 @@ export const defaultBookingFeatures: BookingFeatures = {
   cancellation_info: defaultCancellationInfo,
   what_to_bring: defaultWhatToBring,
   good_to_know: defaultGoodToKnow,
+  booking_mode: "guests",
+  guest_categories: defaultGuestCategories,
+  quantity_config: defaultQuantityConfig,
+  addons: [],
 };
 
 // Frontend Tour interface (matching TourCard expectations)

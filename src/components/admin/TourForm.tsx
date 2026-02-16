@@ -29,6 +29,7 @@ import RichTextEditor from "./RichTextEditor";
 import { BookingFeatures, defaultBookingFeatures, defaultCancellationInfo, defaultWhatToBring, defaultGoodToKnow } from "@/lib/tourMapper";
 import { generateSeoSlug, getCategoryPath } from "@/lib/seoUtils";
 import ImportantInfoEditor from "./ImportantInfoEditor";
+import BookingOptionsEditor from "./BookingOptionsEditor";
 
 type Tour = Tables<"tours">;
 
@@ -675,6 +676,12 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               />
             </CardContent>
           </Card>
+
+          {/* Booking Options (Guests/Quantity/Add-Ons) */}
+          <BookingOptionsEditor
+            bookingFeatures={formData.booking_features}
+            onChange={(features) => setFormData((prev) => ({ ...prev, booking_features: features }))}
+          />
 
           {/* Booking Features */}
           <Card>

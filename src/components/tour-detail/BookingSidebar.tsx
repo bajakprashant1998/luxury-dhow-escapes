@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/popover";
 import BookingModal from "./BookingModal";
 import { useContactConfig } from "@/hooks/useContactConfig";
-import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
+import { BookingFeatures, defaultBookingFeatures, defaultGuestCategories, defaultQuantityConfig } from "@/lib/tourMapper";
 
 interface BookingSidebarProps {
   price: number;
@@ -52,11 +52,23 @@ const BookingSidebar = memo(({
   bookingFeatures = defaultBookingFeatures
 }: BookingSidebarProps) => {
   const [date, setDate] = useState<Date>();
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const { phone, phoneFormatted, whatsappLinkWithGreeting } = useContactConfig();
+
+  const bookingMode = bookingFeatures.booking_mode || "guests";
+  const guestCategories = bookingFeatures.guest_categories || defaultGuestCategories;
+  const quantityConfig = bookingFeatures.quantity_config || defaultQuantityConfig;
+
+  // Dynamic guest counts
+  const [guestCounts, setGuestCounts] = useState<Record<number, number>>(() => {
+    const initial: Record<number, number> = {};
+    guestCategories.forEach((cat, i) => {
+      initial[i] = cat.min || (i === 0 ? 2 : 0);
+    });
+    return initial;
+  });
+  const [quantity, setQuantity] = useState(quantityConfig.min || 1);
 
   // Derive booking type from tour data - no toggle needed
   const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
@@ -64,10 +76,16 @@ const BookingSidebar = memo(({
 
   const discount = Math.round((1 - price / originalPrice) * 100);
 
-  // Calculate base price only (advanced options in modal)
+  // Calculate base price dynamically
   const basePrice = isFullYacht
     ? fullYachtPrice
-    : price * adults + price * 0.7 * children;
+    : bookingMode === "quantity"
+      ? (quantityConfig.price > 0 ? quantityConfig.price : price) * quantity
+      : guestCategories.reduce((sum, cat, i) => {
+          const count = guestCounts[i] || 0;
+          const catPrice = cat.price > 0 ? cat.price : price;
+          return sum + catPrice * count;
+        }, 0);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -173,56 +191,58 @@ const BookingSidebar = memo(({
           </Popover>
         </div>
 
-        {/* Guest Selectors - Only show for per_person booking */}
-        {!isFullYacht && (
+        {/* Guest/Quantity Selectors */}
+        {!isFullYacht && bookingMode === "guests" && (
           <div className="mb-6 space-y-3 relative">
             <label className="text-sm font-medium text-foreground block">Guests</label>
+            {guestCategories.map((cat, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
+                <div>
+                  <p className="font-medium text-sm">{cat.name}</p>
+                  <p className="text-xs text-muted-foreground">{cat.label}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setGuestCounts(prev => ({ ...prev, [index]: Math.max(cat.min, (prev[index] || 0) - 1) }))}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
+                    disabled={(guestCounts[index] || 0) <= cat.min}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-6 text-center font-semibold">
+                    {guestCounts[index] || 0}
+                  </span>
+                  <button
+                    onClick={() => setGuestCounts(prev => ({ ...prev, [index]: Math.min(cat.max, (prev[index] || 0) + 1) }))}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-            {/* Adults */}
+        {!isFullYacht && bookingMode === "quantity" && (
+          <div className="mb-6 space-y-3 relative">
+            <label className="text-sm font-medium text-foreground block">{quantityConfig.label}</label>
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
               <div>
-                <p className="font-medium text-sm">Adults</p>
-                <p className="text-xs text-muted-foreground">Age 12+</p>
+                <p className="font-medium text-sm">{quantityConfig.label}</p>
+                <p className="text-xs text-muted-foreground">AED {quantityConfig.price > 0 ? quantityConfig.price : price} each</p>
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setAdults(Math.max(1, adults - 1))}
+                  onClick={() => setQuantity(Math.max(quantityConfig.min, quantity - 1))}
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
-                  disabled={adults <= 1}
+                  disabled={quantity <= quantityConfig.min}
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="w-6 text-center font-semibold">
-                  {adults}
-                </span>
+                <span className="w-6 text-center font-semibold">{quantity}</span>
                 <button
-                  onClick={() => setAdults(Math.min(10, adults + 1))}
-                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Children */}
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
-              <div>
-                <p className="font-medium text-sm">Children</p>
-                <p className="text-xs text-muted-foreground">Age 2-11 (30% off)</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setChildren(Math.max(0, children - 1))}
-                  className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-50 active:scale-95"
-                  disabled={children <= 0}
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="w-6 text-center font-semibold">
-                  {children}
-                </span>
-                <button
-                  onClick={() => setChildren(Math.min(6, children + 1))}
+                  onClick={() => setQuantity(Math.min(quantityConfig.max, quantity + 1))}
                   className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
@@ -235,7 +255,9 @@ const BookingSidebar = memo(({
         {/* Price Display */}
         <div className="mb-6 p-4 bg-secondary/10 rounded-xl relative overflow-hidden space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{isFullYacht ? "Charter price" : `Base (${adults}A${children > 0 ? ` + ${children}C` : ''})`}</span>
+            <span className="text-muted-foreground">
+              {isFullYacht ? "Charter price" : bookingMode === "quantity" ? `${quantity} × ${quantityConfig.label}` : guestCategories.map((cat, i) => (guestCounts[i] || 0) > 0 ? `${guestCounts[i]}${cat.name.charAt(0)}` : '').filter(Boolean).join(' + ')}
+            </span>
             <span>AED {basePrice.toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-border">
