@@ -41,7 +41,7 @@ const TrustBadges = memo(() => {
             <badge.icon className="w-3.5 md:w-4 h-3.5 md:h-4 text-secondary" />
           </div>
           <div className="text-left">
-            <p className="text-[11px] md:text-xs font-semibold text-foreground leading-tight group-hover:text-secondary transition-colors whitespace-nowrap">{badge.label}</p>
+            <p className="text-[11px] md:text-xs font-bold text-foreground leading-tight group-hover:text-secondary transition-colors whitespace-nowrap">{badge.label}</p>
             <p className="text-[9px] md:text-[10px] text-muted-foreground leading-tight whitespace-nowrap">{badge.sublabel}</p>
           </div>
         </div>
