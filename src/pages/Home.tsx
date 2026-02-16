@@ -2,7 +2,7 @@ import Layout from "@/components/layout/Layout";
 import PageMeta from "@/components/PageMeta";
 import HeroSection from "@/components/home/HeroSection";
 import ExperienceCategories from "@/components/home/ExperienceCategories";
-import SocialProofBar from "@/components/home/SocialProofBar";
+
 import HighlightsSection from "@/components/home/HighlightsSection";
 import FeaturedTours from "@/components/home/FeaturedTours";
 import HowItWorks from "@/components/home/HowItWorks";
@@ -22,7 +22,7 @@ const Home = () => {
       />
       <HeroSection />
       <ExperienceCategories />
-      <SocialProofBar />
+      
       <HighlightsSection />
       <FeaturedTours />
       <HowItWorks />
