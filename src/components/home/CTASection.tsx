@@ -96,7 +96,7 @@ const CTASection = memo(() => {
             <span className="text-sm font-semibold">Limited Time Offer - Book Now!</span>
           </motion.div>
 
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
             Ready for an Unforgettable Experience?
           </h2>
           <p className="text-muted-foreground text-lg md:text-xl mb-8 max-w-2xl mx-auto">

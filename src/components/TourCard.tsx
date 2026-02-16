@@ -134,7 +134,7 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
           {/* Title & Subtitle */}
           <div className="flex-1">
             <p className="text-secondary text-xs sm:text-sm font-medium mb-1">{tour.subtitle}</p>
-            <h3 className="font-display text-base sm:text-lg font-semibold text-foreground mb-2 group-hover:text-secondary transition-colors line-clamp-2">
+            <h3 className="font-display text-base sm:text-lg font-bold text-foreground mb-2 group-hover:text-secondary transition-colors line-clamp-2 tracking-tight">
               {tour.title}
             </h3>
             <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">

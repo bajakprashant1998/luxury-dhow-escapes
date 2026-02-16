@@ -68,9 +68,9 @@ const HeroSection = memo(() => {
               <span className="text-sm font-semibold">Dubai's #1 Rated Cruise Experience</span>
             </motion.div>
 
-            <h1 className="font-display text-fluid-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] mb-6">
+            <h1 className="font-display text-fluid-4xl md:text-6xl lg:text-7xl xl:text-[5.5rem] font-black leading-[0.95] tracking-tighter mb-6">
               Experience Dubai
-              <span className="block text-shimmer mt-2">From The Water</span>
+              <span className="block text-shimmer mt-1">From The Water</span>
             </h1>
 
             <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed max-w-xl">
@@ -123,7 +123,7 @@ const HeroSection = memo(() => {
                   transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
                   className="text-center bg-primary-foreground/5 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-primary-foreground/10 hover:scale-105 hover:bg-primary-foreground/10 transition-all duration-200"
                 >
-                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-secondary">{stat.value}</p>
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-secondary tracking-tight">{stat.value}</p>
                   <p className="text-[10px] sm:text-xs text-primary-foreground/70 uppercase tracking-wider mt-1">{stat.label}</p>
                 </motion.div>
               ))}

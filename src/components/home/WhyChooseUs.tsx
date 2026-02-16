@@ -50,7 +50,7 @@ const WhyChooseUs = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight">
             Why Book With <span className="text-secondary">Rental Yacht Dubai</span>
           </h2>
           <p className="text-primary-foreground/80 max-w-2xl mx-auto text-lg">
@@ -82,7 +82,7 @@ const WhyChooseUs = () => {
                 >
                   <IconComponent className="w-7 sm:w-8 lg:w-10 h-7 sm:h-8 lg:h-10 text-secondary" />
                 </motion.div>
-                <h3 className="font-display text-sm sm:text-base lg:text-xl font-semibold mb-1 sm:mb-2 lg:mb-3">{whyItem.title}</h3>
+                <h3 className="font-display text-sm sm:text-base lg:text-xl font-bold mb-1 sm:mb-2 lg:mb-3 tracking-tight">{whyItem.title}</h3>
                 <p className="text-primary-foreground/70 text-xs sm:text-sm lg:text-base line-clamp-2 sm:line-clamp-none">{whyItem.description}</p>
               </motion.div>
             );

@@ -31,12 +31,12 @@ const ActivitiesShowcase = memo(() => {
           <div>
             <div className="flex items-center gap-3 mb-3">
               <Waves className="w-5 h-5 text-secondary" />
-              <p className="text-secondary font-semibold tracking-wider uppercase">
+              <p className="text-secondary font-bold tracking-widest uppercase text-sm">
                 New Experiences
               </p>
               <PartyPopper className="w-5 h-5 text-secondary" />
             </div>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight">
               Water Activities & Events
             </h2>
           </div>

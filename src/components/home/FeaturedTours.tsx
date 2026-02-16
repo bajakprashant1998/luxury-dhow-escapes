@@ -21,10 +21,10 @@ const FeaturedTours = memo(() => {
           transition={{ duration: 0.4 }}
         >
           <div>
-            <p className="text-secondary font-semibold tracking-wider uppercase mb-3">
+            <p className="text-secondary font-bold tracking-widest uppercase mb-3 text-sm">
               Popular Experiences
             </p>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight">
               Featured Tours
             </h2>
           </div>
