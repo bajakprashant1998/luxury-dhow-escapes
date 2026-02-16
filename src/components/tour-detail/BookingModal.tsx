@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import {
   ArrowRight,
@@ -14,7 +14,8 @@ import {
   Users,
   Car,
   Layers,
-  MapPin
+  MapPin,
+  Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendBookingEmail } from "@/lib/sendBookingEmail";
 import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
 import { Discount } from "@/hooks/useDiscounts";
-import { BookingFeatures, defaultBookingFeatures } from "@/lib/tourMapper";
+import { BookingFeatures, defaultBookingFeatures, defaultGuestCategories, defaultQuantityConfig, BookingAddon } from "@/lib/tourMapper";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
@@ -91,6 +92,25 @@ const BookingModal = ({
   const [infants, setInfants] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
+  // Dynamic guest/quantity state
+  const bookingMode = bookingFeatures.booking_mode || "guests";
+  const guestCategories = bookingFeatures.guest_categories || defaultGuestCategories;
+  const quantityConfig = bookingFeatures.quantity_config || defaultQuantityConfig;
+  const availableAddons = bookingFeatures.addons || [];
+
+  const [guestCounts, setGuestCounts] = useState<Record<number, number>>({});
+  const [quantity, setQuantity] = useState(quantityConfig.min || 1);
+  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
+
+  // Initialize guest counts from categories
+  useEffect(() => {
+    const initial: Record<number, number> = {};
+    guestCategories.forEach((cat, i) => {
+      initial[i] = cat.min || (i === 0 ? 1 : 0);
+    });
+    setGuestCounts(initial);
+  }, []);
+
   // Step 2 state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -109,17 +129,42 @@ const BookingModal = ({
   const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
   const transferCost = selectedVehicle ? selectedVehicle.price : 0;
 
-  const totalGuests = adults + children;
+  // Dynamic price calculation
+  const guestBasedPrice = useMemo(() => {
+    if (bookingMode !== "guests") return 0;
+    return guestCategories.reduce((sum, cat, i) => {
+      const count = guestCounts[i] || 0;
+      const catPrice = cat.price > 0 ? cat.price : price;
+      return sum + catPrice * count;
+    }, 0);
+  }, [guestCounts, guestCategories, bookingMode, price]);
+
+  const quantityBasedPrice = useMemo(() => {
+    if (bookingMode !== "quantity") return 0;
+    const unitPrice = quantityConfig.price > 0 ? quantityConfig.price : price;
+    return unitPrice * quantity;
+  }, [quantity, quantityConfig, bookingMode, price]);
+
+  const addonsTotal = useMemo(() => {
+    return availableAddons
+      .filter((a) => selectedAddonIds.has(a.id))
+      .reduce((sum, a) => sum + a.price, 0);
+  }, [selectedAddonIds, availableAddons]);
+
+  const totalGuests = bookingMode === "guests"
+    ? Object.values(guestCounts).reduce((a, b) => a + b, 0)
+    : quantity;
+
   const selfDiscount = ((travelType === "self" || travelType === "personal") && bookingFeatures.self_travel_discount)
     ? bookingFeatures.self_travel_discount * totalGuests
     : 0;
 
   const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
-    ? bookingFeatures.upper_deck_surcharge * (adults + children)
+    ? bookingFeatures.upper_deck_surcharge * totalGuests
     : 0;
 
-  const basePrice = isFullYacht ? fullYachtPrice : (price * adults + price * 0.5 * children);
-  const subtotal = Math.max(0, basePrice + transferCost + deckSurcharge - selfDiscount);
+  const basePrice = isFullYacht ? fullYachtPrice : (bookingMode === "guests" ? guestBasedPrice : quantityBasedPrice);
+  const subtotal = Math.max(0, basePrice + transferCost + deckSurcharge - selfDiscount + addonsTotal);
 
   const calculateDiscountAmount = () => {
     if (!appliedDiscount) return 0;
@@ -157,6 +202,14 @@ const BookingModal = ({
         setSelectedVehicleIdx("");
         setSelectedDeck("");
         setTravelType("shared");
+        setQuantity(quantityConfig.min || 1);
+        setSelectedAddonIds(new Set());
+        // Reset guest counts
+        const initial: Record<number, number> = {};
+        guestCategories.forEach((cat, i) => {
+          initial[i] = cat.min || (i === 0 ? 1 : 0);
+        });
+        setGuestCounts(initial);
       }, 300);
     }
   }, [isOpen]);
@@ -211,14 +264,20 @@ const BookingModal = ({
         tour_id: tourId,
         tour_name: tourTitle,
         booking_date: format(date!, "yyyy-MM-dd"),
-        adults: isFullYacht ? 0 : adults,
-        children: isFullYacht ? 0 : children,
-        infants: isFullYacht ? 0 : infants,
+        adults: bookingMode === "guests" ? (guestCounts[0] || 0) : 0,
+        children: bookingMode === "guests" ? (guestCounts[1] || 0) : 0,
+        infants: bookingMode === "guests" ? (guestCounts[2] || 0) : 0,
         customer_name: name.trim(),
         customer_email: email.trim(),
         customer_phone: phone.trim(),
         special_requests: [
           isFullYacht ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}]` : null,
+          bookingMode === "guests"
+            ? `[GUESTS: ${guestCategories.map((cat, i) => `${guestCounts[i] || 0} ${cat.name}`).join(', ')}]`
+            : `[QUANTITY: ${quantity} x ${quantityConfig.label}]`,
+          selectedAddonIds.size > 0
+            ? `[ADD-ONS: ${availableAddons.filter(a => selectedAddonIds.has(a.id)).map(a => `${a.name} AED ${a.price}`).join(', ')}]`
+            : null,
           bookingFeatures.travel_options_enabled ? `[TRAVEL: ${travelType}]` : null,
           selectedVehicle ? `[TRANSFER: ${selectedVehicle.name} - AED ${selectedVehicle.price}]` : null,
           selectedDeck ? `[DECK: ${selectedDeck}${deckSurcharge > 0 ? ` +AED ${deckSurcharge}` : ''}]` : null,
@@ -424,14 +483,87 @@ const BookingModal = ({
                   </Popover>
                 </div>
 
-                {/* Guest Counters - Only for per_person */}
-                {!isFullYacht && (
+                {/* Dynamic Guest/Quantity Section */}
+                {!isFullYacht && bookingMode === "guests" && (
                   <div>
                     <label className="text-sm font-bold text-foreground mb-3 block">Number of Guests *</label>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                      {renderGuestCounter("Adults", "12+ years", adults, setAdults, 1, 10)}
-                      {renderGuestCounter("Children", "4-11 yrs • 50% off", children, setChildren, 0, 10)}
-                      {renderGuestCounter("Infants", "0-3 yrs • Free", infants, setInfants, 0, 10)}
+                      {guestCategories.map((cat, index) => (
+                        renderGuestCounter(
+                          cat.name,
+                          cat.label + (cat.price > 0 ? ` • AED ${cat.price}` : ''),
+                          guestCounts[index] || 0,
+                          (v) => setGuestCounts(prev => ({ ...prev, [index]: v })),
+                          cat.min,
+                          cat.max
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!isFullYacht && bookingMode === "quantity" && (
+                  <div>
+                    <label className="text-sm font-bold text-foreground mb-3 block">{quantityConfig.label} *</label>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      {renderGuestCounter(
+                        quantityConfig.label,
+                        quantityConfig.price > 0 ? `AED ${quantityConfig.price} each` : `AED ${price} each`,
+                        quantity,
+                        setQuantity,
+                        quantityConfig.min,
+                        quantityConfig.max
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add-Ons Selection */}
+                {availableAddons.length > 0 && (
+                  <div>
+                    <label className="text-sm font-bold text-foreground mb-3 block">Add-Ons</label>
+                    <div className="space-y-2">
+                      {availableAddons.map((addon) => {
+                        const isSelected = selectedAddonIds.has(addon.id);
+                        return (
+                          <button
+                            key={addon.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedAddonIds(prev => {
+                                const next = new Set(prev);
+                                if (next.has(addon.id)) next.delete(addon.id);
+                                else next.add(addon.id);
+                                return next;
+                              });
+                            }}
+                            className={cn(
+                              "w-full text-left border rounded-2xl p-4 transition-all duration-300",
+                              isSelected
+                                ? "border-secondary bg-secondary/10 shadow-md"
+                                : "border-border bg-card/50 hover:border-secondary/50"
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-bold text-sm text-foreground">{addon.name}</p>
+                                {addon.description && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">{addon.description}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm text-foreground">AED {addon.price}</span>
+                                <div className={cn(
+                                  "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                                  isSelected ? "bg-secondary border-secondary" : "border-border"
+                                )}>
+                                  {isSelected && <Check className="w-4 h-4 text-secondary-foreground" />}
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -618,16 +750,20 @@ const BookingModal = ({
                     </div>
                     <div className="bg-card rounded-xl p-3">
                       <p className="text-muted-foreground text-xs mb-1">
-                        {isFullYacht ? "Type" : "Guests"}
+                        {isFullYacht ? "Type" : bookingMode === "quantity" ? "Quantity" : "Guests"}
                       </p>
                       <p className="font-semibold">
                         {isFullYacht ? (
                           <>Private Charter{capacity && ` (${capacity})`}</>
+                        ) : bookingMode === "quantity" ? (
+                          <>{quantity} x {quantityConfig.label}</>
                         ) : (
                           <>
-                            {adults} Adult{adults > 1 ? "s" : ""}
-                            {children > 0 && `, ${children} Child`}
-                            {infants > 0 && `, ${infants} Infant`}
+                            {guestCategories.map((cat, i) => {
+                              const count = guestCounts[i] || 0;
+                              if (count === 0) return null;
+                              return <span key={i}>{i > 0 && ', '}{count} {cat.name}</span>;
+                            })}
                           </>
                         )}
                       </p>
@@ -681,24 +817,40 @@ const BookingModal = ({
                       </span>
                       <span className="font-medium">AED {fullYachtPrice?.toLocaleString()}</span>
                     </div>
+                  ) : bookingMode === "quantity" ? (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {quantity} × {quantityConfig.label} @ AED {quantityConfig.price > 0 ? quantityConfig.price : price}
+                      </span>
+                      <span className="font-medium">AED {quantityBasedPrice.toLocaleString()}</span>
+                    </div>
                   ) : (
                     <>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {adults} adult{adults > 1 ? "s" : ""} × AED {price}
-                        </span>
-                        <span className="font-medium">AED {(price * adults).toFixed(0)}</span>
-                      </div>
-                      {children > 0 && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            {children} child{children > 1 ? "ren" : ""} × AED {(price * 0.5).toFixed(0)}
-                          </span>
-                          <span className="font-medium">AED {(price * 0.5 * children).toFixed(0)}</span>
-                        </div>
-                      )}
+                      {guestCategories.map((cat, i) => {
+                        const count = guestCounts[i] || 0;
+                        if (count === 0) return null;
+                        const catPrice = cat.price > 0 ? cat.price : price;
+                        return (
+                          <div key={i} className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              {count} {cat.name} × AED {catPrice}
+                            </span>
+                            <span className="font-medium">AED {(catPrice * count).toLocaleString()}</span>
+                          </div>
+                        );
+                      })}
                     </>
                   )}
+                  {/* Add-ons in breakdown */}
+                  {availableAddons.filter(a => selectedAddonIds.has(a.id)).map((addon) => (
+                    <div key={addon.id} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        <Gift className="w-4 h-4" />
+                        {addon.name}
+                      </span>
+                      <span className="font-medium">AED {addon.price}</span>
+                    </div>
+                  ))}
                   {selfDiscount > 0 && (
                     <div className="flex justify-between text-sm text-secondary">
                       <span className="flex items-center gap-2">
