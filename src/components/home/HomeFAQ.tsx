@@ -54,7 +54,7 @@ const HomeFAQ = memo(() => {
               <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center mb-6">
                 <HelpCircle className="w-7 h-7 text-secondary" />
               </div>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <h2 className="font-display text-3xl md:text-4xl font-extrabold text-foreground mb-4 tracking-tight">
                 Frequently Asked Questions
               </h2>
               <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
@@ -84,7 +84,7 @@ const HomeFAQ = memo(() => {
                   value={`faq-${index}`}
                   className="bg-card border border-border rounded-xl px-5 sm:px-6 data-[state=open]:border-secondary/30 data-[state=open]:shadow-md transition-all duration-300"
                 >
-                  <AccordionTrigger className="text-left font-display font-semibold text-foreground text-sm sm:text-base hover:no-underline py-4 sm:py-5">
+                  <AccordionTrigger className="text-left font-display font-bold text-foreground text-sm sm:text-base hover:no-underline py-4 sm:py-5">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground text-sm sm:text-base leading-relaxed pb-5">

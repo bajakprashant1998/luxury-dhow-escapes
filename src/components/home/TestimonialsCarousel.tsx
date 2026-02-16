@@ -120,10 +120,10 @@ const TestimonialsCarousel = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p className="text-secondary font-semibold tracking-wider uppercase mb-3">
+          <p className="text-secondary font-bold tracking-widest uppercase mb-3 text-sm">
             Guest Reviews
           </p>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-6 tracking-tight">
             What Our Guests Say
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">

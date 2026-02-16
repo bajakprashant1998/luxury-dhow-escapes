@@ -52,10 +52,10 @@ const HowItWorks = memo(() => {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-secondary font-semibold tracking-wider uppercase mb-3">
+          <p className="text-secondary font-bold tracking-widest uppercase mb-3 text-sm">
             Simple & Easy
           </p>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
             How It Works
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
@@ -92,7 +92,7 @@ const HowItWorks = memo(() => {
                 </span>
               </div>
 
-              <h3 className="font-display text-lg sm:text-xl font-bold text-foreground mb-2">
+              <h3 className="font-display text-lg sm:text-xl font-extrabold text-foreground mb-2 tracking-tight">
                 {stepItem.title}
               </h3>
               <p className="text-muted-foreground text-sm sm:text-base max-w-xs mx-auto leading-relaxed">

@@ -101,7 +101,7 @@ const CategoryCard = memo(({ category, index }: { category: typeof experienceCat
           </div>
         </div>
 
-        <h3 className="font-display font-bold text-sm sm:text-base text-foreground mb-0.5 sm:mb-1 group-hover:text-secondary transition-colors">
+        <h3 className="font-display font-extrabold text-sm sm:text-base text-foreground mb-0.5 sm:mb-1 group-hover:text-secondary transition-colors tracking-tight">
           {category.title}
         </h3>
         <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 mb-2">

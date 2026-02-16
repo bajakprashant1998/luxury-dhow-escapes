@@ -25,10 +25,10 @@ const HighlightsSection = memo(() => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <p className="text-secondary font-semibold tracking-wider uppercase mb-4">
+            <p className="text-secondary font-bold tracking-widest uppercase mb-4 text-sm">
               Why Choose Us
             </p>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-6 tracking-tight">
               An Experience Like <span className="text-secondary">No Other</span>
             </h2>
             <p className="text-muted-foreground mb-10 text-lg leading-relaxed">
