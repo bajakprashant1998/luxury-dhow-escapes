@@ -21,6 +21,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 import { useActiveCategories } from "@/hooks/useCategories";
 import { useActiveLocations, useCreateLocation, type LocationInsert } from "@/hooks/useLocations";
 import { LocationDialog } from "@/components/admin/LocationDialog";
+import ItineraryEditor, { ItineraryItem } from "./ItineraryEditor";
 import FAQEditor, { FAQItem } from "./FAQEditor";
 import CharacterCounter from "./CharacterCounter";
 import SEOPreview from "./SEOPreview";
