@@ -46,7 +46,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendBookingEmail } from "@/lib/sendBookingEmail";
 import DiscountCodeInput from "@/components/booking/DiscountCodeInput";
 import { Discount } from "@/hooks/useDiscounts";
-import { BookingFeatures, defaultBookingFeatures, defaultGuestCategories, defaultQuantityConfig, BookingAddon } from "@/lib/tourMapper";
+import { BookingFeatures, defaultBookingFeatures, defaultGuestCategories, defaultQuantityConfig, BookingAddon, mapDbTourToTour, Tour } from "@/lib/tourMapper";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { getCategoryPath } from "@/lib/seoUtils";
@@ -79,56 +79,77 @@ const BookingModal = ({
   bookingFeatures = defaultBookingFeatures
 }: BookingModalProps) => {
   // Derive booking type from tour data - no toggle needed
-  const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
-  const bookingType = isFullYacht ? "full_yacht" : "per_person";
+  // Remapped to rely on currentTour state below
+  // const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
+  // const bookingType = isFullYacht ? "full_yacht" : "per_person";
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Step 1 state
-  const [date, setDate] = useState<Date>();
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  // State for dynamic tour selection
+  const [selectedTourId, setSelectedTourId] = useState(tourId);
 
-  // Dynamic guest/quantity state
-  const bookingMode = bookingFeatures.booking_mode || "guests";
-  const guestCategories = bookingFeatures.guest_categories || defaultGuestCategories;
-  const quantityConfig = bookingFeatures.quantity_config || defaultQuantityConfig;
-  const availableAddons = bookingFeatures.addons || [];
+  // Update selectedTourId if prop changes (e.g. navigation)
+  useEffect(() => {
+    setSelectedTourId(tourId);
+  }, [tourId]);
 
-  const [guestCounts, setGuestCounts] = useState<Record<number, number>>({});
-  const [quantity, setQuantity] = useState(quantityConfig.min || 1);
-  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
-
-  // Fetch linked tours for the Select Tour dropdown
-  const linkedTourIds = bookingFeatures.linked_tour_ids || [];
-  const { data: linkedTours = [] } = useQuery({
-    queryKey: ["linked-tours", tourId],
+  // Fetch tour details if selectedTourId differs from prop tourId
+  const { data: fetchedTour } = useQuery({
+    queryKey: ["tour-details", selectedTourId],
     queryFn: async () => {
-      if (linkedTourIds.length === 0) return [];
+      if (selectedTourId === tourId) return null;
+
       const { data, error } = await supabase
         .from("tours")
-        .select("id, title, slug, seo_slug, category")
-        .in("id", linkedTourIds)
-        .eq("status", "active");
+        .select("*")
+        .eq("id", selectedTourId)
+        .single();
+
       if (error) throw error;
-      return data || [];
+      return mapDbTourToTour(data);
     },
-    enabled: linkedTourIds.length > 0,
+    enabled: selectedTourId !== tourId,
   });
 
-  // Initialize guest counts from categories
-  useEffect(() => {
-    const initial: Record<number, number> = {};
-    guestCategories.forEach((cat, i) => {
-      initial[i] = cat.min || (i === 0 ? 1 : 0);
-    });
-    setGuestCounts(initial);
-  }, []);
+  // Unified tour data object
+  const currentTour: Partial<Tour> & { title: string; price: number; bookingFeatures: BookingFeatures } = useMemo(() => {
+    if (selectedTourId === tourId || !fetchedTour) {
+      return {
+        id: tourId,
+        title: tourTitle,
+        price,
+        fullYachtPrice,
+        capacity,
+        bookingFeatures,
+      };
+    }
+    return fetchedTour;
+  }, [selectedTourId, tourId, fetchedTour, tourTitle, price, fullYachtPrice, capacity, bookingFeatures]);
+
+  // Derived state from currentTour
+  const currentBookingFeatures = currentTour.bookingFeatures || defaultBookingFeatures;
+  const currentPrice = currentTour.price;
+  const currentFullYachtPrice = currentTour.fullYachtPrice;
+  const currentCapacity = currentTour.capacity;
+  const isCurrentFullYacht = !!(currentFullYachtPrice && currentFullYachtPrice > 0);
+  const currentBookingType = isCurrentFullYacht ? "full_yacht" : "per_person";
+
+  const bookingMode = currentBookingFeatures.booking_mode || "guests";
+  const guestCategories = currentBookingFeatures.guest_categories || defaultGuestCategories;
+  const quantityConfig = currentBookingFeatures.quantity_config || defaultQuantityConfig;
+  const availableAddons = currentBookingFeatures.addons || [];
+
+  // Step 1 state
+  const [date, setDate] = useState<Date>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  // Guest/Quantity/Addon State
+  const [guestCounts, setGuestCounts] = useState<Record<number, number>>({});
+  const [quantity, setQuantity] = useState(currentBookingFeatures.quantity_config?.min || 1);
+  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
 
   // Step 2 state
   const [name, setName] = useState("");
@@ -144,25 +165,58 @@ const BookingModal = ({
   const [selectedDeck, setSelectedDeck] = useState("");
   const [travelType, setTravelType] = useState<"shared" | "self" | "personal">("shared");
 
-  const vehicles = bookingFeatures.transfer_vehicles || [];
+  // Derived Values
+  const vehicles = currentBookingFeatures.transfer_vehicles || [];
   const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
   const transferCost = selectedVehicle ? selectedVehicle.price : 0;
+
+  // Fetch linked tours
+  const linkedTourIds = currentBookingFeatures.linked_tour_ids || [];
+  const { data: linkedTours = [] } = useQuery({
+    queryKey: ["linked-tours", selectedTourId],
+    queryFn: async () => {
+      if (linkedTourIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("tours")
+        .select("id, title, slug, seo_slug, category")
+        .in("id", linkedTourIds)
+        .eq("status", "active");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: linkedTourIds.length > 0,
+  });
+
+  // Re-initialize guest counts/quantity when tour changes or on mount
+  useEffect(() => {
+    const initial: Record<number, number> = {};
+    guestCategories.forEach((cat, i) => {
+      initial[i] = cat.min || (i === 0 ? 1 : 0);
+    });
+    setGuestCounts(initial);
+    setQuantity(quantityConfig.min || 1);
+    setSelectedAddonIds(new Set());
+    // Reset vehicle selection if transfer options change
+    setSelectedVehicleIdx("");
+    setSelectedDeck("");
+    setTravelType("shared");
+  }, [selectedTourId, currentBookingFeatures, guestCategories, quantityConfig]);
 
   // Dynamic price calculation
   const guestBasedPrice = useMemo(() => {
     if (bookingMode !== "guests") return 0;
     return guestCategories.reduce((sum, cat, i) => {
       const count = guestCounts[i] || 0;
-      const catPrice = cat.price > 0 ? cat.price : price;
+      const catPrice = cat.price > 0 ? cat.price : currentPrice;
       return sum + catPrice * count;
     }, 0);
-  }, [guestCounts, guestCategories, bookingMode, price]);
+  }, [guestCounts, guestCategories, bookingMode, currentPrice]);
 
   const quantityBasedPrice = useMemo(() => {
     if (bookingMode !== "quantity") return 0;
-    const unitPrice = quantityConfig.price > 0 ? quantityConfig.price : price;
+    const unitPrice = quantityConfig.price > 0 ? quantityConfig.price : currentPrice;
     return unitPrice * quantity;
-  }, [quantity, quantityConfig, bookingMode, price]);
+  }, [quantity, quantityConfig, bookingMode, currentPrice]);
 
   const addonsTotal = useMemo(() => {
     return availableAddons
@@ -174,15 +228,15 @@ const BookingModal = ({
     ? Object.values(guestCounts).reduce((a, b) => a + b, 0)
     : quantity;
 
-  const selfDiscount = ((travelType === "self" || travelType === "personal") && bookingFeatures.self_travel_discount)
-    ? bookingFeatures.self_travel_discount * totalGuests
+  const selfDiscount = ((travelType === "self" || travelType === "personal") && currentBookingFeatures.self_travel_discount)
+    ? currentBookingFeatures.self_travel_discount * totalGuests
     : 0;
 
-  const deckSurcharge = (bookingFeatures.has_upper_deck && bookingFeatures.upper_deck_surcharge && selectedDeck === (bookingFeatures.deck_options?.[1] || "Upper Deck"))
-    ? bookingFeatures.upper_deck_surcharge * totalGuests
+  const deckSurcharge = (currentBookingFeatures.has_upper_deck && currentBookingFeatures.upper_deck_surcharge && selectedDeck === (currentBookingFeatures.deck_options?.[1] || "Upper Deck"))
+    ? currentBookingFeatures.upper_deck_surcharge * totalGuests
     : 0;
 
-  const basePrice = isFullYacht ? fullYachtPrice : (bookingMode === "guests" ? guestBasedPrice : quantityBasedPrice);
+  const basePrice = isCurrentFullYacht ? currentFullYachtPrice! : (bookingMode === "guests" ? guestBasedPrice : quantityBasedPrice);
   const subtotal = Math.max(0, basePrice + transferCost + deckSurcharge - selfDiscount + addonsTotal);
 
   const calculateDiscountAmount = () => {
@@ -209,29 +263,18 @@ const BookingModal = ({
       setTimeout(() => {
         setCurrentStep(1);
         setDate(undefined);
-        setAdults(2);
-        setChildren(0);
-        setInfants(0);
         setName("");
         setEmail("");
         setPhone("");
         setSpecialRequests("");
         setAppliedDiscount(null);
         setSubmitError(null);
-        setSelectedVehicleIdx("");
-        setSelectedDeck("");
-        setTravelType("shared");
-        setQuantity(quantityConfig.min || 1);
-        setSelectedAddonIds(new Set());
-        // Reset guest counts
-        const initial: Record<number, number> = {};
-        guestCategories.forEach((cat, i) => {
-          initial[i] = cat.min || (i === 0 ? 1 : 0);
-        });
-        setGuestCounts(initial);
+
+        // Reset to prop values
+        setSelectedTourId(tourId);
       }, 300);
     }
-  }, [isOpen]);
+  }, [isOpen, tourId]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -280,8 +323,8 @@ const BookingModal = ({
 
       const bookingData: any = {
         id: bookingId,
-        tour_id: tourId,
-        tour_name: tourTitle,
+        tour_id: selectedTourId,
+        tour_name: currentTour.title,
         booking_date: format(date!, "yyyy-MM-dd"),
         adults: bookingMode === "guests" ? (guestCounts[0] || 0) : 0,
         children: bookingMode === "guests" ? (guestCounts[1] || 0) : 0,
@@ -290,22 +333,22 @@ const BookingModal = ({
         customer_email: email.trim(),
         customer_phone: phone.trim(),
         special_requests: [
-          isFullYacht ? `[FULL YACHT CHARTER${capacity ? ` - Capacity: ${capacity}` : ''}]` : null,
+          isCurrentFullYacht ? `[FULL YACHT CHARTER${currentCapacity ? ` - Capacity: ${currentCapacity}` : ''}]` : null,
           bookingMode === "guests"
             ? `[GUESTS: ${guestCategories.map((cat, i) => `${guestCounts[i] || 0} ${cat.name}`).join(', ')}]`
             : `[QUANTITY: ${quantity} x ${quantityConfig.label}]`,
           selectedAddonIds.size > 0
             ? `[ADD-ONS: ${availableAddons.filter(a => selectedAddonIds.has(a.id)).map(a => `${a.name} AED ${a.price}`).join(', ')}]`
             : null,
-          bookingFeatures.travel_options_enabled ? `[TRAVEL: ${travelType}]` : null,
+          currentBookingFeatures.travel_options_enabled ? `[TRAVEL: ${travelType}]` : null,
           selectedVehicle ? `[TRANSFER: ${selectedVehicle.name} - AED ${selectedVehicle.price}]` : null,
           selectedDeck ? `[DECK: ${selectedDeck}${deckSurcharge > 0 ? ` +AED ${deckSurcharge}` : ''}]` : null,
-          selfDiscount > 0 ? `[DIRECT TO BOAT DISCOUNT: -AED ${selfDiscount} (${totalGuests} persons × AED ${bookingFeatures.self_travel_discount})]` : null,
+          selfDiscount > 0 ? `[DIRECT TO BOAT DISCOUNT: -AED ${selfDiscount} (${totalGuests} persons × AED ${currentBookingFeatures.self_travel_discount})]` : null,
           specialRequests.trim() || null,
         ].filter(Boolean).join(' ') || null,
         total_price: totalPrice,
         status: "pending",
-        booking_type: bookingType,
+        booking_type: currentBookingType,
       };
 
       if (user?.id) {
@@ -445,7 +488,7 @@ const BookingModal = ({
                 </div>
 
                 {/* Full Yacht Badge */}
-                {isFullYacht && (
+                {isCurrentFullYacht && (
                   <div className="flex items-center gap-3 p-4 bg-secondary/10 border border-secondary/30 rounded-2xl">
                     <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
                       <Ship className="w-6 h-6 text-secondary" />
@@ -453,7 +496,7 @@ const BookingModal = ({
                     <div>
                       <p className="font-bold text-foreground">Full Yacht Charter</p>
                       <p className="text-sm text-muted-foreground">
-                        Private experience {capacity && `• ${capacity}`}
+                        Private experience {currentCapacity && `• ${currentCapacity}`}
                       </p>
                     </div>
                   </div>
@@ -462,15 +505,9 @@ const BookingModal = ({
                 {/* Tour Selection */}
                 <div>
                   <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
-                  <Select defaultValue={tourId} onValueChange={(val) => {
-                    if (val !== tourId) {
-                      const linked = linkedTours.find(t => t.id === val);
-                      if (linked) {
-                        const catPath = getCategoryPath(linked.category);
-                        const tourSlug = linked.seo_slug || linked.slug;
-                        window.location.href = `/dubai/${catPath}/${tourSlug}`;
-                      }
-                    }
+                  <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
+                  <Select defaultValue={selectedTourId} value={selectedTourId} onValueChange={(val) => {
+                    setSelectedTourId(val);
                   }}>
                     <SelectTrigger className="h-12 sm:h-14 rounded-xl text-sm sm:text-base border-2 border-border focus:border-secondary">
                       <SelectValue placeholder="Choose your cruise experience" />
@@ -514,8 +551,9 @@ const BookingModal = ({
                   </Popover>
                 </div>
 
+
                 {/* Dynamic Guest/Quantity Section */}
-                {!isFullYacht && bookingMode === "guests" && (
+                {!isCurrentFullYacht && bookingMode === "guests" && (
                   <div>
                     <label className="text-sm font-bold text-foreground mb-3 block">Number of Guests *</label>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -533,13 +571,13 @@ const BookingModal = ({
                   </div>
                 )}
 
-                {!isFullYacht && bookingMode === "quantity" && (
+                {!isCurrentFullYacht && bookingMode === "quantity" && (
                   <div>
                     <label className="text-sm font-bold text-foreground mb-3 block">{quantityConfig.label} *</label>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       {renderGuestCounter(
                         quantityConfig.label,
-                        quantityConfig.price > 0 ? `AED ${quantityConfig.price} each` : `AED ${price} each`,
+                        quantityConfig.price > 0 ? `AED ${quantityConfig.price} each` : `AED ${currentPrice} each`,
                         quantity,
                         setQuantity,
                         quantityConfig.min,
@@ -600,7 +638,7 @@ const BookingModal = ({
                 )}
 
                 {/* Travel Type Selection */}
-                {bookingFeatures.travel_options_enabled && (
+                {currentBookingFeatures.travel_options_enabled && (
                   <div className="border border-border rounded-2xl p-4 bg-card/50">
                     <div className="flex items-center gap-3 mb-3">
                       <MapPin className="w-5 h-5 text-secondary" />
@@ -616,7 +654,7 @@ const BookingModal = ({
                     >
                       {[
                         { value: "shared", label: "Shared Transfers", desc: "Group transfer" },
-                        { value: "self", label: "Direct To Boat", desc: bookingFeatures.self_travel_discount ? `Save AED ${bookingFeatures.self_travel_discount}/person` : "Arrive on your own" },
+                        { value: "self", label: "Direct To Boat", desc: currentBookingFeatures.self_travel_discount ? `Save AED ${currentBookingFeatures.self_travel_discount}/person` : "Arrive on your own" },
                         { value: "personal", label: "Private Transfers", desc: "Exclusive Vehicle" },
                       ].map((opt) => (
                         <div key={opt.value} className={cn(
@@ -635,12 +673,12 @@ const BookingModal = ({
                 )}
 
                 {/* Transfer Vehicle Selection */}
-                {bookingFeatures.transfer_available !== false && vehicles.length > 0 && travelType === "personal" && (
+                {currentBookingFeatures.transfer_available !== false && vehicles.length > 0 && travelType === "personal" && (
                   <div className="border border-border rounded-2xl p-4 bg-card/50">
                     <div className="flex items-center gap-3 mb-3">
                       <Car className="w-5 h-5 text-secondary" />
                       <p className="font-bold text-foreground text-sm">
-                        {bookingFeatures.transfer_label || "Hotel/Residence Transfer"}
+                        {currentBookingFeatures.transfer_label || "Hotel/Residence Transfer"}
                       </p>
                     </div>
                     <Select value={selectedVehicleIdx} onValueChange={setSelectedVehicleIdx}>
@@ -659,7 +697,7 @@ const BookingModal = ({
                 )}
 
                 {/* Deck Seating Option */}
-                {bookingFeatures.has_upper_deck && (
+                {currentBookingFeatures.has_upper_deck && (
                   <div className="border border-border rounded-2xl p-4 bg-card/50">
                     <div className="flex items-center gap-3 mb-3">
                       <Layers className="w-5 h-5 text-secondary" />
@@ -670,12 +708,12 @@ const BookingModal = ({
                       onValueChange={setSelectedDeck}
                       className="flex flex-col sm:flex-row gap-3"
                     >
-                      {(bookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option, idx) => (
+                      {(currentBookingFeatures.deck_options || ["Lower Deck", "Upper Deck"]).map((option, idx) => (
                         <div key={option} className="flex items-center gap-2">
                           <RadioGroupItem value={option} id={`modal-deck-${option}`} />
                           <Label htmlFor={`modal-deck-${option}`} className="text-sm cursor-pointer">
                             {option}
-                            {idx === 1 && bookingFeatures.upper_deck_surcharge ? ` (+AED ${bookingFeatures.upper_deck_surcharge}/person)` : ''}
+                            {idx === 1 && currentBookingFeatures.upper_deck_surcharge ? ` (+AED ${currentBookingFeatures.upper_deck_surcharge}/person)` : ''}
                           </Label>
                         </div>
                       ))}
@@ -686,7 +724,7 @@ const BookingModal = ({
                 {/* Quick Price Preview - Enhanced */}
                 <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between">
                   <span className="text-sm sm:text-base text-muted-foreground font-medium">
-                    {isFullYacht ? "Charter Price" : "Estimated Total"}
+                    {isCurrentFullYacht ? "Charter Price" : "Estimated Total"}
                   </span>
                   <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {subtotal.toLocaleString()}</span>
                 </div>
@@ -747,7 +785,7 @@ const BookingModal = ({
                 <div className="pt-2">
                   <DiscountCodeInput
                     orderAmount={subtotal}
-                    tourId={tourId}
+                    tourId={selectedTourId}
                     onDiscountApplied={setAppliedDiscount}
                     appliedDiscount={appliedDiscount}
                   />
@@ -764,10 +802,10 @@ const BookingModal = ({
                 </div>
 
                 <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 space-y-3">
-                  <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-2">{tourTitle}</h3>
+                  <h3 className="font-bold text-foreground text-base sm:text-lg line-clamp-2">{currentTour.title}</h3>
 
                   {/* Full Yacht Badge in Summary */}
-                  {isFullYacht && (
+                  {isCurrentFullYacht && (
                     <div className="flex items-center gap-2 p-2 bg-secondary/10 rounded-xl w-fit">
                       <Ship className="w-4 h-4 text-secondary" />
                       <span className="text-sm font-semibold text-secondary">Full Yacht Charter</span>
@@ -781,11 +819,11 @@ const BookingModal = ({
                     </div>
                     <div className="bg-card rounded-xl p-3">
                       <p className="text-muted-foreground text-xs mb-1">
-                        {isFullYacht ? "Type" : bookingMode === "quantity" ? "Quantity" : "Guests"}
+                        {isCurrentFullYacht ? "Type" : bookingMode === "quantity" ? "Quantity" : "Guests"}
                       </p>
                       <p className="font-semibold">
-                        {isFullYacht ? (
-                          <>Private Charter{capacity && ` (${capacity})`}</>
+                        {isCurrentFullYacht ? (
+                          <>Private Charter{currentCapacity && ` (${currentCapacity})`}</>
                         ) : bookingMode === "quantity" ? (
                           <>{quantity} x {quantityConfig.label}</>
                         ) : (
@@ -812,7 +850,7 @@ const BookingModal = ({
                       <p className="font-semibold">{phone}</p>
                     </div>
                   </div>
-                  {bookingFeatures.travel_options_enabled && (
+                  {currentBookingFeatures.travel_options_enabled && (
                     <div className="pt-3 border-t border-border flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-secondary" />
                       <p className="text-sm font-medium">{travelType === "shared" ? "Shared Transfers" : travelType === "self" ? "Direct To Boat" : "Private Transfers"}</p>
@@ -840,18 +878,18 @@ const BookingModal = ({
 
                 {/* Price Breakdown - Enhanced */}
                 <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 rounded-2xl p-4 sm:p-5 space-y-3">
-                  {isFullYacht ? (
+                  {isCurrentFullYacht ? (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground flex items-center gap-2">
                         <Ship className="w-4 h-4" />
                         Full Yacht Charter
                       </span>
-                      <span className="font-medium">AED {fullYachtPrice?.toLocaleString()}</span>
+                      <span className="font-medium">AED {currentFullYachtPrice?.toLocaleString()}</span>
                     </div>
                   ) : bookingMode === "quantity" ? (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        {quantity} × {quantityConfig.label} @ AED {quantityConfig.price > 0 ? quantityConfig.price : price}
+                        {quantity} × {quantityConfig.label} @ AED {quantityConfig.price > 0 ? quantityConfig.price : currentPrice}
                       </span>
                       <span className="font-medium">AED {quantityBasedPrice.toLocaleString()}</span>
                     </div>
@@ -860,7 +898,7 @@ const BookingModal = ({
                       {guestCategories.map((cat, i) => {
                         const count = guestCounts[i] || 0;
                         if (count === 0) return null;
-                        const catPrice = cat.price > 0 ? cat.price : price;
+                        const catPrice = cat.price > 0 ? cat.price : currentPrice;
                         return (
                           <div key={i} className="flex justify-between text-sm">
                             <span className="text-muted-foreground">
@@ -888,7 +926,7 @@ const BookingModal = ({
                         <MapPin className="w-4 h-4" />
                         {travelType === "self" ? "Direct To Boat discount" : "Standard transfer removed"}
                       </span>
-                      <span className="font-medium">- AED {selfDiscount} ({totalGuests} × {bookingFeatures.self_travel_discount})</span>
+                      <span className="font-medium">- AED {selfDiscount} ({totalGuests} × {currentBookingFeatures.self_travel_discount})</span>
                     </div>
                   )}
                   {transferCost > 0 && selectedVehicle && (
@@ -904,7 +942,7 @@ const BookingModal = ({
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground flex items-center gap-2">
                         <Layers className="w-4 h-4" />
-                        Upper deck (+AED {bookingFeatures.upper_deck_surcharge}/person)
+                        Upper deck (+AED {currentBookingFeatures.upper_deck_surcharge}/person)
                       </span>
                       <span className="font-medium">AED {deckSurcharge}</span>
                     </div>
