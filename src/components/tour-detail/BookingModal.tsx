@@ -522,24 +522,6 @@ const BookingModal = ({
                   </div>
                 )}
 
-                {/* Tour Selection */}
-                <div>
-                  <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
-                  <Select defaultValue={selectedTourId} value={selectedTourId} onValueChange={(val) => {
-                    setSelectedTourId(val);
-                  }}>
-                    <SelectTrigger className="h-12 sm:h-14 rounded-xl text-sm sm:text-base border-2 border-border focus:border-secondary">
-                      <SelectValue placeholder="Choose your cruise experience" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card z-50 rounded-xl">
-                      <SelectItem value={tourId}>{tourTitle}</SelectItem>
-                      {linkedTours.map((lt) => (
-                        <SelectItem key={lt.id} value={lt.id}>{lt.title}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Date Selection */}
                 <div>
                   <label className="text-sm font-bold text-foreground mb-2 block">Preferred Date *</label>
@@ -570,6 +552,23 @@ const BookingModal = ({
                   </Popover>
                 </div>
 
+                {/* Tour Selection */}
+                <div>
+                  <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
+                  <Select defaultValue={selectedTourId} value={selectedTourId} onValueChange={(val) => {
+                    setSelectedTourId(val);
+                  }}>
+                    <SelectTrigger className="h-12 sm:h-14 rounded-xl text-sm sm:text-base border-2 border-border focus:border-secondary">
+                      <SelectValue placeholder="Choose your cruise experience" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card z-50 rounded-xl">
+                      <SelectItem value={tourId}>{tourTitle}</SelectItem>
+                      {linkedTours.map((lt) => (
+                        <SelectItem key={lt.id} value={lt.id}>{lt.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {/* Dynamic Guest/Quantity Section */}
                 {!isCurrentFullYacht && bookingMode === "guests" && (

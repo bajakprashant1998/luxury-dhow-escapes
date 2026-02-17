@@ -354,6 +354,7 @@ const BookingSidebar = memo(({
         initialDate={date}
         initialGuestCounts={guestCounts}
         initialQuantity={quantity}
+        bookingFeatures={bookingFeatures}
       />
     </div>
   );
