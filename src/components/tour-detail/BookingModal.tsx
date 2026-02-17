@@ -170,10 +170,10 @@ const BookingModal = ({
   const selectedVehicle = selectedVehicleIdx ? vehicles[parseInt(selectedVehicleIdx)] : null;
   const transferCost = selectedVehicle ? selectedVehicle.price : 0;
 
-  // Fetch linked tours
-  const linkedTourIds = currentBookingFeatures.linked_tour_ids || [];
+  // Fetch linked tours (stable list based on initial tour)
+  const linkedTourIds = bookingFeatures?.linked_tour_ids || [];
   const { data: linkedTours = [] } = useQuery({
-    queryKey: ["linked-tours", selectedTourId],
+    queryKey: ["linked-tours", tourId],
     queryFn: async () => {
       if (linkedTourIds.length === 0) return [];
       const { data, error } = await supabase
@@ -504,7 +504,6 @@ const BookingModal = ({
 
                 {/* Tour Selection */}
                 <div>
-                  <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
                   <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
                   <Select defaultValue={selectedTourId} value={selectedTourId} onValueChange={(val) => {
                     setSelectedTourId(val);
