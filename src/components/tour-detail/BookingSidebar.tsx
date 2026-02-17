@@ -82,10 +82,10 @@ const BookingSidebar = memo(({
     : bookingMode === "quantity"
       ? (quantityConfig.price > 0 ? quantityConfig.price : price) * quantity
       : guestCategories.reduce((sum, cat, i) => {
-          const count = guestCounts[i] || 0;
-          const catPrice = cat.price > 0 ? cat.price : price;
-          return sum + catPrice * count;
-        }, 0);
+        const count = guestCounts[i] || 0;
+        const catPrice = cat.price > 0 ? cat.price : price;
+        return sum + catPrice * count;
+      }, 0);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -351,7 +351,9 @@ const BookingSidebar = memo(({
         price={price}
         fullYachtPrice={fullYachtPrice}
         capacity={capacity}
-        bookingFeatures={bookingFeatures}
+        initialDate={date}
+        initialGuestCounts={guestCounts}
+        initialQuantity={quantity}
       />
     </div>
   );

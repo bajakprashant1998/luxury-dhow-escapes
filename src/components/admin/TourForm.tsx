@@ -19,8 +19,8 @@ import { toast } from "sonner";
 import { Upload, X, Plus, Loader2, ImageIcon, Sparkles, MapPin, Calendar, Clock, Users, Shield, Flame, RotateCcw, Link as LinkIcon, Waves, PartyPopper, ChefHat, AlertTriangle, Car, Layers } from "lucide-react";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useActiveCategories } from "@/hooks/useCategories";
-import { useActiveLocations } from "@/hooks/useLocations";
-import ItineraryEditor, { ItineraryItem } from "./ItineraryEditor";
+import { useActiveLocations, useCreateLocation, type LocationInsert } from "@/hooks/useLocations";
+import { LocationDialog } from "@/components/admin/LocationDialog";
 import FAQEditor, { FAQItem } from "./FAQEditor";
 import CharacterCounter from "./CharacterCounter";
 import SEOPreview from "./SEOPreview";
@@ -52,6 +52,8 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
   // Fetch categories and locations from database
   const { data: categories = [], isLoading: categoriesLoading } = useActiveCategories();
   const { data: locations = [], isLoading: locationsLoading } = useActiveLocations();
+  const createLocationMutation = useCreateLocation();
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -239,6 +241,15 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
   const suggestImageAlt = () => {
     const alt = [formData.title, formData.location].filter(Boolean).join(" - ");
     setFormData((prev) => ({ ...prev, image_alt: alt }));
+  };
+
+  const handleCreateLocation = (data: LocationInsert) => {
+    createLocationMutation.mutate(data, {
+      onSuccess: (newLocation) => {
+        setIsLocationDialogOpen(false);
+        setFormData((prev) => ({ ...prev, location: newLocation.name }));
+      },
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -567,7 +578,19 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Location</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Location</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsLocationDialogOpen(true)}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add New
+                    </Button>
+                  </div>
                   {locationsLoading ? (
                     <Skeleton className="h-10 w-full" />
                   ) : (
@@ -1740,6 +1763,12 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           </Card>
         </div>
       </div>
+      <LocationDialog
+        open={isLocationDialogOpen}
+        onOpenChange={setIsLocationDialogOpen}
+        onSave={handleCreateLocation}
+        isLoading={createLocationMutation.isPending}
+      />
     </form>
   );
 };

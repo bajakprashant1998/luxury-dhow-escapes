@@ -60,6 +60,9 @@ interface BookingModalProps {
   fullYachtPrice?: number | null;
   capacity?: string;
   bookingFeatures?: BookingFeatures;
+  initialDate?: Date;
+  initialGuestCounts?: Record<number, number>;
+  initialQuantity?: number;
 }
 
 const steps = [
@@ -76,7 +79,10 @@ const BookingModal = ({
   price,
   fullYachtPrice,
   capacity,
-  bookingFeatures = defaultBookingFeatures
+  bookingFeatures = defaultBookingFeatures,
+  initialDate,
+  initialGuestCounts,
+  initialQuantity
 }: BookingModalProps) => {
   // Derive booking type from tour data - no toggle needed
   // Remapped to rely on currentTour state below
@@ -143,12 +149,12 @@ const BookingModal = ({
   const availableAddons = currentBookingFeatures.addons || [];
 
   // Step 1 state
-  const [date, setDate] = useState<Date>();
+  const [date, setDate] = useState<Date | undefined>(initialDate);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Guest/Quantity/Addon State
-  const [guestCounts, setGuestCounts] = useState<Record<number, number>>({});
-  const [quantity, setQuantity] = useState(currentBookingFeatures.quantity_config?.min || 1);
+  const [guestCounts, setGuestCounts] = useState<Record<number, number>>(initialGuestCounts || {});
+  const [quantity, setQuantity] = useState(initialQuantity || currentBookingFeatures.quantity_config?.min || 1);
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
 
   // Step 2 state
@@ -189,18 +195,32 @@ const BookingModal = ({
 
   // Re-initialize guest counts/quantity when tour changes or on mount
   useEffect(() => {
-    const initial: Record<number, number> = {};
-    guestCategories.forEach((cat, i) => {
-      initial[i] = cat.min || (i === 0 ? 1 : 0);
-    });
-    setGuestCounts(initial);
-    setQuantity(quantityConfig.min || 1);
+    if (!initialGuestCounts && !initialQuantity) {
+      const initial: Record<number, number> = {};
+      guestCategories.forEach((cat, i) => {
+        initial[i] = cat.min || (i === 0 ? 1 : 0);
+      });
+      setGuestCounts(initial);
+      setQuantity(quantityConfig.min || 1);
+    }
+  }, [selectedTourId, currentBookingFeatures, guestCategories, quantityConfig, initialGuestCounts, initialQuantity]);
+
+  // Sync with props when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      if (initialDate) setDate(initialDate);
+      if (initialGuestCounts) setGuestCounts(initialGuestCounts);
+      if (initialQuantity) setQuantity(initialQuantity);
+    }
+  }, [isOpen, initialDate, initialGuestCounts, initialQuantity]);
+
+  useEffect(() => {
     setSelectedAddonIds(new Set());
     // Reset vehicle selection if transfer options change
     setSelectedVehicleIdx("");
     setSelectedDeck("");
     setTravelType("shared");
-  }, [selectedTourId, currentBookingFeatures, guestCategories, quantityConfig]);
+  }, [selectedTourId, currentBookingFeatures]);
 
   // Dynamic price calculation
   const guestBasedPrice = useMemo(() => {
