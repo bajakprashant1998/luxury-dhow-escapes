@@ -63,6 +63,7 @@ export interface BookingFeatures {
   guest_categories?: GuestCategory[];
   quantity_config?: QuantityConfig;
   addons?: BookingAddon[];
+  linked_tour_ids?: string[];
 }
 
 // Default Important Information content
@@ -118,6 +119,7 @@ export const defaultBookingFeatures: BookingFeatures = {
   guest_categories: defaultGuestCategories,
   quantity_config: defaultQuantityConfig,
   addons: [],
+  linked_tour_ids: [],
 };
 
 // Frontend Tour interface (matching TourCard expectations)

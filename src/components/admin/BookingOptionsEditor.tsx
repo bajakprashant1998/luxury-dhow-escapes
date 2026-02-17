@@ -1,10 +1,13 @@
-import { Plus, X, Users, Hash, Gift } from "lucide-react";
+import { Plus, X, Users, Hash, Gift, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   BookingFeatures,
   GuestCategory,
@@ -17,13 +20,29 @@ import {
 interface BookingOptionsEditorProps {
   bookingFeatures: BookingFeatures;
   onChange: (features: BookingFeatures) => void;
+  currentTourId?: string;
 }
 
-const BookingOptionsEditor = ({ bookingFeatures, onChange }: BookingOptionsEditorProps) => {
+const BookingOptionsEditor = ({ bookingFeatures, onChange, currentTourId }: BookingOptionsEditorProps) => {
   const bookingMode = bookingFeatures.booking_mode || "guests";
   const guestCategories = bookingFeatures.guest_categories || defaultGuestCategories;
   const quantityConfig = bookingFeatures.quantity_config || defaultQuantityConfig;
   const addons = bookingFeatures.addons || [];
+  const linkedTourIds = bookingFeatures.linked_tour_ids || [];
+
+  // Fetch all active tours for the linked tours selector
+  const { data: allTours = [] } = useQuery({
+    queryKey: ["tours-for-linking"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tours")
+        .select("id, title, slug")
+        .eq("status", "active")
+        .order("title");
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const updateFeatures = (partial: Partial<BookingFeatures>) => {
     onChange({ ...bookingFeatures, ...partial });
@@ -281,6 +300,46 @@ const BookingOptionsEditor = ({ bookingFeatures, onChange }: BookingOptionsEdito
             <Plus className="w-4 h-4 mr-2" />
             Add New Add-On
           </Button>
+        </div>
+
+        {/* Linked Tours for Booking Form */}
+        <div className="space-y-3 p-4 bg-secondary/5 rounded-lg">
+          <Label className="text-sm font-semibold flex items-center gap-2">
+            <Link2 className="w-4 h-4 text-secondary" />
+            Additional Tours on Booking Form
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Select which other tours should appear in the "Select Tour" dropdown of this tour's booking popup. The current tour is always included.
+          </p>
+          <div className="space-y-2 max-h-60 overflow-y-auto border border-border rounded-lg p-3 bg-card">
+            {allTours
+              .filter((t) => t.id !== currentTourId)
+              .map((t) => (
+                <label
+                  key={t.id}
+                  className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
+                >
+                  <Checkbox
+                    checked={linkedTourIds.includes(t.id)}
+                    onCheckedChange={(checked) => {
+                      const updated = checked
+                        ? [...linkedTourIds, t.id]
+                        : linkedTourIds.filter((id) => id !== t.id);
+                      updateFeatures({ linked_tour_ids: updated });
+                    }}
+                  />
+                  <span className="text-sm">{t.title}</span>
+                </label>
+              ))}
+            {allTours.filter((t) => t.id !== currentTourId).length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-2">No other tours available</p>
+            )}
+          </div>
+          {linkedTourIds.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {linkedTourIds.length} additional tour{linkedTourIds.length !== 1 ? "s" : ""} will appear in the booking form dropdown
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>
