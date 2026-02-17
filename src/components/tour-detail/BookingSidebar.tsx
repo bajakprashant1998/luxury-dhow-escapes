@@ -233,7 +233,7 @@ const BookingSidebar = memo(({
                   <span>{quantityConfig.label}</span>
                   {quantityConfig.subtitle && <span className="text-muted-foreground font-normal">{quantityConfig.subtitle}</span>}
                 </div>
-                <p className="text-xs text-muted-foreground">AED {quantityConfig.price > 0 ? quantityConfig.price : price} each</p>
+                <p className="text-xs text-muted-foreground">AED {quantityConfig.price > 0 ? quantityConfig.price : price} </p>
               </div>
               <div className="flex items-center gap-3">
                 <button
