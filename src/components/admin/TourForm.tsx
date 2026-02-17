@@ -39,6 +39,7 @@ interface TourFormProps {
   mode: "create" | "edit";
 }
 
+import BookingSidebar from "@/components/tour-detail/BookingSidebar"; // Added import
 import { useImageUpload } from "@/hooks/useImageUpload";
 
 const TourForm = ({ tour, mode }: TourFormProps) => {
@@ -1593,6 +1594,31 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Live Preview */}
+          <div className="hidden lg:block">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-secondary" />
+              Live Preview
+            </h3>
+            <div className="opacity-90 scale-95 origin-top-left pointer-events-none select-none">
+              <BookingSidebar
+                tourId={tour?.id || "preview-id"}
+                tourTitle={formData.title || "Tour Title Preview"}
+                price={parseFloat(formData.price) || 0}
+                originalPrice={parseFloat(formData.original_price) || 0}
+                duration={formData.duration || "2 hours"}
+                reviewCount={tour?.review_count || 0}
+                pricingType={formData.pricing_type as "per_person" | "per_hour"}
+                fullYachtPrice={formData.full_yacht_price ? parseFloat(formData.full_yacht_price) : null}
+                capacity={formData.capacity || undefined}
+                bookingFeatures={formData.booking_features}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              * This is a preview. Interactive elements are disabled.
+            </p>
+          </div>
+
           {/* Publish Settings */}
           <Card>
             <CardHeader>

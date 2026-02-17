@@ -157,7 +157,7 @@ const BookingSidebar = memo(({
                   <span className="text-muted-foreground line-through text-lg">AED {originalPrice}</span>
                 )}
               </div>
-              <p className="text-muted-foreground text-sm">{pricingType === "per_hour" ? "per hour" : "per person"}</p>
+              <p className="text-muted-foreground text-sm">{bookingFeatures.price_label || (pricingType === "per_hour" ? "per hour" : "per person")}</p>
             </div>
           )}
         </div>
@@ -229,7 +229,10 @@ const BookingSidebar = memo(({
             <label className="text-sm font-medium text-foreground block">{quantityConfig.label}</label>
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
               <div>
-                <p className="font-medium text-sm">{quantityConfig.label}</p>
+                <div className="font-medium text-sm flex flex-wrap items-baseline gap-1">
+                  <span>{quantityConfig.label}</span>
+                  {quantityConfig.subtitle && <span className="text-muted-foreground font-normal">{quantityConfig.subtitle}</span>}
+                </div>
                 <p className="text-xs text-muted-foreground">AED {quantityConfig.price > 0 ? quantityConfig.price : price} each</p>
               </div>
               <div className="flex items-center gap-3">

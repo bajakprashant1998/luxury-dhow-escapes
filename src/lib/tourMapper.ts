@@ -12,11 +12,11 @@ export interface GuestCategory {
 // Quantity config for quantity-based booking
 export interface QuantityConfig {
   label: string;
+  subtitle?: string; // Added subtitle
   price: number;
   min: number;
   max: number;
 }
-
 // Add-on item
 export interface BookingAddon {
   id: string;
@@ -29,6 +29,7 @@ export interface BookingAddon {
 export interface BookingFeatures {
   urgency_enabled: boolean;
   urgency_text: string;
+  price_label?: string; // Added price_label
   availability_text: string;
   minimum_duration: string;
   hotel_pickup: boolean;

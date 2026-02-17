@@ -101,6 +101,19 @@ const BookingOptionsEditor = ({ bookingFeatures, onChange, currentTourId }: Book
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Price Label Configuration */}
+        <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+          <Label className="text-sm font-semibold">Price Label Override</Label>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Optional: Override "per person" or "per hour" text</Label>
+            <Input
+              value={bookingFeatures.price_label || ""}
+              onChange={(e) => updateFeatures({ price_label: e.target.value })}
+              placeholder="e.g., per 2 hours, per couple"
+            />
+          </div>
+        </div>
+
         {/* Booking Mode Toggle */}
         <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
           <Label className="text-sm font-semibold">Booking Mode</Label>
@@ -210,6 +223,14 @@ const BookingOptionsEditor = ({ bookingFeatures, onChange, currentTourId }: Book
                   value={quantityConfig.label}
                   onChange={(e) => updateQuantity("label", e.target.value)}
                   placeholder="Number of Tickets"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Subtitle</Label>
+                <Input
+                  value={quantityConfig.subtitle || ""}
+                  onChange={(e) => updateQuantity("subtitle", e.target.value)}
+                  placeholder="e.g., 30 Mins Ride"
                 />
               </div>
               <div className="space-y-1">
