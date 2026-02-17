@@ -10,7 +10,7 @@ interface RequestBody {
   title: string;
   category: string;
   location: string;
-  type: "short" | "long";
+  type: "short" | "long" | "slug" | "subtitle";
 }
 
 serve(async (req) => {
@@ -96,7 +96,67 @@ Requirements:
 
 Write the description now:`;
 
-    const userPrompt = type === "short" ? shortPrompt : longPrompt;
+    const slugPrompt = `Generate 5 SEO-friendly URL slugs for this tour:
+
+Tour: ${title}
+Category: ${category}
+Location: ${location || "Dubai"}
+
+Requirements:
+- Each slug should be lowercase, hyphen-separated, no special characters
+- Include relevant keywords (tour type, location, experience)
+- Keep between 4-8 words
+- Optimize for search engines
+- Return ONLY the 5 slugs, one per line, numbered 1-5
+- No extra text or explanation
+
+Example output:
+1. luxury-yacht-charter-dubai-marina
+2. private-yacht-cruise-dubai-sunset
+3. premium-boat-ride-dubai-marina-skyline
+4. exclusive-yacht-experience-dubai
+5. dubai-marina-luxury-yacht-tour`;
+
+    const subtitlePrompt = `Generate 5 compelling subtitles for this tour:
+
+Tour: ${title}
+Category: ${category}
+Location: ${location || "Dubai"}
+
+Requirements:
+- Each subtitle should be 6-12 words
+- Engaging, descriptive, and conversion-focused
+- Highlight unique selling points or experiences
+- No quotes around them
+- Return ONLY the 5 subtitles, one per line, numbered 1-5
+- No extra text or explanation
+
+Example output:
+1. Sail through Dubai Marina on a luxury private yacht
+2. Experience the magic of Dubai's skyline at sunset
+3. An unforgettable evening cruise along iconic landmarks
+4. Premium yacht charter with stunning panoramic views
+5. Discover Dubai's coastline in ultimate luxury and comfort`;
+
+    let userPrompt: string;
+    let maxTokens: number;
+    switch (type) {
+      case "slug":
+        userPrompt = slugPrompt;
+        maxTokens = 200;
+        break;
+      case "subtitle":
+        userPrompt = subtitlePrompt;
+        maxTokens = 200;
+        break;
+      case "long":
+        userPrompt = longPrompt;
+        maxTokens = 800;
+        break;
+      default:
+        userPrompt = shortPrompt;
+        maxTokens = 150;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -111,7 +171,7 @@ Write the description now:`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: type === "short" ? 150 : 800,
+        max_tokens: maxTokens,
       }),
     });
 

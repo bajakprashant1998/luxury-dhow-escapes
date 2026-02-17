@@ -94,6 +94,12 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
   const [decorationInput, setDecorationInput] = useState("");
   const [cateringInput, setCateringInput] = useState("");
 
+  // AI suggestion states
+  const [slugSuggestions, setSlugSuggestions] = useState<string[]>([]);
+  const [subtitleSuggestions, setSubtitleSuggestions] = useState<string[]>([]);
+  const [isGeneratingSlugs, setIsGeneratingSlugs] = useState(false);
+  const [isGeneratingSubtitles, setIsGeneratingSubtitles] = useState(false);
+
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
@@ -108,6 +114,38 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
       title,
       slug: mode === "create" ? generateSlug(title) : prev.slug,
     }));
+  };
+
+  const parseNumberedList = (content: string): string[] => {
+    return content
+      .split("\n")
+      .map((line) => line.replace(/^\d+[\.\)]\s*/, "").trim())
+      .filter((line) => line.length > 0)
+      .slice(0, 5);
+  };
+
+  const generateAISuggestions = async (type: "slug" | "subtitle") => {
+    if (!formData.title) {
+      toast.error("Please enter a title first");
+      return;
+    }
+    const setLoading = type === "slug" ? setIsGeneratingSlugs : setIsGeneratingSubtitles;
+    const setSuggestions = type === "slug" ? setSlugSuggestions : setSubtitleSuggestions;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-tour-content", {
+        body: { title: formData.title, category: formData.category, location: formData.location, type },
+      });
+      if (error) throw error;
+      const items = parseNumberedList(data.content || "");
+      setSuggestions(items);
+      if (items.length === 0) toast.error("No suggestions generated. Try again.");
+    } catch (err: any) {
+      console.error("AI generation error:", err);
+      toast.error(err.message || "Failed to generate suggestions");
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -284,7 +322,20 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="slug">Slug *</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => generateAISuggestions("slug")}
+                      disabled={isGeneratingSlugs || !formData.title}
+                      className="h-6 px-2 text-xs"
+                    >
+                      {isGeneratingSlugs ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                      AI Suggest
+                    </Button>
+                  </div>
                   <Input
                     id="slug"
                     value={formData.slug}
@@ -292,6 +343,24 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                     placeholder="tour-url-slug"
                     required
                   />
+                  {slugSuggestions.length > 0 && (
+                    <div className="space-y-1 p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">AI Suggestions (click to use):</p>
+                      {slugSuggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          className="block w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-secondary/10 transition-colors font-mono text-foreground"
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, slug: s }));
+                            setSlugSuggestions([]);
+                          }}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -327,13 +396,44 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subtitle">Subtitle</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="subtitle">Subtitle</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => generateAISuggestions("subtitle")}
+                    disabled={isGeneratingSubtitles || !formData.title}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {isGeneratingSubtitles ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                    AI Suggest
+                  </Button>
+                </div>
                 <Input
                   id="subtitle"
                   value={formData.subtitle}
                   onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
                   placeholder="Brief description"
                 />
+                {subtitleSuggestions.length > 0 && (
+                  <div className="space-y-1 p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">AI Suggestions (click to use):</p>
+                    {subtitleSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="block w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-secondary/10 transition-colors text-foreground"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, subtitle: s }));
+                          setSubtitleSuggestions([]);
+                        }}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <RichTextEditor
