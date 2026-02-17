@@ -681,6 +681,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           <BookingOptionsEditor
             bookingFeatures={formData.booking_features}
             onChange={(features) => setFormData((prev) => ({ ...prev, booking_features: features }))}
+            currentTourId={tour?.id}
           />
 
           {/* Booking Features */}

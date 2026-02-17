@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   ArrowRight,
@@ -48,6 +49,7 @@ import { Discount } from "@/hooks/useDiscounts";
 import { BookingFeatures, defaultBookingFeatures, defaultGuestCategories, defaultQuantityConfig, BookingAddon } from "@/lib/tourMapper";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { getCategoryPath } from "@/lib/seoUtils";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -101,6 +103,23 @@ const BookingModal = ({
   const [guestCounts, setGuestCounts] = useState<Record<number, number>>({});
   const [quantity, setQuantity] = useState(quantityConfig.min || 1);
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
+
+  // Fetch linked tours for the Select Tour dropdown
+  const linkedTourIds = bookingFeatures.linked_tour_ids || [];
+  const { data: linkedTours = [] } = useQuery({
+    queryKey: ["linked-tours", tourId],
+    queryFn: async () => {
+      if (linkedTourIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("tours")
+        .select("id, title, slug, seo_slug, category")
+        .in("id", linkedTourIds)
+        .eq("status", "active");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: linkedTourIds.length > 0,
+  });
 
   // Initialize guest counts from categories
   useEffect(() => {
@@ -443,12 +462,24 @@ const BookingModal = ({
                 {/* Tour Selection */}
                 <div>
                   <label className="text-sm font-bold text-foreground mb-2 block">Select Tour *</label>
-                  <Select defaultValue={tourTitle}>
+                  <Select defaultValue={tourId} onValueChange={(val) => {
+                    if (val !== tourId) {
+                      const linked = linkedTours.find(t => t.id === val);
+                      if (linked) {
+                        const catPath = getCategoryPath(linked.category);
+                        const tourSlug = linked.seo_slug || linked.slug;
+                        window.location.href = `/dubai/${catPath}/${tourSlug}`;
+                      }
+                    }
+                  }}>
                     <SelectTrigger className="h-12 sm:h-14 rounded-xl text-sm sm:text-base border-2 border-border focus:border-secondary">
                       <SelectValue placeholder="Choose your cruise experience" />
                     </SelectTrigger>
                     <SelectContent className="bg-card z-50 rounded-xl">
-                      <SelectItem value={tourTitle}>{tourTitle}</SelectItem>
+                      <SelectItem value={tourId}>{tourTitle}</SelectItem>
+                      {linkedTours.map((lt) => (
+                        <SelectItem key={lt.id} value={lt.id}>{lt.title}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
