@@ -591,7 +591,7 @@ const BookingModal = ({
 
                 {!isCurrentFullYacht && bookingMode === "quantity" && (
                   <div>
-                    <label className="text-sm font-bold text-foreground mb-3 block">{quantityConfig.label} *</label>
+                    <label className="text-sm font-bold text-foreground mb-3 block">{quantityConfig.header || quantityConfig.label} *</label>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       {renderGuestCounter(
                         quantityConfig.label + (quantityConfig.subtitle ? ` (${quantityConfig.subtitle})` : ""),

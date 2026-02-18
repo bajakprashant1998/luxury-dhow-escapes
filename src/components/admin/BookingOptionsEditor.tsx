@@ -218,7 +218,15 @@ const BookingOptionsEditor = ({ bookingFeatures, onChange, currentTourId }: Book
             <Label className="text-sm font-semibold">Quantity Configuration</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-xs">Label</Label>
+                <Label className="text-xs">Header Label</Label>
+                <Input
+                  value={quantityConfig.header || ""}
+                  onChange={(e) => updateQuantity("header", e.target.value)}
+                  placeholder="e.g., Select Number of Skis"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Item Label</Label>
                 <Input
                   value={quantityConfig.label}
                   onChange={(e) => updateQuantity("label", e.target.value)}

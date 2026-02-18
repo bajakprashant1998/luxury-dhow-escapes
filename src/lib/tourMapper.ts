@@ -13,6 +13,7 @@ export interface GuestCategory {
 export interface QuantityConfig {
   label: string;
   subtitle?: string; // Added subtitle
+  header?: string; // Added header for section title
   price: number;
   min: number;
   max: number;

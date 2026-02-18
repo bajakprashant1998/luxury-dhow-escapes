@@ -226,7 +226,7 @@ const BookingSidebar = memo(({
 
         {!isFullYacht && bookingMode === "quantity" && (
           <div className="mb-6 space-y-3 relative">
-            <label className="text-sm font-medium text-foreground block">{quantityConfig.label}</label>
+            <label className="text-sm font-medium text-foreground block">{quantityConfig.header || quantityConfig.label}</label>
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/70 transition-colors">
               <div>
                 <div className="font-medium text-sm flex flex-wrap items-baseline gap-1">
