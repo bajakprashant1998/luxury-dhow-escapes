@@ -17,11 +17,11 @@ interface MobileBookingBarProps {
   bookingFeatures?: BookingFeatures;
 }
 
-const MobileBookingBar = memo(({ 
-  price, 
-  originalPrice, 
-  tourTitle = "", 
-  tourId = "", 
+const MobileBookingBar = memo(({
+  price,
+  originalPrice,
+  tourTitle = "",
+  tourId = "",
   pricingType = "per_person",
   fullYachtPrice,
   capacity,
@@ -36,13 +36,13 @@ const MobileBookingBar = memo(({
   const isFullYacht = fullYachtPrice && fullYachtPrice > 0;
   const bookingType = isFullYacht ? "full_yacht" : "per_person";
   const displayPrice = isFullYacht ? fullYachtPrice : price;
-  const priceLabel = isFullYacht 
-    ? "Per Hour" 
-    : (pricingType === "per_hour" ? "per hour" : "per person");
+  const priceLabel = isFullYacht
+    ? "Per Hour"
+    : (bookingFeatures.price_label || (pricingType === "per_hour" ? "per hour" : "per person"));
 
   return (
     <>
-      <div 
+      <div
         className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-2xl lg:hidden pb-safe"
       >
         {/* Expandable Info Panel */}
@@ -93,7 +93,7 @@ const MobileBookingBar = memo(({
 
         <div className="p-4">
           {/* Expand Toggle */}
-          <button 
+          <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-6 bg-card border border-border rounded-t-lg flex items-center justify-center shadow-sm"
           >
@@ -130,9 +130,9 @@ const MobileBookingBar = memo(({
 
             {/* Buttons */}
             <div className="flex gap-2">
-              <a 
-                href={whatsappLinkWithGreeting(`Hi! I'm interested in booking ${tourTitle}. Can you help?`)} 
-                target="_blank" 
+              <a
+                href={whatsappLinkWithGreeting(`Hi! I'm interested in booking ${tourTitle}. Can you help?`)}
+                target="_blank"
                 rel="noopener noreferrer"
               >
                 <Button variant="outline" size="icon" className="h-11 w-11 touch-target active:scale-95 transition-transform">
@@ -140,7 +140,7 @@ const MobileBookingBar = memo(({
                 </Button>
               </a>
               <div>
-                <Button 
+                <Button
                   onClick={() => setIsBookingModalOpen(true)}
                   className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold h-11 px-5 sm:px-6 shadow-lg touch-target active:scale-[0.98] transition-transform"
                 >
@@ -161,6 +161,7 @@ const MobileBookingBar = memo(({
         price={price}
         fullYachtPrice={fullYachtPrice}
         capacity={capacity}
+        bookingFeatures={bookingFeatures}
       />
     </>
   );
