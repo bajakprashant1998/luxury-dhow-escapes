@@ -22,6 +22,7 @@ import {
   Headset,
   BarChart3,
   Megaphone,
+  Contact,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,7 @@ const navItems: NavItem[] = [
   { title: "Customers", href: "/admin/customers", icon: Users },
   { title: "Discounts", href: "/admin/discounts", icon: Percent },
   { title: "Marketing Bookings", href: "/admin/marketing-bookings", icon: Megaphone },
+  { title: "Contact Leads", href: "/admin/contact-leads", icon: Contact },
   { title: "Activity Log", href: "/admin/activity-log", icon: History },
   { title: "Legal Pages", href: "/admin/legal-pages", icon: Scale },
   {
