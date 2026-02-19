@@ -46,6 +46,7 @@ const AdminLegalPages = lazy(() => import("./pages/admin/LegalPages"));
 const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
 const AdminLiveChat = lazy(() => import("./pages/admin/LiveChat"));
 const AdminMarketingBookings = lazy(() => import("./pages/admin/MarketingBookings"));
+const AdminContactLeads = lazy(() => import("./pages/admin/ContactLeads"));
 
 // RequireSession must be loaded synchronously as it's a wrapper component
 import RequireSession from "./components/admin/RequireSession";
@@ -249,6 +250,14 @@ const App = () => (
               element={
                 <RequireSession>
                   <AdminMarketingBookings />
+                </RequireSession>
+              }
+            />
+            <Route
+              path="/admin/contact-leads"
+              element={
+                <RequireSession>
+                  <AdminContactLeads />
                 </RequireSession>
               }
             />
