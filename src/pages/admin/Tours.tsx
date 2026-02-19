@@ -53,6 +53,9 @@ const AdminTours = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [featuredFilter, setFeaturedFilter] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -183,11 +186,32 @@ const AdminTours = () => {
     }
   };
 
+  // Get unique locations for filter
+  const uniqueLocations = [...new Set(tours.map((t) => t.location).filter(Boolean))] as string[];
+
   const filteredTours = tours.filter((tour) => {
-    const matchesSearch = tour.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = tour.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (tour.subtitle || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (tour.slug || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || tour.category === categoryFilter;
     const matchesStatus = statusFilter === "all" || tour.status === statusFilter;
-    return matchesSearch && matchesCategory && matchesStatus;
+    const matchesFeatured = featuredFilter === "all" || 
+      (featuredFilter === "yes" ? tour.featured : !tour.featured);
+    const matchesLocation = locationFilter === "all" || tour.location === locationFilter;
+    return matchesSearch && matchesCategory && matchesStatus && matchesFeatured && matchesLocation;
+  });
+
+  // Sort
+  const sortedTours = [...filteredTours].sort((a, b) => {
+    switch (sortBy) {
+      case "newest": return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      case "oldest": return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      case "price-high": return Number(b.price) - Number(a.price);
+      case "price-low": return Number(a.price) - Number(b.price);
+      case "title-az": return a.title.localeCompare(b.title);
+      case "title-za": return b.title.localeCompare(a.title);
+      default: return 0;
+    }
   });
 
   // Stats
@@ -199,7 +223,7 @@ const AdminTours = () => {
     avgPrice: tours.length > 0 ? tours.reduce((sum, t) => sum + Number(t.price), 0) / tours.length : 0,
   };
 
-  const pagination = usePagination(filteredTours, 10);
+  const pagination = usePagination(sortedTours, 10);
 
   const getCategoryBadge = (category: string) => {
     const colors: Record<string, string> = {
@@ -304,38 +328,81 @@ const AdminTours = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tours..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 sm:h-10"
-            />
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by title, subtitle, or slug..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9 sm:h-10"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Select value={featuredFilter} onValueChange={setFeaturedFilter}>
+              <SelectTrigger className="w-full sm:w-36 h-9 sm:h-10">
+                <SelectValue placeholder="Featured" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tours</SelectItem>
+                <SelectItem value="yes">Featured</SelectItem>
+                <SelectItem value="no">Not Featured</SelectItem>
+              </SelectContent>
+            </Select>
+            {uniqueLocations.length > 0 && (
+              <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger className="w-full sm:w-44 h-9 sm:h-10">
+                  <SelectValue placeholder="Location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  {uniqueLocations.map((loc) => (
+                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10">
+                <SelectValue placeholder="Sort By" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="price-high">Price: High→Low</SelectItem>
+                <SelectItem value="price-low">Price: Low→High</SelectItem>
+                <SelectItem value="title-az">Title: A→Z</SelectItem>
+                <SelectItem value="title-za">Title: Z→A</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center text-xs text-muted-foreground whitespace-nowrap ml-auto">
+              {sortedTours.length} of {tours.length} tours
+            </div>
+          </div>
         </div>
 
         {/* Tours Table */}
