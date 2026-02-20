@@ -11,7 +11,7 @@ const FeaturedTours = memo(() => {
   const { data: featuredTours = [], isLoading } = useFeaturedTours();
 
   return (
-    <section className="py-24">
+    <section className="py-24 bg-muted/20">
       <div className="container">
         <motion.div
           className="flex flex-col md:flex-row md:items-end justify-between mb-12"
@@ -27,9 +27,12 @@ const FeaturedTours = memo(() => {
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight">
               Featured Tours
             </h2>
+            <p className="text-muted-foreground mt-2 text-base max-w-xl">
+              Handpicked experiences loved by thousands of guests in Dubai
+            </p>
           </div>
           <Link to="/tours" className="mt-6 md:mt-0">
-            <Button variant="outline" size="lg" className="font-semibold group">
+            <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold group shadow-lg">
               View All Tours
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>

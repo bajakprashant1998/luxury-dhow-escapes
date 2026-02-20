@@ -368,7 +368,7 @@
 /* Content visibility for below-fold sections - improves initial render */
 .content-visibility-auto {
   content-visibility: auto;
-  contain-intrinsic-size: 0 500px;
+  contain-intrinsic-size: 0 600px;
 }
 
 /* Optimize font rendering */
@@ -376,4 +376,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure images don't cause layout shifts */
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Reduce paint areas for complex backgrounds */
+.section-isolation {
+  isolation: isolate;
 }

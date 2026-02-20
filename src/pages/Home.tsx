@@ -1,16 +1,21 @@
+import { lazy, Suspense } from "react";
 import Layout from "@/components/layout/Layout";
 import PageMeta from "@/components/PageMeta";
 import HeroSection from "@/components/home/HeroSection";
 import ExperienceCategories from "@/components/home/ExperienceCategories";
-
-import HighlightsSection from "@/components/home/HighlightsSection";
 import FeaturedTours from "@/components/home/FeaturedTours";
-import HowItWorks from "@/components/home/HowItWorks";
-import ActivitiesShowcase from "@/components/home/ActivitiesShowcase";
-import WhyChooseUs from "@/components/home/WhyChooseUs";
-import TestimonialsCarousel from "@/components/home/TestimonialsCarousel";
-import HomeFAQ from "@/components/home/HomeFAQ";
-import CTASection from "@/components/home/CTASection";
+
+// Lazy-load below-fold sections for better LCP/TTI
+const HighlightsSection = lazy(() => import("@/components/home/HighlightsSection"));
+const HowItWorks = lazy(() => import("@/components/home/HowItWorks"));
+const ActivitiesShowcase = lazy(() => import("@/components/home/ActivitiesShowcase"));
+const WhyChooseUs = lazy(() => import("@/components/home/WhyChooseUs"));
+const TestimonialsCarousel = lazy(() => import("@/components/home/TestimonialsCarousel"));
+const HomeFAQ = lazy(() => import("@/components/home/HomeFAQ"));
+const CTASection = lazy(() => import("@/components/home/CTASection"));
+
+// Lightweight fallback to prevent layout shift
+const SectionFallback = () => <div className="h-48 bg-muted/10 animate-pulse" />;
 
 const Home = () => {
   return (
@@ -20,17 +25,33 @@ const Home = () => {
         description="Experience Dubai from the water with premium yacht charters, dhow cruises, and luxury marine experiences. Book your unforgettable Dubai cruise today."
         canonicalPath="/"
       />
+      {/* Above-fold: eager */}
       <HeroSection />
       <ExperienceCategories />
-      
-      <HighlightsSection />
       <FeaturedTours />
-      <HowItWorks />
-      <ActivitiesShowcase />
-      <WhyChooseUs />
-      <TestimonialsCarousel />
-      <HomeFAQ />
-      <CTASection />
+
+      {/* Below-fold: lazy loaded */}
+      <Suspense fallback={<SectionFallback />}>
+        <HighlightsSection />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <HowItWorks />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <ActivitiesShowcase />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <WhyChooseUs />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <TestimonialsCarousel />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <HomeFAQ />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <CTASection />
+      </Suspense>
     </Layout>
   );
 };

@@ -263,7 +263,7 @@ const TourDetail = () => {
     </div>
 
     {/* Hero Section with Title */}
-    <section className="pt-6 pb-4 md:pt-8 md:pb-6">
+    <section className="pt-6 pb-4 md:pt-10 md:pb-6 bg-gradient-to-b from-muted/30 to-background">
       <div className="container">
         {/* Title & Actions Row */}
         <motion.div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6" initial={{
@@ -277,44 +277,45 @@ const TourDetail = () => {
         }}>
           <div className="flex-1">
             {/* Category & Subtitle */}
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold border border-secondary/20">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-semibold border border-secondary/20 uppercase tracking-wide">
                 {categoryLabels[tour.category] || tour.category}
               </span>
               {discount > 0 && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-semibold">
-                  {discount}% OFF
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-destructive text-destructive-foreground text-xs font-bold shadow-sm">
+                  🔥 {discount}% OFF
                 </span>
-              )}
-              {tour.subtitle && (
-                <span className="text-muted-foreground text-sm">{tour.subtitle}</span>
               )}
             </div>
             
-            <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold text-foreground mb-3 tracking-tight">
+            <h1 className="font-display text-2xl md:text-3xl lg:text-5xl font-black text-foreground mb-2 tracking-tight leading-tight">
               {tour.title}
             </h1>
+
+            {tour.subtitle && (
+              <p className="text-muted-foreground text-base md:text-lg mb-4">{tour.subtitle}</p>
+            )}
             
-            <div className="flex flex-wrap items-center gap-3 sm:gap-5">
-              <div className="flex items-center gap-1.5 bg-secondary/10 px-3 py-1.5 rounded-lg">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-1.5 bg-secondary/10 px-3 py-1.5 rounded-lg border border-secondary/20">
                 <div className="flex items-center">
                   {[1, 2, 3, 4, 5].map(star => <Star key={star} className={`w-3.5 h-3.5 ${star <= Math.round(tour.rating) ? "fill-secondary text-secondary" : "text-muted-foreground/30"}`} />)}
                 </div>
                 <span className="font-extrabold text-sm text-foreground">{tour.rating}</span>
-                <span className="text-muted-foreground text-sm">({tour.reviewCount.toLocaleString()})</span>
+                <span className="text-muted-foreground text-xs">({tour.reviewCount.toLocaleString()} reviews)</span>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+              <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-lg text-sm">
                 <Clock className="w-4 h-4 text-secondary" />
-                <span>{tour.duration}</span>
+                <span className="text-foreground font-medium">{tour.duration}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+              <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-lg text-sm">
                 <MapPin className="w-4 h-4 text-secondary" />
-                <span>Dubai Marina</span>
+                <span className="text-foreground font-medium">Dubai Marina</span>
               </div>
               {tour.capacity && (
-                <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+                <div className="flex items-center gap-1.5 bg-muted/60 px-3 py-1.5 rounded-lg text-sm">
                   <Users className="w-4 h-4 text-secondary" />
-                  <span>{tour.capacity}</span>
+                  <span className="text-foreground font-medium">{tour.capacity}</span>
                 </div>
               )}
             </div>
@@ -322,11 +323,11 @@ const TourDetail = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" className="gap-2 rounded-xl hover:border-secondary/50" onClick={handleSave}>
+            <Button variant="outline" size="sm" className="gap-2 rounded-xl hover:border-secondary/50 hover:text-secondary" onClick={handleSave}>
               <Heart className={cn("w-4 h-4 transition-all", isSaved && "fill-destructive text-destructive")} />
               <span className="hidden sm:inline">{isSaved ? "Saved" : "Save"}</span>
             </Button>
-            <Button variant="outline" size="sm" className="gap-2 rounded-xl hover:border-secondary/50" onClick={handleShare}>
+            <Button variant="outline" size="sm" className="gap-2 rounded-xl hover:border-secondary/50 hover:text-secondary" onClick={handleShare}>
               <Share2 className="w-4 h-4" />
               <span className="hidden sm:inline">Share</span>
             </Button>
