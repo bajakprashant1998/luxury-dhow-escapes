@@ -26,7 +26,7 @@ const HeroSection = memo(() => {
   ];
 
   return (
-    <section className="relative min-h-[95vh] flex items-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background Image - Priority loading with optimized component */}
       <div className="absolute inset-0">
         <OptimizedImage

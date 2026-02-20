@@ -70,34 +70,36 @@ const HowItWorks = memo(() => {
           whileInView="show"
           viewport={{ once: true, margin: "-50px" }}
         >
-          {/* Connecting line (desktop) */}
-          <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+
 
           {steps.map((stepItem, index) => (
             <motion.div
               key={index}
-              className="text-center relative group"
+              className="relative group"
               variants={item}
             >
-              {/* Step number badge */}
-              <div className="relative inline-flex mb-6">
-                <motion.div
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-card border-2 border-border group-hover:border-secondary/50 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 relative z-10"
-                  whileHover={{ scale: 1.05, rotate: 3 }}
-                >
-                  <stepItem.icon className="w-8 h-8 sm:w-10 sm:h-10 text-secondary" />
-                </motion.div>
-                <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary text-secondary-foreground text-sm font-bold flex items-center justify-center z-20 shadow-md">
-                  {stepItem.step.slice(-1)}
-                </span>
-              </div>
+              <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 text-center shadow-sm hover:shadow-xl hover:border-secondary/30 hover:-translate-y-2 transition-all duration-300 h-full">
+                {/* Step number badge */}
+                <div className="relative inline-flex mb-6">
+                  <motion.div
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-secondary/10 border-2 border-secondary/20 group-hover:border-secondary/50 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 relative z-10"
+                    whileHover={{ scale: 1.05, rotate: 3 }}
+                  >
+                    <stepItem.icon className="w-8 h-8 sm:w-10 sm:h-10 text-secondary" />
+                  </motion.div>
+                  <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary text-secondary-foreground text-sm font-bold flex items-center justify-center z-20 shadow-md">
+                    {stepItem.step.slice(-1)}
+                  </span>
+                </div>
 
-              <h3 className="font-display text-lg sm:text-xl font-extrabold text-foreground mb-2 tracking-tight">
-                {stepItem.title}
-              </h3>
-              <p className="text-muted-foreground text-sm sm:text-base max-w-xs mx-auto leading-relaxed">
-                {stepItem.description}
-              </p>
+                <h3 className="font-display text-lg sm:text-xl font-extrabold text-foreground mb-3 tracking-tight">
+                  {stepItem.title}
+                </h3>
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                  {stepItem.description}
+                </p>
+              </div>
             </motion.div>
           ))}
         </motion.div>

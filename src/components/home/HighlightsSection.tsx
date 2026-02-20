@@ -16,7 +16,7 @@ const highlights = [
 
 const HighlightsSection = memo(() => {
   return (
-    <section className="py-24 bg-muted/30 overflow-hidden">
+    <section className="py-24 lg:py-32 bg-muted/30 overflow-hidden">
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
