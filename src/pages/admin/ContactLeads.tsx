@@ -11,6 +11,7 @@ import {
   Clock,
   MessageSquare,
   X,
+  Download,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -42,6 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import TablePagination from "@/components/admin/TablePagination";
 import StatCard from "@/components/admin/StatCard";
+import { exportInquiries } from "@/lib/exportCsv";
 
 interface Inquiry {
   id: string;
@@ -133,7 +135,18 @@ const ContactLeads = () => {
 
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-6">Contact Leads</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Contact Leads</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportInquiries(filtered)}
+          disabled={filtered.length === 0}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
+      </div>
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard title="Total Leads" value={stats.total} icon={MessageSquare} />
