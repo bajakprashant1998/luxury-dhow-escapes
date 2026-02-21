@@ -1,122 +1,137 @@
 
 
-# Configurable Booking Options: Guests, Quantity, and Add-Ons
+# Website Audit: Pending Tasks, Current Status, and Feature Suggestions
 
-## Overview
+## Current Website Overview
 
-This plan adds three admin-configurable booking options per tour/activity, all stored in the existing `booking_features` JSONB column on the `tours` table -- no database migration needed.
-
----
-
-## 1. Data Model (inside `booking_features` JSONB)
-
-New fields added to the `BookingFeatures` interface in `src/lib/tourMapper.ts`:
-
-```text
-booking_mode: "guests" | "quantity"    (default: "guests")
-
-guest_categories: [
-  { name: "Adult", label: "12+ years", price: 150, min: 1, max: 10 },
-  { name: "Child", label: "4-11 years", price: 75, min: 0, max: 10 },
-  { name: "Infant", label: "0-3 years", price: 0, min: 0, max: 5 }
-]
-
-quantity_config: {
-  label: "Number of Tickets",
-  price: 150,
-  min: 1,
-  max: 50
-}
-
-addons: [
-  { id: "uuid", name: "Champagne Package", price: 200, description: "Premium champagne..." },
-  { id: "uuid", name: "Photography", price: 350, description: "Professional photos..." }
-]
-```
+This is a luxury yacht rental and tour booking platform for Dubai (rentalyachtindubai.com) with a comprehensive admin panel. The site includes tour listings, booking system, live chat, galleries, reviews, and extensive admin management tools.
 
 ---
 
-## 2. Admin Panel Changes (`TourForm.tsx`)
+## PART 1: Pending Tasks (From Previous Conversations)
 
-A new **"Booking Options"** card will be added to the tour form with three collapsible sections:
+### Admin Panel Pending Tasks
 
-### A. Booking Mode Toggle
-- Radio selector: **"Guest Categories"** vs **"Quantity Only"**
-- Switching modes shows/hides the relevant configuration below
+| # | Task | Priority | Status |
+|---|------|----------|--------|
+| 1 | Add search/filter input to the linked tours checkbox list in admin (for when there are many tours) | Medium | Not started |
+| 2 | Add AI-generated suggestions for the SEO slug field (same pattern as slug/subtitle) | Medium | Not started |
+| 3 | Add AI-generated suggestions for highlights, included items, and FAQ entries in the tour form | Medium | Not started |
+| 4 | Add a "Reset Filters" button on the admin tours page to clear all filters at once | Low | Not started |
+| 5 | Add an export to CSV button on the Contact Leads admin page | Medium | Not started |
+| 6 | Add email notification to admin when a new contact lead is submitted | High | Not started |
+| 7 | Per-person pricing support for guest categories (each category overrides tour base price independently) | Medium | Not started |
 
-### B. Guest Categories Editor (when mode = "guests")
-- Table-style editor with rows for each category
-- Each row: **Name** (text input), **Label** (text input), **Price** (number), **Min** (number), **Max** (number)
-- "Add Category" button to add more rows
-- Delete button per row (minimum 1 category required)
-- Pre-populated with Adult/Child/Infant defaults
+### Frontend Pending Tasks
 
-### C. Quantity Config (when mode = "quantity")
-- **Label** field (e.g., "Number of Tickets", "Number of Jetskis")
-- **Price per unit** (AED)
-- **Min / Max** quantity limits
-
-### D. Add-Ons Editor (always visible, both modes)
-- List of add-on items with:
-  - **Name** (text input)
-  - **Price** (number input)
-  - **Description** (text input)
-- "Add New Add-On" button
-- Delete button per add-on
-- Auto-generates unique IDs for each add-on
+| # | Task | Priority | Status |
+|---|------|----------|--------|
+| 8 | When selecting a linked tour from booking dropdown, keep popup open and update form dynamically instead of navigating away | High | Not started |
+| 9 | Add a quick-view modal on tour cards (tour overview + booking CTA without navigating away) | Medium | Not started |
+| 10 | Enhance /tours listing page with hero banner, improved filter UI with category icons, and count badge | Medium | Not started |
+| 11 | Add "Recently Viewed" tours section (last 4 tours from localStorage, shown on tour detail pages) | Low | Not started |
+| 12 | Floating comparison bar to compare up to 3 tours side-by-side (price, duration, rating, inclusions) | Low | Not started |
+| 13 | Add a smooth-scroll "Back to Top" button (appears after scrolling 500px) | Low | Not started |
+| 14 | Improve WhatsApp integration with floating chat popup + pre-filled tour inquiry messages | Medium | Not started |
+| 15 | Add a promo announcement bar at the top of the site for limited-time offers | Medium | Partially done (rotating promo messages exist in Header) |
 
 ---
 
-## 3. Booking Modal Changes (`BookingModal.tsx`)
+## PART 2: Current Issues and Gaps
 
-### Dynamic Guest/Quantity Section (Step 1)
-- **If `booking_mode === "guests"`**: Render guest counters dynamically from `guest_categories` array instead of hardcoded Adult/Child/Infant. Each counter uses the admin-defined name, label, price, min, and max.
-- **If `booking_mode === "quantity"`**: Render a single quantity counter using the admin-defined label and price.
+### A. Functional Gaps
+- **No email notifications** for new bookings, inquiries, or contact leads to admin
+- **No "Recently Viewed"** or browsing history for visitors
+- **No customer accounts** -- visitors can't view their booking history
+- **Search functionality** in the header opens a dialog but may not have robust results page
+- **Dashboard "Add Tour" quick action** links to `/admin/tours/new` but actual route is `/admin/tours/add`
 
-### Add-Ons Section (Step 1, below guests/quantity)
-- Display available add-ons as selectable cards with checkbox toggle
-- Each card shows: name, price, description
-- Selected add-ons are added to the total price
-
-### Price Calculation Update
-- **Guest mode**: Sum of (category.price x count) for each category
-- **Quantity mode**: quantity_config.price x quantity
-- **Add-ons**: Sum of selected add-on prices
-- Total = base + transfer + deck surcharge - discounts + add-ons
+### B. UX/Performance Gaps
+- Multiple Suspense boundaries on homepage could cause visual "popping" as sections load independently
+- No skeleton loaders for tour cards in the /tours listing page during data fetch
+- No empty state illustration for saved tours page when no tours are saved
 
 ---
 
-## 4. Booking Sidebar Changes (`BookingSidebar.tsx`)
+## PART 3: New Feature Suggestions (Relevant to Yacht/Tour Business)
 
-- **Guest mode**: Show dynamic counters from `guest_categories` instead of hardcoded Adult/Child
-- **Quantity mode**: Show single quantity counter
-- Base price calculation updated to use the new dynamic data
+### High-Impact Features
+
+1. **Availability Calendar per Tour**
+   - Show a visual calendar on tour detail pages with available/unavailable dates
+   - Admin can block dates, set capacity limits per day
+   - Prevents double-bookings and improves user confidence
+   - New database table: `tour_availability` (tour_id, date, slots_available, is_blocked)
+
+2. **Automated Booking Confirmation Emails**
+   - Send confirmation email to customer immediately after booking
+   - Send notification email to admin for new bookings
+   - Use the existing `send-booking-email` edge function (already exists but may not be triggered automatically)
+
+3. **Customer Portal / My Bookings**
+   - Let returning customers log in and view their booking history
+   - Download booking receipts / vouchers as PDF
+   - Leverages existing auth system and bookings table (already has `user_id` column)
+
+4. **Multi-Currency Display**
+   - Show prices in AED, USD, EUR, GBP based on visitor preference
+   - Uses a simple exchange rate stored in `site_settings`
+   - Important for international Dubai tourists
+
+5. **Seasonal / Dynamic Pricing**
+   - Admin sets price multipliers for peak seasons (Dec-Jan, summer holidays)
+   - Automatic price adjustments based on booking date
+   - New fields in `booking_features` JSONB: `seasonal_pricing: [{start, end, multiplier}]`
+
+### Medium-Impact Features
+
+6. **Photo Reviews from Customers**
+   - Allow customers to upload photos with their reviews
+   - Creates authentic social proof content
+   - Admin moderation before publishing
+
+7. **Group Booking / Corporate Inquiry Form**
+   - Separate form for large groups (20+ people) or corporate events
+   - Captures company name, event type, estimated headcount, budget range
+   - Routes to admin as high-priority lead
+
+8. **Referral / Loyalty Program**
+   - Generate unique referral codes for past customers
+   - Track referral bookings and award discount credits
+   - New tables: `referral_codes`, `referral_bookings`
+
+9. **Blog / Travel Guide Section**
+   - SEO-rich content pages about Dubai marina, yacht etiquette, best routes
+   - Admin WYSIWYG editor for creating/managing blog posts
+   - Internal linking to relevant tours for conversion
+
+10. **Multi-Language Support (Arabic, Russian, Chinese)**
+    - Key target markets for Dubai tourism
+    - At minimum: Arabic (local), Russian, and Chinese translations
+    - Language switcher in header
+
+### Quick Wins
+
+11. **"Back to Top" floating button** -- appears after 500px scroll
+12. **Recently Viewed tours** -- localStorage-based, shown on tour detail pages
+13. **Tour comparison tool** -- select up to 3 tours for side-by-side comparison
+14. **Social sharing buttons** on tour detail pages (WhatsApp, Instagram, Facebook)
+15. **Booking countdown timer** -- "X people viewing this tour right now" or "Only Y spots left today"
 
 ---
 
-## 5. Booking Submission Changes
+## Recommended Priority Order
 
-- Store selected add-ons in `special_requests` field (or as structured JSON within it)
-- Store guest category breakdown (e.g., `[GUESTS: 2 Adult, 1 Child]`) or `[QUANTITY: 3 x Jetski]`
-- Include add-on details: `[ADD-ONS: Champagne Package AED 200, Photography AED 350]`
+If you want to work through these systematically, here is the suggested sequence:
 
----
-
-## 6. Files to Create/Modify
-
-| File | Action |
-|------|--------|
-| `src/lib/tourMapper.ts` | Add new interfaces and defaults to `BookingFeatures` |
-| `src/components/admin/TourForm.tsx` | Add "Booking Options" card with guest categories, quantity config, and add-ons editors |
-| `src/components/tour-detail/BookingModal.tsx` | Dynamic rendering based on `booking_mode`, add-on selection, updated price calc |
-| `src/components/tour-detail/BookingSidebar.tsx` | Dynamic guest/quantity counters, updated base price calc |
-
-No database migration is required -- all data is stored in the existing `booking_features` JSONB column.
-
----
-
-## 7. Default Behavior (Backward Compatibility)
-
-- Existing tours without the new fields will default to `booking_mode: "guests"` with the standard Adult/Child/Infant categories and no add-ons
-- The `mapDbTourToTour` function already merges defaults with stored data, so existing tours continue to work unchanged
+1. Fix the Dashboard quick action link (`/admin/tours/new` to `/admin/tours/add`)
+2. Admin email notifications for new bookings and contact leads
+3. Contact Leads CSV export
+4. Reset Filters button on admin tours page
+5. Recently Viewed tours section
+6. Back to Top button
+7. Availability calendar
+8. Customer portal / My Bookings
+9. AI suggestions for highlights and FAQs
+10. Blog / Travel Guide section
 
