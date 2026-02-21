@@ -17,8 +17,8 @@ This is a luxury yacht rental and tour booking platform for Dubai (rentalyachtin
 | 1 | Add search/filter input to the linked tours checkbox list in admin (for when there are many tours) | Medium | Not started |
 | 2 | Add AI-generated suggestions for the SEO slug field (same pattern as slug/subtitle) | Medium | Not started |
 | 3 | Add AI-generated suggestions for highlights, included items, and FAQ entries in the tour form | Medium | Not started |
-| 4 | Add a "Reset Filters" button on the admin tours page to clear all filters at once | Low | Not started |
-| 5 | Add an export to CSV button on the Contact Leads admin page | Medium | Not started |
+| 4 | Add a "Reset Filters" button on the admin tours page to clear all filters at once | Low | ✅ Done |
+| 5 | Add an export to CSV button on the Contact Leads admin page | Medium | ✅ Done |
 | 6 | Add email notification to admin when a new contact lead is submitted | High | Not started |
 | 7 | Per-person pricing support for guest categories (each category overrides tour base price independently) | Medium | Not started |
 
@@ -29,9 +29,9 @@ This is a luxury yacht rental and tour booking platform for Dubai (rentalyachtin
 | 8 | When selecting a linked tour from booking dropdown, keep popup open and update form dynamically instead of navigating away | High | Not started |
 | 9 | Add a quick-view modal on tour cards (tour overview + booking CTA without navigating away) | Medium | Not started |
 | 10 | Enhance /tours listing page with hero banner, improved filter UI with category icons, and count badge | Medium | Not started |
-| 11 | Add "Recently Viewed" tours section (last 4 tours from localStorage, shown on tour detail pages) | Low | Not started |
+| 11 | Add "Recently Viewed" tours section (last 4 tours from localStorage, shown on tour detail pages) | Low | ✅ Done |
 | 12 | Floating comparison bar to compare up to 3 tours side-by-side (price, duration, rating, inclusions) | Low | Not started |
-| 13 | Add a smooth-scroll "Back to Top" button (appears after scrolling 500px) | Low | Not started |
+| 13 | Add a smooth-scroll "Back to Top" button (appears after scrolling 500px) | Low | ✅ Done |
 | 14 | Improve WhatsApp integration with floating chat popup + pre-filled tour inquiry messages | Medium | Not started |
 | 15 | Add a promo announcement bar at the top of the site for limited-time offers | Medium | Partially done (rotating promo messages exist in Header) |
 
@@ -41,10 +41,10 @@ This is a luxury yacht rental and tour booking platform for Dubai (rentalyachtin
 
 ### A. Functional Gaps
 - **No email notifications** for new bookings, inquiries, or contact leads to admin
-- **No "Recently Viewed"** or browsing history for visitors
+- **No "Recently Viewed"** or browsing history for visitors — ✅ Done
 - **No customer accounts** -- visitors can't view their booking history
 - **Search functionality** in the header opens a dialog but may not have robust results page
-- **Dashboard "Add Tour" quick action** links to `/admin/tours/new` but actual route is `/admin/tours/add`
+- **Dashboard "Add Tour" quick action** links to `/admin/tours/new` but actual route is `/admin/tours/add` — ✅ Fixed
 
 ### B. UX/Performance Gaps
 - Multiple Suspense boundaries on homepage could cause visual "popping" as sections load independently
@@ -112,8 +112,8 @@ This is a luxury yacht rental and tour booking platform for Dubai (rentalyachtin
 
 ### Quick Wins
 
-11. **"Back to Top" floating button** -- appears after 500px scroll
-12. **Recently Viewed tours** -- localStorage-based, shown on tour detail pages
+11. **"Back to Top" floating button** -- ✅ Done
+12. **Recently Viewed tours** -- ✅ Done
 13. **Tour comparison tool** -- select up to 3 tours for side-by-side comparison
 14. **Social sharing buttons** on tour detail pages (WhatsApp, Instagram, Facebook)
 15. **Booking countdown timer** -- "X people viewing this tour right now" or "Only Y spots left today"
@@ -124,14 +124,13 @@ This is a luxury yacht rental and tour booking platform for Dubai (rentalyachtin
 
 If you want to work through these systematically, here is the suggested sequence:
 
-1. Fix the Dashboard quick action link (`/admin/tours/new` to `/admin/tours/add`)
+1. ~~Fix the Dashboard quick action link (`/admin/tours/new` to `/admin/tours/add`)~~ ✅
 2. Admin email notifications for new bookings and contact leads
-3. Contact Leads CSV export
-4. Reset Filters button on admin tours page
-5. Recently Viewed tours section
-6. Back to Top button
+3. ~~Contact Leads CSV export~~ ✅
+4. ~~Reset Filters button on admin tours page~~ ✅
+5. ~~Recently Viewed tours section~~ ✅
+6. ~~Back to Top button~~ ✅
 7. Availability calendar
 8. Customer portal / My Bookings
 9. AI suggestions for highlights and FAQs
 10. Blog / Travel Guide section
-

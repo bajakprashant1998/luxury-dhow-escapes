@@ -39,7 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Loader2, Ship, Star, MapPin, Copy, EyeOff } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Loader2, Ship, Star, MapPin, Copy, EyeOff, RotateCcw } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import TablePagination from "@/components/admin/TablePagination";
 import { usePagination } from "@/hooks/usePagination";
@@ -399,6 +399,24 @@ const AdminTours = () => {
                 <SelectItem value="title-za">Title: Z→A</SelectItem>
               </SelectContent>
             </Select>
+            {(searchQuery || categoryFilter !== "all" || statusFilter !== "all" || featuredFilter !== "all" || locationFilter !== "all" || sortBy !== "newest") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setCategoryFilter("all");
+                  setStatusFilter("all");
+                  setFeaturedFilter("all");
+                  setLocationFilter("all");
+                  setSortBy("newest");
+                }}
+                className="text-xs gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset
+              </Button>
+            )}
             <div className="flex items-center text-xs text-muted-foreground whitespace-nowrap ml-auto">
               {sortedTours.length} of {tours.length} tours
             </div>

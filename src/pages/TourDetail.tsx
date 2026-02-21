@@ -18,6 +18,7 @@ import BookingModal from "@/components/tour-detail/BookingModal";
 import { useTour, useRelatedTours } from "@/hooks/useTours";
 import { getTourUrl, getCategoryFromPath } from "@/lib/seoUtils";
 import PageMeta from "@/components/PageMeta";
+import RecentlyViewedTours, { trackRecentlyViewed } from "@/components/RecentlyViewedTours";
 import { renderMarkdown } from "@/lib/markdownRenderer";
 
 // Lazy load below-fold components for better initial load
@@ -88,11 +89,12 @@ const TourDetail = () => {
     }
   }, [tour, categoryPath, location.pathname, navigate]);
 
-  // Load saved state from localStorage
+  // Load saved state and track recently viewed
   useEffect(() => {
     if (tour?.id) {
       const saved = localStorage.getItem(`saved-tour-${tour.id}`);
       setIsSaved(!!saved);
+      trackRecentlyViewed(tour.id);
     }
   }, [tour?.id]);
   const handleSave = () => {
@@ -777,6 +779,10 @@ const TourDetail = () => {
         </motion.div>
       </div>
     </section>}
+
+    {/* Recently Viewed */}
+    <RecentlyViewedTours currentTourId={tour.id} />
+
 
     {/* Mobile Booking Bar */}
     <MobileBookingBar price={tour.price} originalPrice={tour.originalPrice} tourTitle={tour.title} tourId={tour.id} pricingType={tour.pricingType} fullYachtPrice={tour.fullYachtPrice} capacity={tour.capacity} bookingFeatures={tour.bookingFeatures} />

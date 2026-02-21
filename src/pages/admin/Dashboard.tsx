@@ -51,7 +51,7 @@ interface TopTour {
 }
 
 const quickActions = [
-  { label: "Add Tour", icon: Plus, href: "/admin/tours/new", color: "from-secondary to-secondary/80" },
+  { label: "Add Tour", icon: Plus, href: "/admin/tours/add", color: "from-secondary to-secondary/80" },
   { label: "Bookings", icon: Calendar, href: "/admin/bookings", color: "from-blue-500 to-blue-400" },
   { label: "Discounts", icon: Tag, href: "/admin/discounts", color: "from-purple-500 to-purple-400" },
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics", color: "from-emerald-500 to-emerald-400" },
@@ -195,7 +195,7 @@ const AdminDashboard = () => {
               </p>
             </div>
             <div className="flex gap-2 sm:gap-3 flex-wrap">
-              <Link to="/admin/tours/new">
+              <Link to="/admin/tours/add">
                 <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg shadow-secondary/20">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Tour
