@@ -5,7 +5,7 @@ import { ArrowRight, Play, Sparkles, Shield, Clock, Award, Star, MapPin } from "
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
-import heroDhowCruise from "@/assets/hero-dhow-cruise.webp";
+import heroDhowCruise from "@/assets/hero-dubai-marina-night.webp";
 
 const trustBadges = [
   { icon: Shield, text: "Best Price Guarantee" },
@@ -84,9 +84,9 @@ const HeroSection = memo(() => {
           onLoad={() => setImageLoaded(true)}
           containerClassName="w-full h-full"
         />
-        {/* Strong dark overlay for text readability */}
-        <div className="absolute inset-0 bg-primary/90" />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-primary/60" />
+        {/* Overlay for contrast — lighter since image is naturally dark */}
+        <div className="absolute inset-0 bg-primary/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-primary/40" />
         {/* Subtle radial glow behind content */}
         <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[120px] pointer-events-none" />
       </div>
