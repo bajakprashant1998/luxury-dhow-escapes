@@ -114,11 +114,10 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled
-          ? "bg-background/95 backdrop-blur-xl shadow-lg shadow-primary/5"
-          : "bg-background/90 backdrop-blur-md"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
+        ? "bg-background/95 backdrop-blur-xl shadow-lg shadow-primary/5"
+        : "bg-background/90 backdrop-blur-md"
+        }`}
     >
       {/* Top promo bar */}
       <div className="hidden md:block bg-primary text-primary-foreground py-2 relative overflow-hidden">
@@ -195,7 +194,7 @@ const Header = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8, scale: 0.98 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-full -left-32 pt-3 z-50"
+                        className="absolute top-full -left-32 pt-3 z-50 bg-white"
                       >
                         <div className="w-[680px] bg-background/98 backdrop-blur-2xl rounded-2xl border border-border/60 shadow-2xl shadow-primary/10 overflow-hidden">
                           {/* Header */}
@@ -237,11 +236,10 @@ const Header = () => {
                                       {category.name}
                                     </span>
                                     {category.badge && (
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none flex-shrink-0 ${
-                                        category.badge === "New" ? "bg-emerald-500/15 text-emerald-600" :
+                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none flex-shrink-0 ${category.badge === "New" ? "bg-emerald-500/15 text-emerald-600" :
                                         category.badge === "Premium" ? "bg-secondary/15 text-secondary" :
-                                        "bg-secondary/15 text-secondary"
-                                      }`}>
+                                          "bg-secondary/15 text-secondary"
+                                        }`}>
                                         {category.badge}
                                       </span>
                                     )}
@@ -327,7 +325,7 @@ const Header = () => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="lg:hidden absolute top-full left-0 right-0 bg-background/98 backdrop-blur-xl border-b border-border/60 shadow-2xl shadow-primary/10 overflow-hidden"
             >
-              <div className="container py-4 flex flex-col gap-1 px-4 max-h-[80vh] overflow-y-auto">
+              <div className="container py-4 flex flex-col gap-1 px-4 max-h-[80vh] overflow-y-auto bg-white">
                 {navLinks.map((link) =>
                   link.hasDropdown ? (
                     <div key={link.path}>
@@ -363,9 +361,8 @@ const Header = () => {
                                     <div className="flex items-center gap-1.5">
                                       <span className="text-sm font-semibold text-foreground group-hover:text-secondary transition-colors">{category.name}</span>
                                       {category.badge && (
-                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                                          category.badge === "New" ? "bg-emerald-500/15 text-emerald-600" : "bg-secondary/15 text-secondary"
-                                        }`}>{category.badge}</span>
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${category.badge === "New" ? "bg-emerald-500/15 text-emerald-600" : "bg-secondary/15 text-secondary"
+                                          }`}>{category.badge}</span>
                                       )}
                                     </div>
                                     <p className="text-xs text-muted-foreground truncate">{category.description}</p>
