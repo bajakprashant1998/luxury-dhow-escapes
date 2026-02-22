@@ -84,11 +84,11 @@ const HeroSection = memo(() => {
           onLoad={() => setImageLoaded(true)}
           containerClassName="w-full h-full"
         />
-        {/* Cinematic multi-layer overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--primary))/0.88] to-[hsl(var(--primary))/0.4]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--primary))] via-transparent to-[hsl(var(--primary))/0.3]" />
+        {/* Strong dark overlay for text readability */}
+        <div className="absolute inset-0 bg-primary/90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-primary/60" />
         {/* Subtle radial glow behind content */}
-        <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-secondary/[0.06] rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[120px] pointer-events-none" />
       </div>
 
       {/* Floating ambient particles */}
