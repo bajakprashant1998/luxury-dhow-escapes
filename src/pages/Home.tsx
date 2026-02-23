@@ -32,13 +32,13 @@ const Home = () => {
 
       {/* Below-fold: lazy loaded */}
       <Suspense fallback={<SectionFallback />}>
+        <ActivitiesShowcase />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
         <HighlightsSection />
       </Suspense>
       <Suspense fallback={<SectionFallback />}>
         <HowItWorks />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <ActivitiesShowcase />
       </Suspense>
       <Suspense fallback={<SectionFallback />}>
         <WhyChooseUs />
