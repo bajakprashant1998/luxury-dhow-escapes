@@ -15,26 +15,32 @@ const trustBadges = [
 
 // Animated counter hook
 function useCounter(target: string, duration = 2000) {
-  const [display, setDisplay] = useState("0");
-  const numericPart = parseInt(target.replace(/[^0-9]/g, ""), 10);
-  const suffix = target.replace(/[0-9]/g, "");
+  const [display, setDisplay] = useState(target);
 
   useEffect(() => {
-    if (isNaN(numericPart)) {
+    // Extract leading number (int or decimal) and everything after
+    const match = target.match(/^(\d+\.?\d*)(.*)/);
+    if (!match) {
       setDisplay(target);
       return;
     }
+    const numericPart = parseFloat(match[1]);
+    const suffix = match[2]; // e.g. "+", "M+", "/7"
+    const hasDecimal = match[1].includes(".");
+    const decimalPlaces = hasDecimal ? (match[1].split(".")[1]?.length || 0) : 0;
+
     let start = 0;
     const startTime = performance.now();
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-      const current = Math.round(start + (numericPart - start) * eased);
-      setDisplay(current.toLocaleString() + suffix);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = start + (numericPart - start) * eased;
+      const formatted = hasDecimal ? current.toFixed(decimalPlaces) : Math.round(current).toLocaleString();
+      setDisplay(formatted + suffix);
       if (progress < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-  }, [target, numericPart, suffix, duration]);
+  }, [target, duration]);
 
   return display;
 }
@@ -250,7 +256,7 @@ const HeroSection = memo(() => {
                   animate={{ scale: 1, rotate: -6 }}
                   transition={{ delay: 1, type: "spring", stiffness: 200 }}
                 >
-                  🔥 Up to 20% OFF
+                  🔥 Up to 30% OFF
                 </motion.div>
 
                 {/* Live indicator */}
