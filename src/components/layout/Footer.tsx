@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Shield, Lock, CreditCard, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Shield, Lock, CreditCard, Star, ChevronDown, ChevronUp, ArrowRight, Globe, Clock, Headphones } from "lucide-react";
 import { motion } from "framer-motion";
 import rentalYachtLogo from "@/assets/rental-yacht-logo-new.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,13 +33,6 @@ const AmexIcon = () => (
   </svg>
 );
 
-const SecurePaymentIcon = () => (
-  <div className="relative">
-    <Shield className="w-8 h-8 text-secondary" />
-    <Lock className="w-3 h-3 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-  </div>
-);
-
 // Collapsible section for mobile
 const CollapsibleSection = ({
   title,
@@ -54,7 +47,6 @@ const CollapsibleSection = ({
 
   return (
     <div className="sm:contents">
-      {/* Mobile accordion */}
       <div className="sm:hidden">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -76,8 +68,6 @@ const CollapsibleSection = ({
           <div className="pb-4">{children}</div>
         </motion.div>
       </div>
-
-      {/* Desktop - always visible */}
       <div className="hidden sm:block">
         <h4 className="font-display text-base sm:text-lg font-semibold text-secondary mb-4 sm:mb-6">
           {title}
@@ -124,17 +114,13 @@ const Footer = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (cancelled) return;
-
         if (event === "SIGNED_OUT") {
           setIsAdmin(false);
           return;
         }
-
         if (session?.user) {
           if (!checkCache()) {
-            setTimeout(() => {
-              checkAdminStatus(session.user.id);
-            }, 0);
+            setTimeout(() => { checkAdminStatus(session.user.id); }, 0);
           }
         } else {
           setIsAdmin(false);
@@ -144,13 +130,11 @@ const Footer = () => {
 
     const init = async () => {
       if (checkCache()) return;
-
       const { data } = await supabase.auth.getSession();
       if (data.session?.user && !cancelled) {
         checkAdminStatus(data.session.user.id);
       }
     };
-
     init();
 
     return () => {
@@ -159,58 +143,93 @@ const Footer = () => {
     };
   }, []);
 
-  const paymentMethods = [
-    {
-      name: "Secure Checkout",
-      description: "256-bit SSL",
-      icon: <SecurePaymentIcon />,
-    },
-    {
-      name: "Visa",
-      description: "Accepted",
-      icon: <VisaIcon />,
-    },
-    {
-      name: "Mastercard",
-      description: "Accepted",
-      icon: <MastercardIcon />,
-    },
-    {
-      name: "American Express",
-      description: "Accepted",
-      icon: <AmexIcon />,
-    },
-  ];
-
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
   return (
     <footer className="bg-primary text-primary-foreground relative overflow-hidden">
-      {/* Wave decoration at top */}
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-secondary/20 via-secondary/40 to-secondary/20" />
+      {/* Decorative top border */}
+      <div className="h-1 bg-gradient-to-r from-transparent via-secondary to-transparent" />
 
-      {/* Main Footer */}
+      {/* Newsletter CTA Banner */}
+      <div className="border-b border-primary-foreground/10">
+        <div className="container py-10 sm:py-14 px-4 sm:px-6">
+          <motion.div
+            className="relative bg-gradient-to-br from-secondary/15 via-secondary/5 to-transparent rounded-3xl p-8 sm:p-12 border border-secondary/20 overflow-hidden"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Background glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/10 rounded-full blur-[100px] pointer-events-none" />
+            
+            <div className="relative grid md:grid-cols-2 gap-6 items-center">
+              <div>
+                <h3 className="font-display font-extrabold text-2xl sm:text-3xl text-primary-foreground mb-3 tracking-tight">
+                  Get Exclusive Deals
+                </h3>
+                <p className="text-primary-foreground/70 text-sm sm:text-base leading-relaxed">
+                  Subscribe for VIP access to limited-time offers, new experiences, and insider travel tips for Dubai.
+                </p>
+              </div>
+              <div>
+                <NewsletterForm variant="footer" />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Trust Highlights Bar */}
+      <div className="border-b border-primary-foreground/10">
+        <div className="container py-6 px-4 sm:px-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { icon: Shield, label: "Best Price Guarantee", sub: "Or we'll match it" },
+              { icon: Clock, label: "Instant Confirmation", sub: "No waiting around" },
+              { icon: Headphones, label: "24/7 Live Support", sub: "Always here for you" },
+              { icon: Globe, label: "Trusted Worldwide", sub: "2M+ happy guests" },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                className="flex items-center gap-3 group"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+              >
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/20 transition-colors">
+                  <item.icon className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-primary-foreground">{item.label}</p>
+                  <p className="text-[10px] sm:text-xs text-primary-foreground/50">{item.sub}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Links */}
       <motion.div
-        className="container py-10 sm:py-16 px-4 sm:px-6"
+        className="container py-10 sm:py-14 px-4 sm:px-6"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-50px" }}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-12">
-          {/* Brand */}
-          <motion.div className="space-y-4 sm:col-span-2 lg:col-span-1" variants={itemVariants}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6">
+          {/* Brand — wider column */}
+          <motion.div className="sm:col-span-2 lg:col-span-4 space-y-5" variants={itemVariants}>
             <div className="flex items-center gap-3">
               <img
                 src={rentalYachtLogo}
@@ -226,13 +245,12 @@ const Footer = () => {
                 </span>
               </div>
             </div>
-            <p className="text-primary-foreground/80 text-xs sm:text-sm leading-relaxed">
-              Experience the magic of Dubai with our premium yacht charters and dhow cruise
-              experiences. Creating unforgettable memories on the waters of Dubai Marina.
+            <p className="text-primary-foreground/70 text-sm leading-relaxed max-w-sm">
+              Premium yacht charters and dhow cruise experiences along Dubai Marina's iconic skyline. Creating unforgettable memories since 2010.
             </p>
 
-            {/* Rating badge */}
-            <div className="flex items-center gap-2 bg-primary-foreground/5 rounded-lg p-3 border border-primary-foreground/10">
+            {/* Rating */}
+            <div className="inline-flex items-center gap-3 bg-primary-foreground/5 rounded-xl p-3 pr-5 border border-primary-foreground/10">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Star key={i} className="w-4 h-4 fill-secondary text-secondary" />
@@ -240,268 +258,172 @@ const Footer = () => {
               </div>
               <div className="text-sm">
                 <span className="font-bold text-secondary">4.9</span>
-                <span className="text-primary-foreground/70"> • 2,000+ Reviews</span>
+                <span className="text-primary-foreground/60"> • 2,000+ Reviews</span>
               </div>
             </div>
 
-            <div className="flex gap-3 sm:gap-4">
-              <a
-                href="#"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
-              >
-                <Facebook className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
-              >
-                <Instagram className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
-              >
-                <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 touch-target"
-              >
-                <Youtube className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
+            {/* Social */}
+            <div className="flex gap-2.5">
+              {[
+                { icon: Facebook, href: "#" },
+                { icon: Instagram, href: "#" },
+                { icon: Twitter, href: "#" },
+                { icon: Youtube, href: "#" },
+              ].map((social, i) => (
+                <a
+                  key={i}
+                  href={social.href}
+                  className="w-10 h-10 rounded-xl bg-primary-foreground/8 flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 border border-primary-foreground/5 hover:border-secondary"
+                >
+                  <social.icon className="w-4 h-4" />
+                </a>
+              ))}
             </div>
           </motion.div>
 
           {/* Quick Links */}
-          <motion.div variants={itemVariants}>
+          <motion.div className="lg:col-span-2" variants={itemVariants}>
             <CollapsibleSection title="Quick Links">
-              <ul className="space-y-2 sm:space-y-3">
-                <li>
-                  <Link
-                    to="/"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/tours"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Our Tours
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/gallery"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Gallery
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/about"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/contact"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Book Now
-                  </Link>
-                </li>
-                {isAdmin && (
-                  <li>
+              <ul className="space-y-2.5">
+                {[
+                  { to: "/", label: "Home" },
+                  { to: "/tours", label: "Our Tours" },
+                  { to: "/gallery", label: "Gallery" },
+                  { to: "/about", label: "About Us" },
+                  { to: "/contact", label: "Book Now" },
+                  ...(isAdmin ? [{ to: "/admin", label: "Admin Panel" }] : []),
+                ].map((link) => (
+                  <li key={link.to}>
                     <Link
-                      to="/admin"
-                      className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
+                      to={link.to}
+                      className="group flex items-center gap-2 text-primary-foreground/70 hover:text-secondary transition-all text-sm py-0.5"
                     >
-                      Admin Panel
+                      <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-secondary" />
+                      <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
                     </Link>
                   </li>
-                )}
+                ))}
               </ul>
             </CollapsibleSection>
           </motion.div>
 
           {/* Tours */}
-          <motion.div variants={itemVariants}>
+          <motion.div className="lg:col-span-2" variants={itemVariants}>
             <CollapsibleSection title="Our Tours">
-              <ul className="space-y-2 sm:space-y-3">
-                <li>
-                  <Link
-                    to="/dubai/dhow-cruises"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Dhow Cruises
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/dubai/shared-yacht-tours"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Shared Yacht Tours
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/dubai/private-yacht-charter"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Private Yacht Charter
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/dubai/megayacht-experiences"
-                    className="text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 inline-block touch-target hover:translate-x-1 transition-transform duration-200"
-                  >
-                    Megayacht Experiences
-                  </Link>
-                </li>
+              <ul className="space-y-2.5">
+                {[
+                  { to: "/dubai/dhow-cruises", label: "Dhow Cruises" },
+                  { to: "/dubai/shared-yacht-tours", label: "Shared Yacht Tours" },
+                  { to: "/dubai/private-yacht-charter", label: "Private Yacht Charter" },
+                  { to: "/dubai/megayacht-experiences", label: "Megayacht Experiences" },
+                ].map((link) => (
+                  <li key={link.to}>
+                    <Link
+                      to={link.to}
+                      className="group flex items-center gap-2 text-primary-foreground/70 hover:text-secondary transition-all text-sm py-0.5"
+                    >
+                      <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-secondary" />
+                      <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </CollapsibleSection>
           </motion.div>
 
           {/* Contact */}
-          <motion.div variants={itemVariants}>
-            <CollapsibleSection title="Contact Us">
-              <ul className="space-y-3 sm:space-y-4">
-                <li>
-                  <a
-                    href={`tel:${phone}`}
-                    className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 touch-target group"
-                  >
-                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    <span>{phoneFormatted}</span>
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={`mailto:${email}`}
-                    className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 hover:text-secondary transition-colors text-xs sm:text-sm py-1 touch-target group"
-                  >
-                    <Mail className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    <span className="break-all">{email}</span>
-                  </a>
-                </li>
-                <li>
-                  <div className="flex items-start gap-2 sm:gap-3 text-primary-foreground/80 text-xs sm:text-sm">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" />
-                    <span>{address}</span>
+          <motion.div className="lg:col-span-4" variants={itemVariants}>
+            <CollapsibleSection title="Get In Touch">
+              <div className="space-y-3">
+                <a
+                  href={`tel:${phone}`}
+                  className="group flex items-center gap-3 bg-primary-foreground/5 rounded-xl p-3 border border-primary-foreground/8 hover:border-secondary/30 hover:bg-primary-foreground/8 transition-all"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-secondary/15 flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/25 transition-colors">
+                    <Phone className="w-4 h-4 text-secondary" />
                   </div>
-                </li>
-              </ul>
-            </CollapsibleSection>
-          </motion.div>
+                  <div>
+                    <p className="text-sm font-semibold text-primary-foreground">{phoneFormatted}</p>
+                    <p className="text-[11px] text-primary-foreground/50">Call us anytime</p>
+                  </div>
+                </a>
 
-          {/* Newsletter */}
-          <motion.div variants={itemVariants}>
-            <CollapsibleSection title="Newsletter" defaultOpen>
-              <p className="text-primary-foreground/70 text-xs sm:text-sm mb-4">
-                Subscribe for exclusive offers and updates
-              </p>
-              <NewsletterForm variant="footer" />
+                <a
+                  href={`mailto:${email}`}
+                  className="group flex items-center gap-3 bg-primary-foreground/5 rounded-xl p-3 border border-primary-foreground/8 hover:border-secondary/30 hover:bg-primary-foreground/8 transition-all"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-secondary/15 flex items-center justify-center flex-shrink-0 group-hover:bg-secondary/25 transition-colors">
+                    <Mail className="w-4 h-4 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-primary-foreground break-all">{email}</p>
+                    <p className="text-[11px] text-primary-foreground/50">We reply within 1 hour</p>
+                  </div>
+                </a>
+
+                <div className="flex items-center gap-3 bg-primary-foreground/5 rounded-xl p-3 border border-primary-foreground/8">
+                  <div className="w-10 h-10 rounded-lg bg-secondary/15 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-primary-foreground">{address}</p>
+                    <p className="text-[11px] text-primary-foreground/50">Visit our office</p>
+                  </div>
+                </div>
+              </div>
             </CollapsibleSection>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Payment Methods Section */}
+      {/* Payment Methods */}
       <div className="border-t border-primary-foreground/10">
-        <div className="container py-8 sm:py-10 px-4 sm:px-6">
-          <div className="text-center mb-6">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Lock className="w-4 h-4 text-secondary" />
-              <h4 className="font-display text-sm sm:text-base font-semibold text-secondary uppercase tracking-wider">
-                Secure Payment
-              </h4>
+        <div className="container py-6 sm:py-8 px-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-2 text-primary-foreground/50 text-xs">
+              <Lock className="w-3.5 h-3.5 text-secondary" />
+              <span className="font-medium uppercase tracking-wider">Secure Payment</span>
             </div>
-            <p className="text-primary-foreground/60 text-xs">
-              Your transactions are protected with industry-leading encryption
-            </p>
+            <div className="flex items-center gap-3">
+              <VisaIcon />
+              <MastercardIcon />
+              <AmexIcon />
+            </div>
+            <div className="flex items-center gap-1.5 text-primary-foreground/40 text-[11px]">
+              <Shield className="w-3.5 h-3.5" />
+              <span>256-bit SSL Encryption</span>
+            </div>
           </div>
-
-          <motion.div
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {paymentMethods.map((method, index) => (
-              <motion.div
-                key={method.name}
-                variants={itemVariants}
-                className="group relative bg-primary-foreground/5 border border-secondary/20 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:border-secondary/50 hover:bg-primary-foreground/10 transition-all duration-300 hover:scale-105"
-              >
-                <div className="transition-transform duration-300 group-hover:scale-110">
-                  {method.icon}
-                </div>
-                <div className="text-center">
-                  <p className="text-primary-foreground/90 text-xs sm:text-sm font-medium">
-                    {method.name}
-                  </p>
-                  <p className="text-primary-foreground/50 text-[10px] sm:text-xs">
-                    {method.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-primary-foreground/10 bg-primary-foreground/5">
-        <div className="container py-4 sm:py-6 px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4">
-          <div className="flex items-center gap-4">
-            <p className="text-primary-foreground/60 text-xs sm:text-sm text-center md:text-left">
-              © 2026 Rental Yacht Dubai. All rights reserved.
-            </p>
-            <div className="hidden sm:flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-secondary/60" />
-              <span className="text-primary-foreground/40 text-xs">SSL Encrypted</span>
-            </div>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
-            <Link
-              to="/privacy-policy"
-              className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target"
-            >
+      <div className="border-t border-primary-foreground/10 bg-primary-foreground/[0.03]">
+        <div className="container py-4 sm:py-5 px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-3">
+          <p className="text-primary-foreground/50 text-xs text-center md:text-left">
+            © 2026 Rental Yacht Dubai. All rights reserved.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs">
+            <Link to="/privacy-policy" className="text-primary-foreground/50 hover:text-secondary transition-colors">
               Privacy Policy
             </Link>
-            <Link
-              to="/terms-of-service"
-              className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target"
-            >
+            <Link to="/terms-of-service" className="text-primary-foreground/50 hover:text-secondary transition-colors">
               Terms of Service
             </Link>
-            <Link
-              to="/cancellation-policy"
-              className="text-primary-foreground/60 hover:text-secondary transition-colors py-1 touch-target"
-            >
+            <Link to="/cancellation-policy" className="text-primary-foreground/50 hover:text-secondary transition-colors">
               Cancellation
             </Link>
           </div>
         </div>
-        {/* Dibull Credit */}
-        <div className="border-t border-primary-foreground/10">
+        <div className="border-t border-primary-foreground/8">
           <div className="container py-3 px-4 sm:px-6">
-            <p className="text-center text-primary-foreground/50 text-xs">
+            <p className="text-center text-primary-foreground/40 text-[11px]">
               Created and maintained by{" "}
               <a
                 href="https://www.dibull.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-secondary hover:text-secondary/80 transition-colors font-medium"
+                className="text-secondary/80 hover:text-secondary transition-colors font-medium"
               >
                 Dibull
               </a>
