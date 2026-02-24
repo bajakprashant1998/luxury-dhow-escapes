@@ -75,20 +75,20 @@ const ImageGallery = memo(({ images, title }: ImageGalleryProps) => {
               onClick={() => openLightbox(index)}
             >
               {!loadedImages[index] && (
-                <Skeleton className="absolute inset-0 w-full h-[280px]" />
+                <Skeleton className="absolute inset-0 w-full h-[300px]" />
               )}
               <img
                 src={image}
                 alt={`${title} - ${index + 1}`}
                 onLoad={() => handleImageLoad(index)}
                 className={cn(
-                  "w-full h-[280px] object-cover",
+                  "w-full h-[300px] object-cover",
                   loadedImages[index] ? "opacity-100" : "opacity-0"
                 )}
               />
               {/* Image counter */}
-              <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                <span className="text-white text-sm font-medium">
+              <div className="absolute bottom-3 right-3 bg-primary/70 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <span className="text-primary-foreground text-xs font-medium">
                   {index + 1} / {images.length}
                 </span>
               </div>
