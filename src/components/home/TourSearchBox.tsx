@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Anchor, Ship, Sparkles, MapPin, Clock } from "lucide-react";
+import { Search, Anchor, Ship, Sparkles, MapPin, Clock, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTours } from "@/hooks/useTours";
+import { useActiveCategories } from "@/hooks/useCategories";
 
 interface TourSearchBoxProps {
   initialQuery?: string;
@@ -22,24 +23,53 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
   const [query, setQuery] = useState(initialQuery);
   const [isFocused, setIsFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { data: tours = [] } = useTours();
+  const { data: categories = [] } = useActiveCategories();
 
   // Compute suggestions
   const suggestions = useMemo(() => {
-    if (!query.trim() || query.trim().length < 2) return [];
-    const q = query.toLowerCase();
-    return tours
-      .filter(t =>
+    const hasQuery = query.trim().length >= 2;
+    if (!hasQuery && !selectedCategory) return [];
+
+    let filtered = tours;
+
+    // Apply category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(t => t.category === selectedCategory);
+    }
+
+    // Apply text filter
+    if (hasQuery) {
+      const q = query.toLowerCase();
+      filtered = filtered.filter(t =>
         t.title.toLowerCase().includes(q) ||
         (t.description?.toLowerCase().includes(q)) ||
         t.category.toLowerCase().includes(q)
-      )
-      .slice(0, 6);
-  }, [query, tours]);
+      );
+    }
 
-  const showDropdown = isFocused && suggestions.length > 0;
+    return filtered.slice(0, 6);
+  }, [query, tours, selectedCategory]);
+
+  // Categories that appear in current text-matched results (for chip relevance)
+  const availableCategories = useMemo(() => {
+    if (!categories.length) return [];
+    const q = query.trim().toLowerCase();
+    const matchingTours = q.length >= 2
+      ? tours.filter(t =>
+          t.title.toLowerCase().includes(q) ||
+          (t.description?.toLowerCase().includes(q)) ||
+          t.category.toLowerCase().includes(q)
+        )
+      : tours;
+    const slugs: Set<string> = new Set(matchingTours.map(t => t.category));
+    return categories.filter(c => slugs.has(c.slug));
+  }, [categories, tours, query]);
+
+  const showDropdown = isFocused && (suggestions.length > 0 || (query.trim().length >= 2 && availableCategories.length > 0));
 
   // Close on outside click
   useEffect(() => {
@@ -180,63 +210,96 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
             {/* Autocomplete Dropdown */}
             <AnimatePresence>
               {showDropdown && (
-                <motion.ul
+                <motion.div
                   id="search-suggestions"
-                  role="listbox"
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute left-0 right-0 z-50 bg-card border-2 border-t-0 border-secondary rounded-b-2xl shadow-xl max-h-80 overflow-y-auto"
+                  className="absolute left-0 right-0 z-50 bg-card border-2 border-t-0 border-secondary rounded-b-2xl shadow-xl max-h-96 overflow-y-auto"
                 >
-                  {suggestions.map((tour, index) => (
-                    <li
-                      key={tour.id}
-                      role="option"
-                      aria-selected={index === activeIndex}
-                      onMouseDown={() => handleSelectSuggestion(tour.title)}
-                      onMouseEnter={() => setActiveIndex(index)}
-                      className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors text-left ${
-                        index === activeIndex
-                          ? "bg-secondary/15"
-                          : "hover:bg-muted/60"
-                      } ${index < suggestions.length - 1 ? "border-b border-border/50" : ""}`}
-                    >
-                      {/* Tour thumbnail */}
-                      {tour.image ? (
-                        <img
-                          src={tour.image}
-                          alt=""
-                          className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                          <Ship className="w-5 h-5 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground text-sm truncate">
-                          {tour.title}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                          {tour.duration && (
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {tour.duration}
-                            </span>
+                  {/* Category Filter Chips */}
+                  {availableCategories.length > 1 && (
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50 flex-wrap">
+                      <span className="text-xs font-medium text-muted-foreground">Filter:</span>
+                      {availableCategories.map((cat) => (
+                        <button
+                          key={cat.slug}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setSelectedCategory(prev => prev === cat.slug ? null : cat.slug);
+                          }}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
+                            selectedCategory === cat.slug
+                              ? "bg-secondary text-secondary-foreground"
+                              : "bg-muted text-muted-foreground hover:bg-secondary/20"
+                          }`}
+                        >
+                          {cat.name}
+                          {selectedCategory === cat.slug && (
+                            <X className="w-3 h-3" />
                           )}
-                          <span className="inline-flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            Dubai
-                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Tour Results */}
+                  <ul role="listbox">
+                    {suggestions.map((tour, index) => (
+                      <li
+                        key={tour.id}
+                        role="option"
+                        aria-selected={index === activeIndex}
+                        onMouseDown={() => handleSelectSuggestion(tour.title)}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors text-left ${
+                          index === activeIndex
+                            ? "bg-secondary/15"
+                            : "hover:bg-muted/60"
+                        } ${index < suggestions.length - 1 ? "border-b border-border/50" : ""}`}
+                      >
+                        {tour.image ? (
+                          <img
+                            src={tour.image}
+                            alt=""
+                            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                            <Ship className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground text-sm truncate">
+                            {tour.title}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                            {tour.duration && (
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {tour.duration}
+                              </span>
+                            )}
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Dubai
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <span className="text-sm font-bold text-secondary flex-shrink-0">
-                        AED {tour.price}
-                      </span>
-                    </li>
-                  ))}
-                </motion.ul>
+                        <span className="text-sm font-bold text-secondary flex-shrink-0">
+                          AED {tour.price}
+                        </span>
+                      </li>
+                    ))}
+                    {suggestions.length === 0 && (
+                      <li className="px-5 py-4 text-sm text-muted-foreground text-center">
+                        No tours found in this category
+                      </li>
+                    )}
+                  </ul>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
