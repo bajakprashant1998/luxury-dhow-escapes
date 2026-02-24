@@ -4,6 +4,7 @@ import PageMeta from "@/components/PageMeta";
 import HeroSection from "@/components/home/HeroSection";
 import ExperienceCategories from "@/components/home/ExperienceCategories";
 import FeaturedTours from "@/components/home/FeaturedTours";
+import TourSearchBox from "@/components/home/TourSearchBox";
 
 // Lazy-load below-fold sections for better LCP/TTI
 const HighlightsSection = lazy(() => import("@/components/home/HighlightsSection"));
@@ -28,6 +29,7 @@ const Home = () => {
       {/* Above-fold: eager */}
       <HeroSection />
       <ExperienceCategories />
+      <TourSearchBox variant="hero" />
       <FeaturedTours />
 
       {/* Below-fold: lazy loaded */}
