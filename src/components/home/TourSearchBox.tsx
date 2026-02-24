@@ -145,7 +145,7 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
   const isHero = variant === "hero";
 
   return (
-    <section className={isHero ? "relative py-14 md:py-20 bg-gradient-to-b from-muted/40 to-background" : "pb-6"}>
+    <section className={isHero ? "relative py-8 md:py-20 bg-gradient-to-b from-muted/40 to-background" : "pb-4 sm:pb-6"}>
       {isHero && (
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-secondary/10 rounded-full blur-3xl" />
@@ -163,13 +163,13 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
         >
           {isHero && (
             <>
-              <p className="text-secondary font-bold tracking-widest uppercase mb-3 text-sm">
+              <p className="text-secondary font-bold tracking-widest uppercase mb-2 sm:mb-3 text-xs sm:text-sm">
                 Find Your Perfect Experience
               </p>
-              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight mb-3">
+              <h2 className="font-display text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight mb-2 sm:mb-3">
                 Search Tours & Cruises
               </h2>
-              <p className="text-muted-foreground mb-8 text-base max-w-xl mx-auto">
+              <p className="text-muted-foreground mb-5 sm:mb-8 text-sm sm:text-base max-w-xl mx-auto">
                 Discover dhow cruises, yacht charters, and luxury marine experiences in Dubai
               </p>
             </>
@@ -178,13 +178,13 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
           {/* Search Form with Autocomplete */}
           <div ref={wrapperRef} className="relative">
             <form onSubmit={handleSubmit}>
-              <div className={`flex items-center bg-card border-2 border-border shadow-lg hover:shadow-xl hover:border-secondary/50 transition-all duration-300 focus-within:border-secondary focus-within:shadow-xl overflow-hidden ${showDropdown ? "rounded-t-2xl rounded-b-none" : "rounded-2xl"}`}>
-                <div className="flex items-center pl-5 text-muted-foreground">
-                  <Search className="w-5 h-5 md:w-6 md:h-6" />
+              <div className={`flex items-center bg-card border-2 border-border shadow-lg hover:shadow-xl hover:border-secondary/50 transition-all duration-300 focus-within:border-secondary focus-within:shadow-xl overflow-hidden ${showDropdown ? "rounded-t-xl sm:rounded-t-2xl rounded-b-none" : "rounded-xl sm:rounded-2xl"}`}>
+                <div className="flex items-center pl-3 sm:pl-5 text-muted-foreground">
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                 </div>
                 <Input
                   type="text"
-                  placeholder="Search by tour name, category, or keyword..."
+                  placeholder="Search tours, cruises..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onFocus={() => setIsFocused(true)}
@@ -193,13 +193,13 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
                   aria-expanded={showDropdown}
                   aria-autocomplete="list"
                   aria-controls="search-suggestions"
-                  className="border-0 bg-transparent text-base md:text-lg py-5 md:py-7 px-4 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+                  className="border-0 bg-transparent text-sm sm:text-base md:text-lg py-4 sm:py-5 md:py-7 px-2 sm:px-4 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
                 />
-                <div className="pr-2 md:pr-3">
+                <div className="pr-1.5 sm:pr-2 md:pr-3">
                   <Button
                     type="submit"
                     size="lg"
-                    className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold rounded-xl px-6 md:px-8 h-10 md:h-12 text-sm md:text-base"
+                    className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold rounded-lg sm:rounded-xl px-4 sm:px-6 md:px-8 h-9 sm:h-10 md:h-12 text-xs sm:text-sm md:text-base touch-target"
                   >
                     Search
                   </Button>
@@ -305,14 +305,14 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
           </div>
 
           {/* Popular Searches */}
-          <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
-            <span className="text-xs text-muted-foreground font-medium">Popular:</span>
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 flex-wrap">
+            <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">Popular:</span>
             {popularSearches.map(({ label, icon: Icon }) => (
               <button
                 key={label}
                 type="button"
                 onClick={() => handleQuickSearch(label)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-muted hover:bg-secondary/20 hover:text-secondary-foreground text-muted-foreground transition-colors"
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium rounded-full bg-muted hover:bg-secondary/20 hover:text-secondary-foreground text-muted-foreground transition-colors touch-target"
               >
                 <Icon className="w-3 h-3" />
                 {label}
