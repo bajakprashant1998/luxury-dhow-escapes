@@ -75,7 +75,7 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
 
   return (
     <Link to={getTourUrl(tour)} className="group block h-full">
-      <div className="bg-card rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 h-full flex flex-col border border-border/50 hover:border-secondary/20">
+      <div className="bg-card rounded-xl sm:rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 h-full flex flex-col border border-border/50 hover:border-secondary/20">
 
         {/* ─── Image Block ─── */}
         <div className="relative overflow-hidden flex-shrink-0">
@@ -140,32 +140,32 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
         </div>
 
         {/* ─── Content Block ─── */}
-        <div className="p-4 sm:p-5 flex flex-col flex-1">
+        <div className="p-3.5 sm:p-5 flex flex-col flex-1">
           {/* Title */}
-          <div className="flex-1 mb-3">
+          <div className="flex-1 mb-2.5 sm:mb-3">
             {tour.subtitle && (
-              <p className="text-secondary text-xs font-semibold uppercase tracking-wide mb-1">{tour.subtitle}</p>
+              <p className="text-secondary text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">{tour.subtitle}</p>
             )}
-            <h3 className="font-display text-base sm:text-[1.05rem] font-bold text-foreground group-hover:text-secondary transition-colors line-clamp-2 tracking-tight leading-snug mb-2">
+            <h3 className="font-display text-[0.9rem] sm:text-[1.05rem] font-bold text-foreground group-hover:text-secondary transition-colors line-clamp-2 tracking-tight leading-snug mb-1.5 sm:mb-2">
               {tour.title}
             </h3>
-            <p className="text-muted-foreground text-xs sm:text-sm line-clamp-2 leading-relaxed">
+            <p className="text-muted-foreground text-xs sm:text-sm line-clamp-2 leading-relaxed hidden sm:block">
               {tour.description}
             </p>
           </div>
 
           {/* Meta pills */}
-          <div className="flex flex-wrap gap-1.5 mb-3 sm:mb-4">
-            <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2.5 py-1 text-xs text-muted-foreground">
+          <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-2.5 sm:mb-4">
+            <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs text-muted-foreground">
               <Clock className="w-3 h-3 text-secondary" />
               {tour.duration}
             </div>
-            <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2.5 py-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs text-muted-foreground">
               <MapPin className="w-3 h-3 text-secondary" />
               Dubai Marina
             </div>
             {tour.capacity && (
-              <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2.5 py-1 text-xs text-muted-foreground">
+              <div className="hidden sm:flex items-center gap-1 bg-muted/60 rounded-lg px-2.5 py-1 text-xs text-muted-foreground">
                 <Users className="w-3 h-3 text-secondary" />
                 {tour.capacity}
               </div>
@@ -173,12 +173,12 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
           </div>
 
           {/* Price + CTA */}
-          <div className="flex items-center justify-between pt-3 border-t border-border/60 mt-auto gap-2">
+          <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-border/60 mt-auto gap-2">
             <div className="min-w-0">
               {isPrivateCharter ? (
                 <>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-lg sm:text-xl font-black text-foreground tracking-tight">
+                    <span className="text-base sm:text-xl font-black text-foreground tracking-tight">
                       AED {tour.fullYachtPrice!.toLocaleString()}
                     </span>
                   </div>
@@ -190,11 +190,11 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
               ) : (
                 <>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-lg sm:text-xl font-black text-foreground tracking-tight">
+                    <span className="text-base sm:text-xl font-black text-foreground tracking-tight">
                       AED {tour.price.toLocaleString()}
                     </span>
                     {tour.originalPrice > tour.price && (
-                      <span className="text-muted-foreground line-through text-xs">
+                      <span className="text-muted-foreground line-through text-[10px] sm:text-xs">
                         AED {tour.originalPrice.toLocaleString()}
                       </span>
                     )}
@@ -207,9 +207,9 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
               )}
             </div>
             <div className="flex-shrink-0">
-              <div className="flex items-center gap-1.5 bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg shadow-sm whitespace-nowrap">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-secondary text-secondary-foreground hover:bg-secondary/90 font-semibold text-[11px] sm:text-sm px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all duration-200 group-hover:scale-105 group-hover:shadow-lg shadow-sm whitespace-nowrap touch-target">
                 Book Now
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight className="w-3 sm:w-3.5 h-3 sm:h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
           </div>

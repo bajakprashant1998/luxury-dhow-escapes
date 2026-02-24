@@ -54,11 +54,11 @@ const StatItem = ({ value, label, delay }: { value: string; label: string; delay
       transition={{ delay, duration: 0.5 }}
       className="relative group"
     >
-      <div className="text-center px-2 py-3 sm:p-4 rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/[0.1] hover:bg-white/[0.12] hover:border-secondary/30 transition-all duration-300 hover:scale-105">
-        <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-secondary tracking-tight leading-none">
+      <div className="text-center px-2 py-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/[0.1] hover:bg-white/[0.12] hover:border-secondary/30 transition-all duration-300 hover:scale-105">
+        <p className="text-xl sm:text-3xl lg:text-4xl font-black text-secondary tracking-tight leading-none">
           {display}
         </p>
-        <p className="text-[10px] sm:text-xs text-white/60 uppercase tracking-widest mt-1.5 font-medium">
+        <p className="text-[9px] sm:text-xs text-white/60 uppercase tracking-widest mt-1 sm:mt-1.5 font-medium">
           {label}
         </p>
       </div>
@@ -78,7 +78,7 @@ const HeroSection = memo(() => {
   ];
 
   return (
-    <section className="relative min-h-[100dvh] flex items-center overflow-hidden">
+    <section className="relative min-h-[92dvh] sm:min-h-[100dvh] flex items-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <OptimizedImage
@@ -105,7 +105,7 @@ const HeroSection = memo(() => {
       </div>
 
       {/* Main Content */}
-      <div className="container relative z-10 py-16 sm:py-20">
+      <div className="container relative z-10 py-10 sm:py-20">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-6 items-center">
           {/* Left Column — 7 cols */}
           <motion.div
@@ -116,19 +116,19 @@ const HeroSection = memo(() => {
           >
             {/* Top Badge */}
             <motion.div
-              className="inline-flex items-center gap-2 bg-secondary/15 backdrop-blur-md text-secondary px-4 py-2 rounded-full mb-6 border border-secondary/25 shadow-lg shadow-secondary/5"
+              className="inline-flex items-center gap-1.5 sm:gap-2 bg-secondary/15 backdrop-blur-md text-secondary px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-6 border border-secondary/25 shadow-lg shadow-secondary/5"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.15, duration: 0.4 }}
             >
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-semibold tracking-wide">Dubai's #1 Rated Cruise Experience</span>
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="text-xs sm:text-sm font-semibold tracking-wide">Dubai's #1 Rated Cruise Experience</span>
             </motion.div>
 
             {/* Headline — cinematic typography */}
-            <h1 className="font-display font-black leading-[0.9] tracking-tighter mb-6">
+            <h1 className="font-display font-black leading-[0.9] tracking-tighter mb-4 sm:mb-6">
               <motion.span
-                className="block text-[clamp(2.5rem,8vw,6rem)] text-white drop-shadow-lg"
+                className="block text-[clamp(2rem,8vw,6rem)] text-white drop-shadow-lg"
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1, duration: 0.6 }}
@@ -136,7 +136,7 @@ const HeroSection = memo(() => {
                 Experience Dubai
               </motion.span>
               <motion.span
-                className="block text-[clamp(2.5rem,8vw,6rem)] text-shimmer"
+                className="block text-[clamp(2rem,8vw,6rem)] text-shimmer"
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.25, duration: 0.6 }}
@@ -147,7 +147,7 @@ const HeroSection = memo(() => {
 
             {/* Sub-headline */}
             <motion.p
-              className="text-base sm:text-lg md:text-xl text-white/80 mb-8 leading-relaxed max-w-xl"
+              className="text-sm sm:text-lg md:text-xl text-white/80 mb-6 sm:mb-8 leading-relaxed max-w-xl"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
@@ -157,7 +157,7 @@ const HeroSection = memo(() => {
 
             {/* CTA Buttons */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8"
+              className="flex flex-col sm:flex-row gap-2.5 sm:gap-4 mb-6 sm:mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.5 }}
@@ -165,7 +165,7 @@ const HeroSection = memo(() => {
               <Link to="/tours" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-base sm:text-lg px-7 sm:px-10 h-13 sm:h-14 shadow-xl shadow-secondary/20 hover:shadow-2xl hover:shadow-secondary/30 hover:scale-[1.03] transition-all duration-300 group rounded-xl"
+                  className="w-full sm:w-auto bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-sm sm:text-lg px-6 sm:px-10 h-12 sm:h-14 shadow-xl shadow-secondary/20 hover:shadow-2xl hover:shadow-secondary/30 hover:scale-[1.03] transition-all duration-300 group rounded-xl touch-target"
                 >
                   Explore All Tours
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1.5 transition-transform" />
@@ -175,7 +175,7 @@ const HeroSection = memo(() => {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="w-full sm:w-auto border-white/40 text-white bg-white/10 hover:bg-white/20 hover:border-white/60 font-semibold text-base sm:text-lg px-7 sm:px-10 h-13 sm:h-14 backdrop-blur-md rounded-xl transition-all duration-300"
+                  className="w-full sm:w-auto border-white/40 text-white bg-white/10 hover:bg-white/20 hover:border-white/60 font-semibold text-sm sm:text-lg px-6 sm:px-10 h-12 sm:h-14 backdrop-blur-md rounded-xl transition-all duration-300 touch-target"
                 >
                   <Play className="w-5 h-5 mr-2" />
                   View Gallery

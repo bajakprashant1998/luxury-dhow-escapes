@@ -11,23 +11,23 @@ const FeaturedTours = memo(() => {
   const { data: featuredTours = [], isLoading } = useFeaturedTours();
 
   return (
-    <section className="py-24 bg-muted/20">
+    <section className="py-12 sm:py-24 bg-muted/20">
       <div className="container">
         <motion.div
-          className="flex flex-col md:flex-row md:items-end justify-between mb-12"
+          className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
         >
           <div>
-            <p className="text-secondary font-bold tracking-widest uppercase mb-3 text-sm">
+            <p className="text-secondary font-bold tracking-widest uppercase mb-2 sm:mb-3 text-xs sm:text-sm">
               Popular Experiences
             </p>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight">
               Featured Tours
             </h2>
-            <p className="text-muted-foreground mt-2 text-base max-w-xl">
+            <p className="text-muted-foreground mt-1.5 sm:mt-2 text-sm sm:text-base max-w-xl">
               Handpicked experiences loved by thousands of guests in Dubai
             </p>
           </div>
@@ -64,11 +64,11 @@ const FeaturedTours = memo(() => {
           <>
             {/* Mobile: Horizontal scroll carousel */}
             <div className="lg:hidden -mx-4 px-4">
-              <div className="flex overflow-x-auto gap-4 pb-4 snap-x-mandatory scrollbar-hide">
+              <div className="flex overflow-x-auto gap-3 pb-4 snap-x-mandatory scrollbar-hide">
                 {featuredTours.slice(0, 12).map((tour) => (
                   <div
                     key={tour.id}
-                    className="flex-shrink-0 w-[85%] sm:w-[75%] snap-start"
+                    className="flex-shrink-0 w-[72%] sm:w-[75%] snap-start"
                   >
                     <TourCard tour={tour} />
                   </div>
