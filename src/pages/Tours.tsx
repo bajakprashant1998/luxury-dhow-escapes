@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Filter, Ship, Anchor, Crown, Users, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Layout from "@/components/layout/Layout";
 import TourCard from "@/components/TourCard";
 import PageMeta from "@/components/PageMeta";
+import TourSearchBox from "@/components/home/TourSearchBox";
 import { useTours } from "@/hooks/useTours";
 import { useActiveCategories } from "@/hooks/useCategories";
 import { getCategoryFromPath, getCategoryUrl } from "@/lib/seoUtils";
@@ -45,8 +46,8 @@ const itemVariants = {
 
 const Tours = () => {
   const { categoryPath } = useParams<{ categoryPath?: string }>();
-  const [searchParams] = useSearchParams();
-
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   // Determine selected category from URL
   const getCategoryFromUrl = (): string => {
     // New SEO-friendly URL: /dubai/:categoryPath
@@ -62,15 +63,17 @@ const Tours = () => {
   };
 
   const [selectedCategory, setSelectedCategory] = useState(getCategoryFromUrl());
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [sortBy, setSortBy] = useState<"popular" | "price-low" | "price-high">("popular");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const { data: tours = [], isLoading: toursLoading, error: toursError } = useTours();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useActiveCategories();
 
-  // Update selected category when URL changes
+  // Update selected category and search when URL changes
   useEffect(() => {
     setSelectedCategory(getCategoryFromUrl());
+    setSearchQuery(searchParams.get("search") || "");
   }, [categoryPath, searchParams]);
 
   // Handle scroll to top button visibility
@@ -86,6 +89,18 @@ const Tours = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Handle search from the search box
+  const handleSearch = useCallback((q: string) => {
+    setSearchQuery(q);
+    const params = new URLSearchParams(searchParams);
+    if (q) {
+      params.set("search", q);
+    } else {
+      params.delete("search");
+    }
+    setSearchParams(params, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   // Build categories array with "All Tours" option using SEO-friendly URLs
   const categories: Array<{ id: string; label: string; slug: string; description?: string | null; count?: number; url: string }> = [
     { id: "all", label: "All Tours", slug: "all", count: tours.length, url: "/tours" },
@@ -99,10 +114,18 @@ const Tours = () => {
     })),
   ];
 
-  const filteredTours = selectedCategory === "all"
+  const filteredTours = (selectedCategory === "all"
     ? tours
-    : tours.filter(tour => tour.category === selectedCategory);
-
+    : tours.filter(tour => tour.category === selectedCategory)
+  ).filter(tour => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      tour.title.toLowerCase().includes(q) ||
+      (tour.description?.toLowerCase().includes(q)) ||
+      tour.category.toLowerCase().includes(q)
+    );
+  });
   const sortedTours = [...filteredTours].sort((a, b) => {
     switch (sortBy) {
       case "price-low":
@@ -225,6 +248,15 @@ const Tours = () => {
           </motion.div>
         </motion.div>
       </section>
+
+      {/* Search Box */}
+      <div className="container px-4 sm:px-6 pt-8">
+        <TourSearchBox
+          variant="inline"
+          initialQuery={searchQuery}
+          onSearch={handleSearch}
+        />
+      </div>
 
       {/* Category Filter */}
       <section className="py-6 sm:py-8 bg-cream border-b border-border">
