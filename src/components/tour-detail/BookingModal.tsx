@@ -417,7 +417,7 @@ const BookingModal = ({
     }
   };
 
-  // Guest counter component - defined inline without ref to avoid forwardRef warning
+  // Guest counter component
   const renderGuestCounter = (
     label: string,
     sublabel: string,
@@ -426,30 +426,28 @@ const BookingModal = ({
     min: number = 0,
     max: number = 10
   ) => (
-    <div className="flex-1 min-w-0 border border-border rounded-2xl p-4 transition-all duration-300 hover:border-secondary/50 hover:shadow-md bg-card/50">
-      <div className="flex items-center justify-between sm:block">
-        <div className="sm:mb-4">
-          <p className="font-bold text-foreground text-sm sm:text-base">{label}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{sublabel}</p>
-        </div>
-        <div className="flex items-center gap-3 sm:gap-0 sm:justify-between">
-          <button
-            type="button"
-            onClick={() => onChange(Math.max(min, value - 1))}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed touch-target"
-            disabled={value <= min}
-          >
-            <Minus className="w-4 h-4" />
-          </button>
-          <span className="text-xl sm:text-2xl font-bold tabular-nums w-10 text-center">{value}</span>
-          <button
-            type="button"
-            onClick={() => onChange(Math.min(max, value + 1))}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-border flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="flex-1 min-w-0 border-2 border-border rounded-xl p-4 transition-all duration-200 hover:border-secondary/40 bg-muted/20">
+      <div className="mb-3">
+        <p className="font-bold text-foreground text-sm">{label}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{sublabel}</p>
+      </div>
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(min, value - 1))}
+          className="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted hover:border-secondary/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed touch-target"
+          disabled={value <= min}
+        >
+          <Minus className="w-4 h-4" />
+        </button>
+        <span className="text-2xl font-black tabular-nums w-12 text-center">{value}</span>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(max, value + 1))}
+          className="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
@@ -457,30 +455,35 @@ const BookingModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[520px] md:max-w-[620px] p-0 gap-0 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto rounded-2xl sm:rounded-3xl border-0 shadow-2xl">
+        {/* Top accent */}
+        <div className="h-1 bg-gradient-to-r from-secondary via-secondary/80 to-primary rounded-t-2xl sm:rounded-t-3xl" />
+
         <DialogHeader className="p-5 sm:p-8 pb-0">
           <DialogTitle className="sr-only">Book Your Experience</DialogTitle>
-          {/* Progress Steps - Enhanced */}
+          {/* Progress Steps */}
           <div className="flex items-center justify-between mb-6 sm:mb-8">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div
                     className={cn(
-                      "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-sm sm:text-base transition-all duration-500",
-                      currentStep >= step.number
-                        ? "bg-secondary text-secondary-foreground shadow-lg shadow-secondary/30 scale-105"
-                        : "bg-muted text-muted-foreground border-2 border-border"
+                      "w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-500",
+                      currentStep > step.number
+                        ? "bg-secondary text-secondary-foreground shadow-md"
+                        : currentStep === step.number
+                          ? "bg-secondary text-secondary-foreground shadow-lg shadow-secondary/30 ring-4 ring-secondary/15"
+                          : "bg-muted text-muted-foreground border-2 border-border"
                     )}
                   >
-                    {currentStep > step.number ? <Check className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={3} /> : step.number}
+                    {currentStep > step.number ? <Check className="w-5 h-5" strokeWidth={3} /> : step.number}
                   </div>
                   <span className={cn(
-                    "text-[11px] sm:text-xs mt-2 transition-all duration-300 font-medium",
+                    "text-[11px] sm:text-xs mt-2 transition-all duration-300 font-semibold",
                     currentStep >= step.number ? "text-secondary" : "text-muted-foreground"
                   )}>{step.label}</span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="w-12 sm:w-20 md:w-28 h-1 mx-2 sm:mx-3 bg-muted rounded-full overflow-hidden">
+                  <div className="w-12 sm:w-20 md:w-28 h-[3px] mx-2 sm:mx-3 bg-muted rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full bg-secondary rounded-full transition-all duration-700 ease-out",
@@ -739,12 +742,14 @@ const BookingModal = ({
                   </div>
                 )}
 
-                {/* Quick Price Preview - Enhanced */}
-                <div className="bg-muted/30 border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-muted-foreground font-medium">
-                    {isCurrentFullYacht ? "Charter Price" : "Estimated Total"}
-                  </span>
-                  <span className="text-2xl sm:text-3xl font-bold text-foreground">AED {subtotal.toLocaleString()}</span>
+                {/* Quick Price Preview */}
+                <div className="bg-muted/30 border-2 border-border rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground font-medium">
+                      {isCurrentFullYacht ? "Charter Price" : "Estimated Total"}
+                    </span>
+                    <span className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">AED {subtotal.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -1003,32 +1008,32 @@ const BookingModal = ({
             )}
           </div>
 
-          {/* Navigation Buttons - Enhanced */}
-          <div className="flex gap-3 sm:gap-4 mt-8 sm:mt-10 pb-safe">
+          {/* Navigation Buttons */}
+          <div className="flex gap-3 mt-8 pb-safe">
             {currentStep > 1 && (
               <Button
                 variant="outline"
                 onClick={handleBack}
                 disabled={isSubmitting}
-                className="flex-1 h-12 sm:h-14 text-sm sm:text-base rounded-xl border-2"
+                className="flex-1 h-12 sm:h-13 text-sm rounded-xl border-2"
               >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
             )}
             {currentStep < 3 ? (
               <Button
                 onClick={handleNext}
-                className="flex-1 h-12 sm:h-14 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base rounded-xl font-semibold shadow-lg shadow-secondary/30 transition-all hover:shadow-xl hover:shadow-secondary/40"
+                className="flex-1 h-12 sm:h-13 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm rounded-xl font-bold shadow-lg shadow-secondary/25 transition-all hover:shadow-xl hover:shadow-secondary/35 hover:scale-[1.01] active:scale-[0.99]"
               >
                 Continue to {currentStep === 1 ? "Details" : "Confirm"}
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex-1 h-12 sm:h-14 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm sm:text-base rounded-xl font-semibold shadow-lg shadow-secondary/30 transition-all hover:shadow-xl hover:shadow-secondary/40"
+                className="flex-1 h-12 sm:h-13 bg-secondary text-secondary-foreground hover:bg-secondary/90 text-sm rounded-xl font-bold shadow-lg shadow-secondary/25 transition-all hover:shadow-xl hover:shadow-secondary/35 hover:scale-[1.01] active:scale-[0.99]"
               >
                 {isSubmitting ? (
                   <>
