@@ -145,7 +145,7 @@ const TourSearchBox = ({ initialQuery = "", onSearch, variant = "hero" }: TourSe
   const isHero = variant === "hero";
 
   return (
-    <section className={isHero ? "relative py-14 md:py-20 overflow-hidden bg-gradient-to-b from-muted/40 to-background" : "pb-6"}>
+    <section className={isHero ? "relative py-14 md:py-20 bg-gradient-to-b from-muted/40 to-background" : "pb-6"}>
       {isHero && (
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-secondary/10 rounded-full blur-3xl" />
