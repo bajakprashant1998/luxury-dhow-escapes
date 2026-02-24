@@ -149,7 +149,7 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
             <h3 className="font-display text-[0.9rem] sm:text-[1.05rem] font-bold text-foreground group-hover:text-secondary transition-colors line-clamp-2 tracking-tight leading-snug mb-1.5 sm:mb-2 min-h-[2.4em]">
               {tour.title}
             </h3>
-            <p className="text-muted-foreground text-xs sm:text-sm line-clamp-3 leading-relaxed hidden sm:block min-h-[3.6em]">
+            <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed hidden sm:line-clamp-3 overflow-hidden max-h-[4.5em] sm:max-h-none">
               {tour.description}
             </p>
           </div>
