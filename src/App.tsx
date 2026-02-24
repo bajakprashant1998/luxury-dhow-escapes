@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import PremiumLoader, { useLoaderGate } from "@/components/PremiumLoader";
 
 import ScrollToTop from "./components/ScrollToTop";
 import BackToTop from "./components/BackToTop";
@@ -76,198 +77,69 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent = () => {
+  const { ready, markDone } = useLoaderGate();
+
+  return (
+    <>
+      {!ready && <PremiumLoader onComplete={markDone} />}
+      <ScrollToTop />
+      <BackToTop />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/tours" element={<Tours />} />
+          {/* New SEO-friendly tour routes */}
+          <Route path="/dubai/:categoryPath/:slug" element={<TourDetail />} />
+          <Route path="/dubai/:categoryPath" element={<Tours />} />
+          {/* Legacy route - kept for backwards compatibility */}
+          <Route path="/tours/:slug" element={<TourDetail />} />
+          <Route path="/activities" element={<Activities />} />
+          <Route path="/saved-tours" element={<SavedTours />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/cancellation-policy" element={<CancellationPolicy />} />
+          {/* Admin Routes */}
+          <Route path="/admin" element={<RequireSession><AdminDashboard /></RequireSession>} />
+          <Route path="/admin/bookings" element={<RequireSession><AdminBookings /></RequireSession>} />
+          <Route path="/admin/inquiries" element={<RequireSession><AdminInquiries /></RequireSession>} />
+          <Route path="/admin/tours" element={<RequireSession><AdminTours /></RequireSession>} />
+          <Route path="/admin/tours/add" element={<RequireSession><AdminAddTour /></RequireSession>} />
+          <Route path="/admin/tours/edit/:slug" element={<RequireSession><AdminEditTour /></RequireSession>} />
+          <Route path="/admin/reviews" element={<RequireSession><AdminReviews /></RequireSession>} />
+          <Route path="/admin/gallery" element={<RequireSession><AdminGallery /></RequireSession>} />
+          <Route path="/admin/settings/*" element={<RequireSession><AdminSettings /></RequireSession>} />
+          <Route path="/admin/locations" element={<RequireSession><AdminLocations /></RequireSession>} />
+          <Route path="/admin/tours/categories" element={<RequireSession><AdminCategories /></RequireSession>} />
+          <Route path="/admin/customers" element={<RequireSession><AdminCustomers /></RequireSession>} />
+          <Route path="/admin/discounts" element={<RequireSession><AdminDiscounts /></RequireSession>} />
+          <Route path="/admin/upload-images" element={<RequireSession><AdminUploadTourImages /></RequireSession>} />
+          <Route path="/admin/activity-log" element={<RequireSession><AdminActivityLog /></RequireSession>} />
+          <Route path="/admin/legal-pages" element={<RequireSession><AdminLegalPages /></RequireSession>} />
+          <Route path="/admin/analytics" element={<RequireSession><AdminAnalytics /></RequireSession>} />
+          <Route path="/admin/live-chat" element={<RequireSession><AdminLiveChat /></RequireSession>} />
+          <Route path="/admin/marketing-bookings" element={<RequireSession><AdminMarketingBookings /></RequireSession>} />
+          <Route path="/admin/contact-leads" element={<RequireSession><AdminContactLeads /></RequireSession>} />
+          <Route path="/entalyachtdubaipromotion-1" element={<YachtPromoLanding />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <ScrollToTop />
-        <BackToTop />
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/tours" element={<Tours />} />
-            {/* New SEO-friendly tour routes */}
-            <Route path="/dubai/:categoryPath/:slug" element={<TourDetail />} />
-            <Route path="/dubai/:categoryPath" element={<Tours />} />
-            {/* Legacy route - kept for backwards compatibility */}
-            <Route path="/tours/:slug" element={<TourDetail />} />
-            <Route path="/activities" element={<Activities />} />
-            <Route path="/saved-tours" element={<SavedTours />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/cancellation-policy" element={<CancellationPolicy />} />
-            {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <RequireSession>
-                  <AdminDashboard />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/bookings"
-              element={
-                <RequireSession>
-                  <AdminBookings />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/inquiries"
-              element={
-                <RequireSession>
-                  <AdminInquiries />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/tours"
-              element={
-                <RequireSession>
-                  <AdminTours />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/tours/add"
-              element={
-                <RequireSession>
-                  <AdminAddTour />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/tours/edit/:slug"
-              element={
-                <RequireSession>
-                  <AdminEditTour />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/reviews"
-              element={
-                <RequireSession>
-                  <AdminReviews />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/gallery"
-              element={
-                <RequireSession>
-                  <AdminGallery />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/settings/*"
-              element={
-                <RequireSession>
-                  <AdminSettings />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/locations"
-              element={
-                <RequireSession>
-                  <AdminLocations />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/tours/categories"
-              element={
-                <RequireSession>
-                  <AdminCategories />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/customers"
-              element={
-                <RequireSession>
-                  <AdminCustomers />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/discounts"
-              element={
-                <RequireSession>
-                  <AdminDiscounts />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/upload-images"
-              element={
-                <RequireSession>
-                  <AdminUploadTourImages />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/activity-log"
-              element={
-                <RequireSession>
-                  <AdminActivityLog />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/legal-pages"
-              element={
-                <RequireSession>
-                  <AdminLegalPages />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/analytics"
-              element={
-                <RequireSession>
-                  <AdminAnalytics />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/live-chat"
-              element={
-                <RequireSession>
-                  <AdminLiveChat />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/marketing-bookings"
-              element={
-                <RequireSession>
-                  <AdminMarketingBookings />
-                </RequireSession>
-              }
-            />
-            <Route
-              path="/admin/contact-leads"
-              element={
-                <RequireSession>
-                  <AdminContactLeads />
-                </RequireSession>
-              }
-            />
-            <Route path="/entalyachtdubaipromotion-1" element={<YachtPromoLanding />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+        <AppContent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
