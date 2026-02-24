@@ -142,14 +142,14 @@ const TourCard = memo(({ tour, featured = false }: TourCardProps) => {
         {/* ─── Content Block ─── */}
         <div className="p-3.5 sm:p-5 flex flex-col flex-1">
           {/* Title */}
-          <div className="flex-1 mb-2.5 sm:mb-3">
-            {tour.subtitle && (
-              <p className="text-secondary text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">{tour.subtitle}</p>
-            )}
-            <h3 className="font-display text-[0.9rem] sm:text-[1.05rem] font-bold text-foreground group-hover:text-secondary transition-colors line-clamp-2 tracking-tight leading-snug mb-1.5 sm:mb-2">
+          <div className="mb-2.5 sm:mb-3">
+            <p className="text-secondary text-[10px] sm:text-xs font-semibold uppercase tracking-wide mb-0.5 sm:mb-1 line-clamp-1 min-h-[1rem] sm:min-h-[1.125rem]">
+              {tour.subtitle || "\u00A0"}
+            </p>
+            <h3 className="font-display text-[0.9rem] sm:text-[1.05rem] font-bold text-foreground group-hover:text-secondary transition-colors line-clamp-2 tracking-tight leading-snug mb-1.5 sm:mb-2 min-h-[2.4em]">
               {tour.title}
             </h3>
-            <p className="text-muted-foreground text-xs sm:text-sm line-clamp-2 leading-relaxed hidden sm:block">
+            <p className="text-muted-foreground text-xs sm:text-sm line-clamp-3 leading-relaxed hidden sm:block min-h-[3.6em]">
               {tour.description}
             </p>
           </div>
