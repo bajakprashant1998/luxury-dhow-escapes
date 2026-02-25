@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { memo } from "react";
-import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,13 +12,7 @@ const FeaturedTours = memo(() => {
   return (
     <section className="py-12 sm:py-24 bg-muted/20">
       <div className="container">
-        <motion.div
-          className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-12">
           <div>
             <p className="text-secondary font-bold tracking-widest uppercase mb-2 sm:mb-3 text-xs sm:text-sm">
               Popular Experiences
@@ -37,7 +30,7 @@ const FeaturedTours = memo(() => {
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-        </motion.div>
+        </div>
 
         {/* Loading State */}
         {isLoading && (
@@ -61,19 +54,13 @@ const FeaturedTours = memo(() => {
 
         {/* Tours Grid */}
         {!isLoading && featuredTours.length > 0 && (
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.4 }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {featuredTours.slice(0, 12).map((tour) => (
               <div key={tour.id} className="h-full">
                 <TourCard tour={tour} />
               </div>
             ))}
-          </motion.div>
+          </div>
         )}
 
         {/* Empty State */}
