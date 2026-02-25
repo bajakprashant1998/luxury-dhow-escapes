@@ -77,39 +77,35 @@ const CategoryCard = memo(({ category, index }: { category: typeof experienceCat
     >
       <Link
         to={category.link}
-        className="group flex flex-col h-full bg-card rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-border/50 shadow-md hover:shadow-2xl hover:border-secondary/40 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
+        className="group flex flex-col items-center h-full bg-card rounded-2xl sm:rounded-2xl p-3 py-4 sm:p-6 border border-border/50 shadow-md hover:shadow-2xl hover:border-secondary/40 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
       >
         {/* Hover glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-        {/* Top row: icon + badge */}
-        <div className="relative flex items-start justify-between mb-3 sm:mb-5">
-          <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${category.iconBg} flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-sm`}>
-            <category.icon className={`w-5 h-5 sm:w-7 sm:h-7 ${category.iconColor}`} />
-          </div>
-          <div className="flex items-center gap-1 bg-secondary/10 text-secondary px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">
-            <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-            <span className="text-[10px] sm:text-[11px] font-bold">{category.guestCount}</span>
-          </div>
+        {/* Icon - centered on mobile */}
+        <div className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${category.iconBg} flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-sm mb-2 sm:mb-3`}>
+          <category.icon className={`w-5 h-5 sm:w-7 sm:h-7 ${category.iconColor}`} />
+        </div>
+
+        {/* Badge */}
+        <div className="relative flex items-center gap-1 bg-secondary/10 text-secondary px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full mb-2 sm:mb-3">
+          <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          <span className="text-[10px] sm:text-[11px] font-bold">{category.guestCount}</span>
         </div>
 
         {/* Title */}
-        <h3 className="relative font-display font-extrabold text-[13px] sm:text-base text-foreground mb-1 sm:mb-1.5 tracking-tight group-hover:text-secondary transition-colors leading-tight">
+        <h3 className="relative font-display font-extrabold text-[13px] sm:text-base text-foreground text-center leading-tight tracking-tight group-hover:text-secondary transition-colors">
           {category.title}
         </h3>
 
-        {/* Description — hidden on small mobile, visible on sm+ */}
-        <p className="relative text-[11px] sm:text-sm text-muted-foreground leading-relaxed mb-3 sm:mb-4 line-clamp-2 min-h-0 sm:min-h-[2.75rem] hidden sm:block">
+        {/* Description — hidden on small mobile */}
+        <p className="relative text-[11px] sm:text-sm text-muted-foreground leading-relaxed mb-3 sm:mb-4 line-clamp-2 text-center min-h-0 sm:min-h-[2.75rem] hidden sm:block mt-1.5">
           {category.description}
         </p>
 
-        {/* Bottom: guest stats + arrow */}
-        <div className="relative mt-auto flex items-center justify-between pt-2 sm:pt-3 border-t border-border/40">
-          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
-            <Users className="w-3.5 h-3.5" />
-            <span>{category.guestCount} {category.guestLabel}</span>
-          </div>
-          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-secondary/10 flex items-center justify-center sm:opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:bg-secondary/20 ml-auto">
+        {/* Arrow */}
+        <div className="relative mt-auto pt-2 sm:pt-3">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-secondary/10 flex items-center justify-center sm:opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:bg-secondary/20">
             <ArrowUpRight className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-secondary" />
           </div>
         </div>
