@@ -318,9 +318,17 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+          <Card id="section-basic" className="scroll-mt-28">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
+                  <Sparkles className="w-4.5 h-4.5 text-secondary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Basic Information</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Title, slug, and descriptions for your tour</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -480,9 +488,17 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           </Card>
 
           {/* Pricing & Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Pricing & Details</CardTitle>
+          <Card id="section-pricing" className="scroll-mt-28">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-blue-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Pricing & Details</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Set pricing, duration, category and location</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -644,9 +660,17 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           </Card>
 
           {/* Highlights */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Highlights</CardTitle>
+          <Card id="section-content" className="scroll-mt-28">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Flame className="w-4 h-4 text-amber-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Highlights</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Key selling points that attract customers</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
@@ -777,9 +801,17 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           </div>
 
           {/* Itinerary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Itinerary</CardTitle>
+          <Card id="section-itinerary" className="scroll-mt-28">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-emerald-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Itinerary</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Step-by-step tour schedule</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <ItineraryEditor
@@ -790,9 +822,17 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           </Card>
 
           {/* FAQs */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Frequently Asked Questions</CardTitle>
+          <Card className="scroll-mt-28">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-purple-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Frequently Asked Questions</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Common questions customers may ask</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <FAQEditor
@@ -803,11 +843,13 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           </Card>
 
           {/* Booking Options (Guests/Quantity/Add-Ons) */}
+          <div id="section-booking" className="scroll-mt-28">
           <BookingOptionsEditor
             bookingFeatures={formData.booking_features}
             onChange={(features) => setFormData((prev) => ({ ...prev, booking_features: features }))}
             currentTourId={tour?.id}
           />
+          </div>
 
           {/* Booking Features */}
           <Card>
@@ -1510,9 +1552,17 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
           />
 
           {/* SEO Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO Settings</CardTitle>
+          <Card id="section-seo" className="scroll-mt-28">
+            <CardHeader className="border-b border-border/40 bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                  <LinkIcon className="w-4 h-4 text-cyan-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">SEO Settings</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Optimize for search engines</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Meta Title */}
@@ -1593,40 +1643,40 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Live Preview */}
-          <div className="hidden lg:block">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-secondary" />
-              Live Preview
-            </h3>
-            <div className="opacity-90 scale-95 origin-top-left pointer-events-none select-none">
-              <BookingSidebar
-                tourId={tour?.id || "preview-id"}
-                tourTitle={formData.title || "Tour Title Preview"}
-                price={parseFloat(formData.price) || 0}
-                originalPrice={parseFloat(formData.original_price) || 0}
-                duration={formData.duration || "2 hours"}
-                reviewCount={tour?.review_count || 0}
-                pricingType={formData.pricing_type as "per_person" | "per_hour"}
-                fullYachtPrice={formData.full_yacht_price ? parseFloat(formData.full_yacht_price) : null}
-                capacity={formData.capacity || undefined}
-                bookingFeatures={formData.booking_features}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              * This is a preview. Interactive elements are disabled.
-            </p>
-          </div>
-
-          {/* Publish Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Publish</CardTitle>
+        <div className="space-y-6 lg:sticky lg:top-28 lg:self-start" id="section-media">
+          {/* Publish Settings — always visible */}
+          <Card className="border-secondary/20 shadow-md">
+            <CardHeader className="bg-secondary/5 border-b border-secondary/10">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                Publish
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="featured">Featured Tour</Label>
+            <CardContent className="space-y-4 pt-4">
+              {/* Completion indicator */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground font-medium">Completion</span>
+                  <span className="font-bold text-foreground">
+                    {Math.round(
+                      ([formData.title, formData.slug, formData.description, formData.price, formData.category, formData.image_url, formData.meta_title].filter(Boolean).length / 7) * 100
+                    )}%
+                  </span>
+                </div>
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-secondary rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.round(
+                        ([formData.title, formData.slug, formData.description, formData.price, formData.category, formData.image_url, formData.meta_title].filter(Boolean).length / 7) * 100
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-2.5 bg-muted/40 rounded-lg">
+                <Label htmlFor="featured" className="text-sm font-medium">Featured Tour</Label>
                 <Switch
                   id="featured"
                   checked={formData.featured}
@@ -1642,7 +1692,7 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                <Button type="submit" className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1658,10 +1708,44 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
             </CardContent>
           </Card>
 
+          {/* Live Preview */}
+          <div className="hidden lg:block">
+            <Card>
+              <CardHeader className="border-b border-border/40 bg-muted/20 py-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-secondary" />
+                  Booking Sidebar Preview
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3">
+                <div className="opacity-90 scale-[0.92] origin-top-left pointer-events-none select-none">
+                  <BookingSidebar
+                    tourId={tour?.id || "preview-id"}
+                    tourTitle={formData.title || "Tour Title Preview"}
+                    price={parseFloat(formData.price) || 0}
+                    originalPrice={parseFloat(formData.original_price) || 0}
+                    duration={formData.duration || "2 hours"}
+                    reviewCount={tour?.review_count || 0}
+                    pricingType={formData.pricing_type as "per_person" | "per_hour"}
+                    fullYachtPrice={formData.full_yacht_price ? parseFloat(formData.full_yacht_price) : null}
+                    capacity={formData.capacity || undefined}
+                    bookingFeatures={formData.booking_features}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                  Preview only — interactions disabled
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Main Image */}
           <Card>
-            <CardHeader>
-              <CardTitle>Main Image</CardTitle>
+            <CardHeader className="border-b border-border/40 bg-muted/20 py-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-secondary" />
+                Main Image
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <input
@@ -1744,8 +1828,11 @@ const TourForm = ({ tour, mode }: TourFormProps) => {
 
           {/* Gallery */}
           <Card>
-            <CardHeader>
-              <CardTitle>Gallery Images</CardTitle>
+            <CardHeader className="border-b border-border/40 bg-muted/20 py-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Upload className="w-4 h-4 text-secondary" />
+                Gallery Images
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <input
