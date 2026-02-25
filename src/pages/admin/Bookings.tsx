@@ -40,7 +40,10 @@ import {
   ArrowUpRight,
   RefreshCw,
   Copy,
+  LayoutList,
+  CalendarDays,
 } from "lucide-react";
+import BookingCalendar from "@/components/admin/BookingCalendar";
 import {
   Dialog,
   DialogContent,
@@ -87,6 +90,7 @@ const AdminBookings = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
 
   useEffect(() => {
     fetchBookings();
@@ -376,6 +380,27 @@ const AdminBookings = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center border border-border rounded-lg overflow-hidden h-9">
+              <Button
+                variant={viewMode === "table" ? "default" : "ghost"}
+                size="sm"
+                className="h-full rounded-none px-3 gap-1.5"
+                onClick={() => setViewMode("table")}
+              >
+                <LayoutList className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs">List</span>
+              </Button>
+              <Button
+                variant={viewMode === "calendar" ? "default" : "ghost"}
+                size="sm"
+                className="h-full rounded-none px-3 gap-1.5"
+                onClick={() => setViewMode("calendar")}
+              >
+                <CalendarDays className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs">Calendar</span>
+              </Button>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -495,194 +520,203 @@ const AdminBookings = () => {
           </Card>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, email, tour, or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9"
+        {viewMode === "calendar" ? (
+          <BookingCalendar
+            bookings={filteredBookings}
+            onSelectBooking={setSelectedBooking}
+          />
+        ) : (
+          <>
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, email, tour, or ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[140px] h-9">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
+                <SelectTrigger className="w-full sm:w-[130px] h-9">
+                  <SelectValue placeholder="Period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="7d">Last 7 Days</SelectItem>
+                  <SelectItem value="30d">Last 30 Days</SelectItem>
+                  <SelectItem value="90d">Last 90 Days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Results count */}
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Showing {filteredBookings.length} of {bookings.length} bookings
+              </p>
+            </div>
+
+            {/* Bulk Actions */}
+            <BulkActionToolbar
+              selectedCount={selectedIds.size}
+              onClearSelection={() => setSelectedIds(new Set())}
+              onAction={handleBulkAction}
+              actions={BOOKING_BULK_ACTIONS}
+              onExport={handleExport}
+              isProcessing={isProcessing}
             />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[140px] h-9">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
-            <SelectTrigger className="w-full sm:w-[130px] h-9">
-              <SelectValue placeholder="Period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="7d">Last 7 Days</SelectItem>
-              <SelectItem value="30d">Last 30 Days</SelectItem>
-              <SelectItem value="90d">Last 90 Days</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        {/* Results count */}
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            Showing {filteredBookings.length} of {bookings.length} bookings
-          </p>
-        </div>
-
-        {/* Bulk Actions */}
-        <BulkActionToolbar
-          selectedCount={selectedIds.size}
-          onClearSelection={() => setSelectedIds(new Set())}
-          onAction={handleBulkAction}
-          actions={BOOKING_BULK_ACTIONS}
-          onExport={handleExport}
-          isProcessing={isProcessing}
-        />
-
-        {/* Table */}
-        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30">
-                  <TableHead className="w-[40px]">
-                    <Checkbox
-                      checked={
-                        pagination.paginatedItems.length > 0 &&
-                        selectedIds.size === pagination.paginatedItems.length
-                      }
-                      onCheckedChange={toggleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead className="min-w-[180px]">Customer</TableHead>
-                  <TableHead className="min-w-[140px] hidden md:table-cell">Tour</TableHead>
-                  <TableHead className="hidden sm:table-cell">Date</TableHead>
-                  <TableHead className="hidden lg:table-cell">Guests</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden xl:table-cell">Booked</TableHead>
-                  <TableHead className="text-right w-[110px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pagination.paginatedItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-16">
-                      <div className="flex flex-col items-center gap-2">
-                        <Calendar className="w-10 h-10 text-muted-foreground/40" />
-                        <p className="text-muted-foreground font-medium">No bookings found</p>
-                        <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  pagination.paginatedItems.map((booking) => (
-                    <TableRow
-                      key={booking.id}
-                      className={`group cursor-pointer transition-colors ${
-                        booking.status === "pending" ? "bg-amber-500/[0.02]" : ""
-                      }`}
-                      onClick={() => setSelectedBooking(booking)}
-                    >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+            {/* Table */}
+            <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30">
+                      <TableHead className="w-[40px]">
                         <Checkbox
-                          checked={selectedIds.has(booking.id)}
-                          onCheckedChange={() => toggleSelect(booking.id)}
+                          checked={
+                            pagination.paginatedItems.length > 0 &&
+                            selectedIds.size === pagination.paginatedItems.length
+                          }
+                          onCheckedChange={toggleSelectAll}
                         />
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-sm">{booking.customer_name}</p>
-                          <p className="text-xs text-muted-foreground truncate max-w-[160px]">
-                            {booking.customer_email}
-                          </p>
-                          <p className="text-xs text-muted-foreground md:hidden truncate max-w-[160px] mt-0.5">
-                            {booking.tour_name}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <span className="truncate max-w-[180px] block text-sm">
-                          {booking.tour_name}
-                        </span>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell text-sm">
-                        {format(new Date(booking.booking_date), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell text-sm">
-                        <div className="flex items-center gap-1">
-                          <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                          {booking.adults + booking.children + booking.infants}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-semibold text-sm">
-                        AED {Number(booking.total_price).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={booking.status} size="sm" />
-                      </TableCell>
-                      <TableCell className="hidden xl:table-cell text-xs text-muted-foreground">
-                        {getTimeAgo(booking.created_at)}
-                      </TableCell>
-                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => setSelectedBooking(booking)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {booking.status === "pending" && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
-                                onClick={() => updateBookingStatus(booking.id, "confirmed")}
-                              >
-                                <Check className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 hidden sm:inline-flex"
-                                onClick={() => updateBookingStatus(booking.id, "cancelled")}
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
+                      </TableHead>
+                      <TableHead className="min-w-[180px]">Customer</TableHead>
+                      <TableHead className="min-w-[140px] hidden md:table-cell">Tour</TableHead>
+                      <TableHead className="hidden sm:table-cell">Date</TableHead>
+                      <TableHead className="hidden lg:table-cell">Guests</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden xl:table-cell">Booked</TableHead>
+                      <TableHead className="text-right w-[110px]">Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+                  </TableHeader>
+                  <TableBody>
+                    {pagination.paginatedItems.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-16">
+                          <div className="flex flex-col items-center gap-2">
+                            <Calendar className="w-10 h-10 text-muted-foreground/40" />
+                            <p className="text-muted-foreground font-medium">No bookings found</p>
+                            <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      pagination.paginatedItems.map((booking) => (
+                        <TableRow
+                          key={booking.id}
+                          className={`group cursor-pointer transition-colors ${
+                            booking.status === "pending" ? "bg-amber-500/[0.02]" : ""
+                          }`}
+                          onClick={() => setSelectedBooking(booking)}
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedIds.has(booking.id)}
+                              onCheckedChange={() => toggleSelect(booking.id)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-sm">{booking.customer_name}</p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[160px]">
+                                {booking.customer_email}
+                              </p>
+                              <p className="text-xs text-muted-foreground md:hidden truncate max-w-[160px] mt-0.5">
+                                {booking.tour_name}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <span className="truncate max-w-[180px] block text-sm">
+                              {booking.tour_name}
+                            </span>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell text-sm">
+                            {format(new Date(booking.booking_date), "MMM d, yyyy")}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell text-sm">
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                              {booking.adults + booking.children + booking.infants}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-semibold text-sm">
+                            AED {Number(booking.total_price).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={booking.status} size="sm" />
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell text-xs text-muted-foreground">
+                            {getTimeAgo(booking.created_at)}
+                          </TableCell>
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setSelectedBooking(booking)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              {booking.status === "pending" && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                                    onClick={() => updateBookingStatus(booking.id, "confirmed")}
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 hidden sm:inline-flex"
+                                    onClick={() => updateBookingStatus(booking.id, "cancelled")}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
 
-        {/* Pagination */}
-        <TablePagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          pageSize={pagination.pageSize}
-          totalItems={pagination.totalItems}
-          startIndex={pagination.startIndex}
-          endIndex={pagination.endIndex}
-          onPageChange={pagination.goToPage}
-          onPageSizeChange={pagination.setPageSize}
-        />
+            {/* Pagination */}
+            <TablePagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              pageSize={pagination.pageSize}
+              totalItems={pagination.totalItems}
+              startIndex={pagination.startIndex}
+              endIndex={pagination.endIndex}
+              onPageChange={pagination.goToPage}
+              onPageSizeChange={pagination.setPageSize}
+            />
+          </>
+        )}
 
         {/* Enhanced Booking Detail Dialog */}
         <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
