@@ -16,7 +16,7 @@ const HomeFAQ = lazy(() => import("@/components/home/HomeFAQ"));
 const CTASection = lazy(() => import("@/components/home/CTASection"));
 
 // Lightweight fallback to prevent layout shift
-const SectionFallback = () => <div className="h-48 bg-muted/10 animate-pulse" />;
+const SectionFallback = () => <div className="h-48 bg-muted/10 animate-pulse content-visibility-auto" />;
 
 const Home = () => {
   return (
