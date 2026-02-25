@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import { memo } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import TourCard from "@/components/TourCard";
 import { useFeaturedTours } from "@/hooks/useTours";
 
 const FeaturedTours = memo(() => {
-  const { data: featuredTours = [], isLoading } = useFeaturedTours();
+  const { data: featuredTours = [], isLoading, isError, refetch } = useFeaturedTours();
 
   return (
     <section className="py-12 sm:py-24 bg-muted/20">
@@ -53,7 +53,7 @@ const FeaturedTours = memo(() => {
         )}
 
         {/* Tours Grid */}
-        {!isLoading && featuredTours.length > 0 && (
+        {!isLoading && !isError && featuredTours.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {featuredTours.slice(0, 12).map((tour) => (
               <div key={tour.id} className="h-full">
@@ -63,8 +63,19 @@ const FeaturedTours = memo(() => {
           </div>
         )}
 
+        {/* Error State */}
+        {isError && (
+          <div className="text-center py-16 bg-muted/30 rounded-2xl">
+            <p className="text-muted-foreground mb-4">Unable to load tours. Please try again.</p>
+            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </Button>
+          </div>
+        )}
+
         {/* Empty State */}
-        {!isLoading && featuredTours.length === 0 && (
+        {!isLoading && !isError && featuredTours.length === 0 && (
           <div className="text-center py-16 bg-muted/30 rounded-2xl">
             <p className="text-muted-foreground mb-4">No featured tours available at the moment.</p>
             <Link to="/tours">
