@@ -30,6 +30,9 @@ import {
   Sparkles,
   ArrowRight,
   Clock,
+  Zap,
+  Globe,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -51,12 +54,12 @@ interface TopTour {
 }
 
 const quickActions = [
-  { label: "Add Tour", icon: Plus, href: "/admin/tours/add", color: "from-secondary to-secondary/80" },
-  { label: "Bookings", icon: Calendar, href: "/admin/bookings", color: "from-blue-500 to-blue-400" },
-  { label: "Discounts", icon: Tag, href: "/admin/discounts", color: "from-purple-500 to-purple-400" },
-  { label: "Analytics", icon: BarChart3, href: "/admin/analytics", color: "from-emerald-500 to-emerald-400" },
-  { label: "Tours", icon: Ship, href: "/admin/tours", color: "from-amber-500 to-amber-400" },
-  { label: "Settings", icon: Settings, href: "/admin/settings", color: "from-slate-500 to-slate-400" },
+  { label: "Add Tour", icon: Plus, href: "/admin/tours/add", color: "from-secondary to-secondary/80", description: "Create listing" },
+  { label: "Bookings", icon: Calendar, href: "/admin/bookings", color: "from-blue-500 to-blue-400", description: "Manage orders" },
+  { label: "Discounts", icon: Tag, href: "/admin/discounts", color: "from-purple-500 to-purple-400", description: "Promo codes" },
+  { label: "Analytics", icon: BarChart3, href: "/admin/analytics", color: "from-emerald-500 to-emerald-400", description: "View insights" },
+  { label: "Tours", icon: Ship, href: "/admin/tours", color: "from-amber-500 to-amber-400", description: "All listings" },
+  { label: "Settings", icon: Settings, href: "/admin/settings", color: "from-slate-500 to-slate-400", description: "Configure" },
 ];
 
 const AdminDashboard = () => {
@@ -73,9 +76,16 @@ const AdminDashboard = () => {
   const [topTours, setTopTours] = useState<TopTour[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const { data: visitorStats } = useVisitorStats("week");
   const { data: conversionStats } = useConversionStats("week");
+
+  // Live clock
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -107,7 +117,6 @@ const AdminDashboard = () => {
       const totalInquiries = inquiries.length;
       const newInquiries = inquiries.filter((i) => i.status === "new").length;
 
-      // Top tours by booking count
       const tourMap = new Map<string, { count: number; revenue: number }>();
       bookings.forEach((b) => {
         const key = b.tour_name || "Unknown";
@@ -169,65 +178,93 @@ const AdminDashboard = () => {
     <AdminLayout>
       <div className="space-y-8">
         {loadError && (
-          <div className="bg-card rounded-2xl border border-border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in">
+          <div className="bg-card rounded-2xl border border-destructive/30 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in">
             <div>
               <p className="font-medium text-foreground">Dashboard data unavailable</p>
               <p className="text-sm text-muted-foreground">{loadError}</p>
             </div>
-            <Button variant="outline" onClick={handleRetry}>Retry</Button>
+            <Button variant="outline" onClick={handleRetry} className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </Button>
           </div>
         )}
 
-        {/* Welcome Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-secondary/15 via-secondary/5 to-transparent rounded-2xl border border-secondary/20 p-6 sm:p-8 animate-fade-in">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-secondary" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-secondary">Dashboard</span>
+        {/* Premium Welcome Banner */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-secondary/15 via-secondary/5 to-transparent rounded-3xl border border-secondary/20 p-6 sm:p-8 animate-fade-in">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-secondary/8 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 w-40 h-40 bg-secondary/5 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-secondary/10 px-3 py-1.5 rounded-full">
+                  <Sparkles className="w-4 h-4 text-secondary" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-secondary">Command Center</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-medium text-emerald-600">Live</span>
+                </div>
               </div>
-              <h1 className="font-display text-2xl lg:text-3xl font-bold text-foreground">
+              <h1 className="font-display text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
                 Welcome back! 👋
               </h1>
-              <p className="text-muted-foreground mt-1">
-                Here's what's happening with your business today, {format(new Date(), "EEEE, MMMM d")}.
-              </p>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4" />
+                  {format(currentTime, "EEEE, MMMM d, yyyy")}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4" />
+                  {format(currentTime, "h:mm a")}
+                </span>
+              </div>
             </div>
-            <div className="flex gap-2 sm:gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap">
               <Link to="/admin/tours/add">
-                <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg shadow-secondary/20">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg shadow-secondary/25 rounded-xl gap-2">
+                  <Plus className="w-4 h-4" />
                   Add Tour
                 </Button>
               </Link>
               <Link to="/admin/bookings">
-                <Button variant="outline" className="border-secondary/30 hover:border-secondary/60">
-                  <Calendar className="w-4 h-4 mr-2" />
+                <Button size="lg" variant="outline" className="border-secondary/30 hover:border-secondary/60 rounded-xl gap-2">
+                  <Calendar className="w-4 h-4" />
                   Bookings
+                </Button>
+              </Link>
+              <Link to="/admin/analytics">
+                <Button size="lg" variant="outline" className="border-border/60 hover:border-secondary/40 rounded-xl gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Analytics
                 </Button>
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions Grid - Enhanced */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 animate-fade-in" style={{ animationDelay: "50ms" }}>
           {quickActions.map((action) => (
             <Link
               key={action.label}
               to={action.href}
-              className="group flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/60 hover:border-secondary/30 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+              className="group flex flex-col items-center gap-2.5 p-4 sm:p-5 rounded-2xl bg-card border border-border/60 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/5 transition-all duration-300 hover:-translate-y-1"
             >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                <action.icon className="w-5 h-5 text-white" />
+              <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm`}>
+                <action.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">{action.label}</span>
+              <div className="text-center">
+                <span className="text-xs sm:text-sm font-semibold text-foreground group-hover:text-secondary transition-colors block">{action.label}</span>
+                <span className="text-[10px] text-muted-foreground hidden sm:block mt-0.5">{action.description}</span>
+              </div>
             </Link>
           ))}
         </div>
 
-        {/* Primary Stats Grid */}
+        {/* Primary Stats Grid - Enhanced */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Store Visitors"
@@ -286,42 +323,51 @@ const AdminDashboard = () => {
 
         {/* Middle Row: Top Tours + Secondary Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Top Booked Tours */}
+          {/* Top Booked Tours - Enhanced */}
           <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 sm:p-6 animate-fade-in">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="font-display text-lg font-bold text-foreground">Top Booked Tours</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">By number of bookings</p>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/5 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg font-bold text-foreground">Top Booked Tours</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">By number of bookings</p>
+                </div>
               </div>
-              <Link to="/admin/tours" className="text-xs text-secondary hover:underline flex items-center gap-1">
+              <Link to="/admin/tours" className="text-xs text-secondary hover:underline flex items-center gap-1 font-medium">
                 All Tours <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
             {topTours.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Ship className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                <p className="text-sm">No bookings yet</p>
+              <div className="text-center py-12 text-muted-foreground">
+                <Ship className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm font-medium">No bookings yet</p>
+                <p className="text-xs text-muted-foreground mt-1">Bookings will appear here once customers start booking</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {topTours.map((tour, idx) => {
                   const maxCount = topTours[0]?.count || 1;
                   const pct = Math.round((tour.count / maxCount) * 100);
+                  const medals = ["🥇", "🥈", "🥉"];
                   return (
-                    <div key={tour.tour_name} className="group flex items-center gap-4">
-                      <span className="w-6 text-sm font-bold text-muted-foreground">#{idx + 1}</span>
+                    <div key={tour.tour_name} className="group flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
+                      <span className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-sm font-bold">
+                        {idx < 3 ? medals[idx] : `#${idx + 1}`}
+                      </span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{tour.tour_name}</p>
-                        <div className="mt-1.5 h-2 bg-muted rounded-full overflow-hidden">
+                        <p className="text-sm font-semibold text-foreground truncate">{tour.tour_name}</p>
+                        <div className="mt-2 h-2.5 bg-muted rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-secondary to-secondary/60 rounded-full transition-all duration-700"
+                            className="h-full bg-gradient-to-r from-secondary to-secondary/50 rounded-full transition-all duration-1000"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-foreground">{tour.count}</p>
-                        <p className="text-[10px] text-muted-foreground">AED {tour.revenue.toLocaleString()}</p>
+                      <div className="text-right shrink-0 space-y-0.5">
+                        <p className="text-sm font-bold text-foreground">{tour.count} <span className="text-xs font-normal text-muted-foreground">bookings</span></p>
+                        <p className="text-xs text-muted-foreground font-medium">AED {tour.revenue.toLocaleString()}</p>
                       </div>
                     </div>
                   );
