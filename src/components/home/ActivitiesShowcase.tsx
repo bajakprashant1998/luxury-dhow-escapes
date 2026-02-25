@@ -77,19 +77,13 @@ const ActivitiesShowcase = memo(() => {
             </div>
 
             {/* Desktop: grid */}
-            <motion.div
-              className="hidden lg:grid lg:grid-cols-4 gap-6"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.4 }}
-            >
+            <div className="hidden lg:grid lg:grid-cols-4 gap-6">
               {activityTours.map((tour) => (
                 <div key={tour.id} className="h-full">
                   <TourCard tour={tour} />
                 </div>
               ))}
-            </motion.div>
+            </div>
           </>
         )}
       </div>
