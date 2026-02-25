@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import loaderVideo from "@/assets/loader-yacht.mp4";
 
-const LOADER_DURATION = 3000; // 3 seconds
+const LOADER_DURATION = 2000; // 2 seconds
 const SESSION_KEY = "loader_shown";
 
 const PremiumLoader = ({ onComplete }: { onComplete: () => void }) => {

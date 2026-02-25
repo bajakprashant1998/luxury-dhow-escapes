@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { memo, useState, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight, Play, Sparkles, Shield, Clock, Award, Star, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OptimizedImage } from "@/components/ui/optimized-image";
@@ -65,40 +65,11 @@ const StatItem = ({ value, label, delay }: { value: string; label: string; delay
   );
 };
 
-const headlineVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.04, delayChildren: 0.2 },
-  },
-};
 
-const letterVariants = {
-  hidden: { opacity: 0, y: 40, rotateX: -60 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    rotateX: 0,
-    transition: { type: "spring" as const, damping: 20, stiffness: 150 },
-  },
-};
-
-const AnimatedText = ({ text, className }: { text: string; className?: string }) => (
-  <motion.span className={`block ${className}`} variants={headlineVariants} initial="hidden" animate="visible">
-    {text.split("").map((char, i) => (
-      <motion.span key={i} variants={letterVariants} className="inline-block" style={{ whiteSpace: char === " " ? "pre" : undefined }}>
-        {char === " " ? "\u00A0" : char}
-      </motion.span>
-    ))}
-  </motion.span>
-);
 
 const HeroSection = memo(() => {
   const { stats, trustIndicators } = useHomepageContent();
   const [imageLoaded, setImageLoaded] = useState(false);
-  const { scrollY } = useScroll();
-  const backgroundY = useTransform(scrollY, [0, 600], [0, 150]);
-  const contentOpacity = useTransform(scrollY, [0, 400], [1, 0]);
 
   const statsDisplay = [
     { value: stats.guests, label: stats.guestsLabel },
@@ -109,8 +80,8 @@ const HeroSection = memo(() => {
 
   return (
     <section className="relative min-h-[92dvh] sm:min-h-[100dvh] flex items-center overflow-hidden">
-      {/* Background Image with parallax */}
-      <motion.div className="absolute inset-0" style={{ y: backgroundY }}>
+      {/* Background Image — static for LCP performance */}
+      <div className="absolute inset-0">
         <OptimizedImage
           src={heroDhowCruise}
           alt="Luxury dhow cruise along Dubai Marina skyline at sunset"
@@ -118,31 +89,22 @@ const HeroSection = memo(() => {
           objectFit="cover"
           sizes="100vw"
           onLoad={() => setImageLoaded(true)}
-          containerClassName="w-full h-full scale-110"
+          containerClassName="w-full h-full"
         />
         <div className="absolute inset-0 bg-primary/60" />
         <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/30 to-primary/50" />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-transparent to-transparent" />
-      </motion.div>
+      </div>
 
-      {/* Ambient effects */}
+      {/* Ambient effects — CSS-only for performance */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px]"
-          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        />
+        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px] animate-float-slower" />
         <div className="absolute top-16 right-[15%] w-72 h-72 bg-secondary/[0.08] rounded-full blur-3xl animate-float-slow" />
         <div className="absolute bottom-32 left-[8%] w-56 h-56 bg-secondary/[0.05] rounded-full blur-2xl animate-float-slower" />
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }} />
       </div>
 
       {/* Main Content */}
-      <motion.div className="container relative z-10 py-10 sm:py-20" style={{ opacity: contentOpacity }}>
+      <div className="container relative z-10 py-10 sm:py-20">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-6 items-center">
           {/* Left Column — 7 cols */}
           <motion.div
@@ -162,16 +124,24 @@ const HeroSection = memo(() => {
               <span className="text-xs sm:text-sm font-semibold tracking-wide">Dubai's #1 Rated Cruise Experience</span>
             </motion.div>
 
-            {/* Headline — per-letter animation */}
+            {/* Headline */}
             <h1 className="font-display font-black leading-[0.9] tracking-tighter mb-4 sm:mb-6">
-              <AnimatedText
-                text="Experience Dubai"
-                className="text-[clamp(2.2rem,8.5vw,6rem)] text-white drop-shadow-lg"
-              />
-              <AnimatedText
-                text="From The Water"
-                className="text-[clamp(2.2rem,8.5vw,6rem)] text-shimmer"
-              />
+              <motion.span
+                className="block text-[clamp(2.2rem,8.5vw,6rem)] text-white drop-shadow-lg"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15, duration: 0.5 }}
+              >
+                Experience Dubai
+              </motion.span>
+              <motion.span
+                className="block text-[clamp(2.2rem,8.5vw,6rem)] text-shimmer"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                From The Water
+              </motion.span>
             </h1>
 
             {/* Sub-headline */}
@@ -215,25 +185,17 @@ const HeroSection = memo(() => {
             </motion.div>
 
             {/* Trust Badges Row */}
-            <motion.div
-              className="flex flex-wrap gap-2 sm:gap-3"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.5 }}
-            >
+            <div className="flex flex-wrap gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'both' }}>
               {trustBadges.map((badge, i) => (
-                <motion.div
+                <div
                   key={i}
                   className="flex items-center gap-1.5 sm:gap-2 bg-white/[0.08] backdrop-blur-sm rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 border border-white/[0.08] hover:border-secondary/30 hover:bg-white/[0.12] transition-all duration-200"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 + i * 0.1, duration: 0.3 }}
                 >
                   <badge.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-secondary" />
                   <span className="text-[10px] sm:text-sm font-medium text-white/85">{badge.text}</span>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </motion.div>
 
           {/* Right Column — 5 cols: Stats + Floating Card */}
@@ -310,7 +272,7 @@ const HeroSection = memo(() => {
             </motion.div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Scroll Indicator */}
       <motion.div
