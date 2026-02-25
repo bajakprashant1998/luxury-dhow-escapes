@@ -61,36 +61,19 @@ const FeaturedTours = memo(() => {
 
         {/* Tours Grid */}
         {!isLoading && featuredTours.length > 0 && (
-          <>
-            {/* Mobile: Horizontal scroll carousel */}
-            <div className="lg:hidden -mx-4 px-4">
-              <div className="flex overflow-x-auto gap-3 pb-4 snap-x-mandatory scrollbar-hide">
-                {featuredTours.slice(0, 12).map((tour) => (
-                  <div
-                    key={tour.id}
-                    className="flex-shrink-0 w-[72%] sm:w-[75%] snap-start"
-                  >
-                    <TourCard tour={tour} />
-                  </div>
-                ))}
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.4 }}
+          >
+            {featuredTours.slice(0, 12).map((tour) => (
+              <div key={tour.id} className="h-full">
+                <TourCard tour={tour} />
               </div>
-            </div>
-
-            {/* Desktop: 4x3 Grid layout */}
-            <motion.div
-              className="hidden lg:grid lg:grid-cols-4 gap-6"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.4 }}
-            >
-              {featuredTours.slice(0, 12).map((tour) => (
-                <div key={tour.id} className="h-full">
-                  <TourCard tour={tour} />
-                </div>
-              ))}
-            </motion.div>
-          </>
+            ))}
+          </motion.div>
         )}
 
         {/* Empty State */}
