@@ -12,6 +12,7 @@ import {
   Plus,
   CheckCircle,
   XCircle,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,11 +43,11 @@ const entityIcons: Record<string, React.ElementType> = {
 };
 
 const actionColors: Record<string, string> = {
-  create: "bg-emerald-500/10 text-emerald-600",
-  update: "bg-blue-500/10 text-blue-600",
-  delete: "bg-rose-500/10 text-rose-600",
-  confirm: "bg-emerald-500/10 text-emerald-600",
-  cancel: "bg-amber-500/10 text-amber-600",
+  create: "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20",
+  update: "bg-blue-500/10 text-blue-600 ring-blue-500/20",
+  delete: "bg-rose-500/10 text-rose-600 ring-rose-500/20",
+  confirm: "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20",
+  cancel: "bg-amber-500/10 text-amber-600 ring-amber-500/20",
 };
 
 const ActivityFeed = () => {
@@ -56,16 +57,11 @@ const ActivityFeed = () => {
   useEffect(() => {
     fetchActivities();
 
-    // Subscribe to realtime updates
     const channel = supabase
       .channel("activity-feed")
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "activity_logs",
-        },
+        { event: "INSERT", schema: "public", table: "activity_logs" },
         (payload) => {
           setActivities((prev) => [payload.new as ActivityLog, ...prev.slice(0, 9)]);
         }
@@ -94,32 +90,21 @@ const ActivityFeed = () => {
     }
   };
 
-  const getActionIcon = (action: string) => {
-    const normalizedAction = action.toLowerCase();
-    return actionIcons[normalizedAction] || Edit;
-  };
-
-  const getEntityIcon = (entityType: string) => {
-    const normalized = entityType.toLowerCase();
-    return entityIcons[normalized] || Calendar;
-  };
-
-  const getActionColor = (action: string) => {
-    const normalizedAction = action.toLowerCase();
-    return actionColors[normalizedAction] || "bg-muted text-muted-foreground";
-  };
+  const getActionIcon = (action: string) => actionIcons[action.toLowerCase()] || Edit;
+  const getEntityIcon = (entityType: string) => entityIcons[entityType.toLowerCase()] || Calendar;
+  const getActionColor = (action: string) => actionColors[action.toLowerCase()] || "bg-muted text-muted-foreground ring-border";
 
   if (loading) {
     return (
-      <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-card rounded-2xl border border-border p-5 sm:p-6">
+        <div className="flex items-center justify-between mb-5">
           <Skeleton className="h-6 w-28" />
           <Skeleton className="h-4 w-16" />
         </div>
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-start gap-3">
-              <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+              <Skeleton className="w-9 h-9 rounded-xl shrink-0" />
               <div className="flex-1 space-y-1.5">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-20" />
@@ -132,24 +117,33 @@ const ActivityFeed = () => {
   }
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display font-semibold text-foreground">Recent Activity</h3>
+    <div className="bg-card rounded-2xl border border-border p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center">
+            <Activity className="w-5 h-5 text-purple-500" />
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-foreground">Recent Activity</h3>
+            <p className="text-xs text-muted-foreground">Live updates</p>
+          </div>
+        </div>
         <a
           href="/admin/activity-log"
-          className="text-xs text-secondary hover:underline"
+          className="text-xs text-secondary hover:underline font-medium"
         >
           View all
         </a>
       </div>
 
       {activities.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No recent activity</p>
+        <div className="text-center py-10 text-muted-foreground">
+          <Calendar className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm font-medium">No recent activity</p>
+          <p className="text-xs mt-1">Activity will appear here in real-time</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {activities.map((activity, index) => {
             const ActionIcon = getActionIcon(activity.action);
             const EntityIcon = getEntityIcon(activity.entity_type);
@@ -158,41 +152,38 @@ const ActivityFeed = () => {
               <div
                 key={activity.id}
                 className={cn(
-                  "flex items-start gap-3 animate-fade-in",
+                  "flex items-start gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-colors animate-fade-in",
                   index === 0 && "relative"
                 )}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                {/* Icon */}
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                    "w-9 h-9 rounded-xl ring-1 flex items-center justify-center shrink-0",
                     getActionColor(activity.action)
                   )}
                 >
                   <ActionIcon className="w-4 h-4" />
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground">
-                    <span className="font-medium capitalize">{activity.action}</span>{" "}
+                  <p className="text-sm text-foreground leading-snug">
+                    <span className="font-semibold capitalize">{activity.action}</span>{" "}
                     <span className="text-muted-foreground">{activity.entity_type}</span>
                     {activity.entity_name && (
-                      <span className="font-medium truncate"> "{activity.entity_name}"</span>
+                      <span className="font-medium"> "{activity.entity_name}"</span>
                     )}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-center gap-2 mt-1">
                     <EntityIcon className="w-3 h-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[11px] text-muted-foreground">
                       {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                     </span>
                   </div>
                 </div>
 
-                {/* New indicator for first item */}
                 {index === 0 && (
-                  <span className="shrink-0 w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                  <span className="shrink-0 w-2 h-2 rounded-full bg-secondary animate-pulse mt-2" />
                 )}
               </div>
             );
