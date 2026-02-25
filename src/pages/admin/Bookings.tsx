@@ -524,6 +524,7 @@ const AdminBookings = () => {
           <BookingCalendar
             bookings={filteredBookings}
             onSelectBooking={setSelectedBooking}
+            onBookingUpdated={fetchBookings}
           />
         ) : (
           <>
