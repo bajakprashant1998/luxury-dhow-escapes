@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -10,25 +10,68 @@ import {
   Legend,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { format, subMonths, startOfMonth } from "date-fns";
 
-const salesData = [
-  { name: "Jan", sales: 4000, lastYear: 2400 },
-  { name: "Feb", sales: 3000, lastYear: 1398 },
-  { name: "Mar", sales: 2000, lastYear: 9800 },
-  { name: "Apr", sales: 2780, lastYear: 3908 },
-  { name: "May", sales: 1890, lastYear: 4800 },
-  { name: "Jun", sales: 2390, lastYear: 3800 },
-  { name: "Jul", sales: 3490, lastYear: 4300 },
-  { name: "Aug", sales: 4200, lastYear: 3200 },
-  { name: "Sep", sales: 3800, lastYear: 2900 },
-  { name: "Oct", sales: 4500, lastYear: 3500 },
-  { name: "Nov", sales: 5200, lastYear: 4100 },
-  { name: "Dec", sales: 6100, lastYear: 4800 },
-];
+interface MonthlySales {
+  name: string;
+  revenue: number;
+  bookings: number;
+}
 
 const SalesChart = () => {
-  const [period, setPeriod] = useState<"year" | "quarter">("year");
+  const [period, setPeriod] = useState<"6m" | "12m">("12m");
+  const [data, setData] = useState<MonthlySales[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSalesData();
+  }, [period]);
+
+  const fetchSalesData = async () => {
+    setIsLoading(true);
+    try {
+      const months = period === "6m" ? 6 : 12;
+      const startDate = subMonths(new Date(), months);
+
+      const { data: bookings, error } = await supabase
+        .from("bookings")
+        .select("total_price, created_at")
+        .gte("created_at", startDate.toISOString());
+
+      if (error) throw error;
+
+      // Initialize months
+      const monthlyData: Record<string, { revenue: number; bookings: number }> = {};
+      for (let i = months - 1; i >= 0; i--) {
+        const date = subMonths(new Date(), i);
+        const key = format(date, "MMM");
+        monthlyData[key] = { revenue: 0, bookings: 0 };
+      }
+
+      // Aggregate
+      (bookings || []).forEach((b) => {
+        const key = format(new Date(b.created_at), "MMM");
+        if (monthlyData[key]) {
+          monthlyData[key].revenue += Number(b.total_price);
+          monthlyData[key].bookings += 1;
+        }
+      });
+
+      setData(
+        Object.entries(monthlyData).map(([name, v]) => ({
+          name,
+          revenue: v.revenue,
+          bookings: v.bookings,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching sales data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 animate-fade-in">
@@ -42,73 +85,83 @@ const SalesChart = () => {
               Sales Over Time
             </h3>
             <p className="text-xs text-muted-foreground">
-              Revenue analytics by month
+              Revenue from all bookings
             </p>
           </div>
         </div>
         <div className="flex gap-1.5 bg-muted/50 p-1 rounded-lg">
           <Button
-            variant={period === "year" ? "default" : "ghost"}
+            variant={period === "6m" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setPeriod("year")}
+            onClick={() => setPeriod("6m")}
             className="h-7 text-xs rounded-md"
           >
-            This Year
+            6 Months
           </Button>
           <Button
-            variant={period === "quarter" ? "default" : "ghost"}
+            variant={period === "12m" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setPeriod("quarter")}
+            onClick={() => setPeriod("12m")}
             className="h-7 text-xs rounded-md"
           >
-            Last Year
+            12 Months
           </Button>
         </div>
       </div>
       <div className="h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={salesData}
-            margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" vertical={false} />
-            <XAxis
-              dataKey="name"
-              className="text-xs"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              className="text-xs"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "12px",
-                boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
-              }}
-              formatter={(value: number) => [`AED ${value.toLocaleString()}`, ""]}
-            />
-            <Legend />
-            <Bar
-              dataKey="sales"
-              name="This Year"
-              fill="hsl(var(--secondary))"
-              radius={[6, 6, 0, 0]}
-            />
-            <Bar
-              dataKey="lastYear"
-              name="Last Year"
-              fill="hsl(var(--muted))"
-              radius={[6, 6, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-secondary" />
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" vertical={false} />
+              <XAxis
+                dataKey="name"
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => v > 0 ? `${(v / 1000).toFixed(0)}k` : "0"}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                }}
+                formatter={(value: number, name: string) => [
+                  name === "revenue" ? `AED ${value.toLocaleString()}` : value,
+                  name === "revenue" ? "Revenue" : "Bookings",
+                ]}
+              />
+              <Legend />
+              <Bar
+                dataKey="revenue"
+                name="Revenue (AED)"
+                fill="hsl(var(--secondary))"
+                radius={[6, 6, 0, 0]}
+              />
+              <Bar
+                dataKey="bookings"
+                name="Bookings"
+                fill="hsl(var(--muted))"
+                radius={[6, 6, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
