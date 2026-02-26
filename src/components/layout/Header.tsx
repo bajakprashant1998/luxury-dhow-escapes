@@ -204,11 +204,11 @@ const Header = () => {
                               alt="Dubai Marina"
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-primary/70" />
                             <div className="absolute inset-0 flex items-center px-7">
                               <div>
-                                <h3 className="text-lg font-bold text-primary-foreground">Explore Dubai by Sea</h3>
-                                <p className="text-xs text-primary-foreground/70 mt-1 max-w-xs">Premium yacht cruises, dhow dinners & water adventures curated for unforgettable moments</p>
+                                <h3 className="text-lg font-bold text-white">Explore Dubai by Sea</h3>
+                                <p className="text-xs text-white/80 mt-1 max-w-xs">Premium yacht cruises, dhow dinners & water adventures curated for unforgettable moments</p>
                               </div>
                               <Link
                                 to="/tours"
