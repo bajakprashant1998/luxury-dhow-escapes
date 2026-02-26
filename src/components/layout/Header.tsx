@@ -190,80 +190,93 @@ const Header = () => {
                   <AnimatePresence>
                     {isToursOpen && (
                       <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 12, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-full -left-32 pt-3 z-50 bg-white"
+                        exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute top-full -left-48 pt-4 z-50"
                       >
-                        <div className="w-[680px] bg-background/98 backdrop-blur-2xl rounded-2xl border border-border/60 shadow-2xl shadow-primary/10 overflow-hidden">
-                          {/* Header */}
-                          <div className="px-6 pt-5 pb-3 flex items-center justify-between">
-                            <div>
-                              <h3 className="text-sm font-bold text-foreground">Explore Experiences</h3>
-                              <p className="text-xs text-muted-foreground mt-0.5">Discover Dubai's finest maritime adventures</p>
+                        <div className="w-[780px] bg-background rounded-2xl border border-border/50 shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25)] overflow-hidden">
+                          {/* Top featured banner */}
+                          <div className="relative h-28 overflow-hidden">
+                            <img
+                              src="/assets/hero-dubai-marina-night.webp"
+                              alt="Dubai Marina"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-transparent" />
+                            <div className="absolute inset-0 flex items-center px-7">
+                              <div>
+                                <h3 className="text-lg font-bold text-primary-foreground">Explore Dubai by Sea</h3>
+                                <p className="text-xs text-primary-foreground/70 mt-1 max-w-xs">Premium yacht cruises, dhow dinners & water adventures curated for unforgettable moments</p>
+                              </div>
+                              <Link
+                                to="/tours"
+                                className="ml-auto flex items-center gap-1.5 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-xs font-bold hover:bg-secondary/90 transition-colors shadow-lg"
+                              >
+                                View All Tours <ArrowRight className="w-3.5 h-3.5" />
+                              </Link>
                             </div>
-                            <Link
-                              to="/tours"
-                              className="text-xs font-semibold text-secondary hover:text-secondary/80 flex items-center gap-1 transition-colors"
-                            >
-                              View All <ArrowRight className="w-3 h-3" />
-                            </Link>
                           </div>
 
                           {/* Cards Grid */}
-                          <div className="px-4 pb-4 grid grid-cols-2 gap-2.5">
+                          <div className="p-4 grid grid-cols-3 gap-3">
                             {tourCategories.map((category, idx) => (
-                              <Link
+                              <motion.div
                                 key={category.path}
-                                to={category.path}
-                                className="group/card relative flex gap-3 p-3 rounded-xl hover:bg-muted/50 transition-all duration-200"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: idx * 0.05 }}
                               >
-                                {/* Thumbnail */}
-                                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 ring-1 ring-border/40 group-hover/card:ring-secondary/30 transition-all">
-                                  <img
-                                    src={category.image}
-                                    alt={category.name}
-                                    className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
-                                    loading="lazy"
-                                  />
-                                </div>
-                                {/* Content */}
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <category.icon className="w-3.5 h-3.5 text-secondary flex-shrink-0" />
-                                    <span className="text-sm font-semibold text-foreground group-hover/card:text-secondary transition-colors truncate">
-                                      {category.name}
-                                    </span>
+                                <Link
+                                  to={category.path}
+                                  className="group/card relative block rounded-xl overflow-hidden border border-border/40 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/10 transition-all duration-300"
+                                >
+                                  {/* Image */}
+                                  <div className="relative h-24 overflow-hidden">
+                                    <img
+                                      src={category.image}
+                                      alt={category.name}
+                                      className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-700"
+                                      loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
                                     {category.badge && (
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none flex-shrink-0 ${category.badge === "New" ? "bg-emerald-500/15 text-emerald-600" :
-                                        category.badge === "Premium" ? "bg-secondary/15 text-secondary" :
-                                          "bg-secondary/15 text-secondary"
-                                        }`}>
+                                      <span className={`absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm ${
+                                        category.badge === "New" ? "bg-emerald-500/90 text-white" :
+                                        category.badge === "Premium" ? "bg-secondary/90 text-secondary-foreground" :
+                                        "bg-secondary/90 text-secondary-foreground"
+                                      }`}>
                                         {category.badge}
                                       </span>
                                     )}
+                                    <category.icon className="absolute bottom-2 left-2.5 w-4 h-4 text-white/80" />
                                   </div>
-                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
-                                    {category.description}
-                                  </p>
-                                </div>
-                                {/* Arrow */}
-                                <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover/card:text-secondary group-hover/card:translate-x-0.5 transition-all self-center flex-shrink-0" />
-                              </Link>
+                                  {/* Content */}
+                                  <div className="p-3">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm font-bold text-foreground group-hover/card:text-secondary transition-colors">
+                                        {category.name}
+                                      </span>
+                                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover/card:text-secondary group-hover/card:translate-x-0.5 transition-all" />
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                                      {category.description}
+                                    </p>
+                                  </div>
+                                </Link>
+                              </motion.div>
                             ))}
                           </div>
 
-                          {/* Footer CTA */}
-                          <div className="px-4 py-3 bg-muted/30 border-t border-border/40 flex items-center justify-between">
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><Star className="w-3 h-3 text-secondary" /> 4.9 Rating</span>
-                              <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-secondary" /> Dubai Marina</span>
+                          {/* Footer */}
+                          <div className="px-5 py-3 bg-muted/40 border-t border-border/40 flex items-center justify-between">
+                            <div className="flex items-center gap-5 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-secondary fill-secondary" /> <strong className="text-foreground">4.9</strong> from 500+ reviews</span>
+                              <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-secondary" /> Dubai Marina & Palm</span>
                             </div>
-                            <Link to="/contact">
-                              <Button size="sm" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 h-8 px-4 text-xs font-semibold rounded-lg shadow-sm">
-                                Book a Tour
-                              </Button>
+                            <Link to="/contact" className="text-xs font-semibold text-secondary hover:text-secondary/80 flex items-center gap-1 transition-colors">
+                              Need Help? <MessageCircle className="w-3.5 h-3.5" />
                             </Link>
                           </div>
                         </div>
