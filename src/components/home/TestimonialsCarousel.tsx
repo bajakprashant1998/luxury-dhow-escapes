@@ -1,22 +1,17 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Star, ChevronLeft, ChevronRight, Quote, BadgeCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { memo } from "react";
+import { motion } from "framer-motion";
+import { Star, Quote, BadgeCheck } from "lucide-react";
 import { useTestimonials, useAverageRating } from "@/hooks/useTestimonials";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Platform badges for verified reviews
 const PlatformBadge = ({ platform }: { platform?: string }) => {
   if (!platform) return null;
-
   const badges: Record<string, { bg: string; text: string; label: string }> = {
-    google: { bg: "bg-blue-500/10", text: "text-blue-600", label: "Google Review" },
+    google: { bg: "bg-blue-500/10", text: "text-blue-600", label: "Google" },
     tripadvisor: { bg: "bg-emerald-500/10", text: "text-emerald-600", label: "TripAdvisor" },
-    verified: { bg: "bg-secondary/10", text: "text-secondary", label: "Verified Guest" },
+    verified: { bg: "bg-secondary/10", text: "text-secondary", label: "Verified" },
   };
-
   const badge = badges[platform.toLowerCase()] || badges.verified;
-
   return (
     <span className={`inline-flex items-center gap-1 ${badge.bg} ${badge.text} px-2 py-0.5 rounded-full text-xs font-medium`}>
       <BadgeCheck className="w-3 h-3" />
@@ -25,96 +20,119 @@ const PlatformBadge = ({ platform }: { platform?: string }) => {
   );
 };
 
-const TestimonialsCarousel = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+interface ReviewCardProps {
+  testimonial: {
+    id: string;
+    name: string;
+    location?: string;
+    rating: number;
+    date: string;
+    title?: string;
+    content: string;
+    tourName?: string;
+  };
+  index: number;
+}
 
+const ReviewCard = memo(({ testimonial, index }: ReviewCardProps) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-40px" }}
+    transition={{ duration: 0.5, delay: index * 0.1 }}
+    className="group relative bg-card rounded-2xl border border-border/50 p-6 shadow-sm hover:shadow-xl hover:border-secondary/30 transition-all duration-500 flex flex-col h-full"
+  >
+    {/* Quote watermark */}
+    <Quote className="absolute top-4 right-4 w-8 h-8 text-secondary/10 group-hover:text-secondary/20 transition-colors" />
+
+    {/* Stars */}
+    <div className="flex gap-0.5 mb-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={`w-4 h-4 ${
+            i < testimonial.rating
+              ? "fill-secondary text-secondary"
+              : "fill-muted text-muted"
+          }`}
+        />
+      ))}
+    </div>
+
+    {/* Title */}
+    {testimonial.title && (
+      <h4 className="font-display font-bold text-foreground text-base mb-3 line-clamp-2">
+        "{testimonial.title}"
+      </h4>
+    )}
+
+    {/* Content */}
+    <p className="text-muted-foreground text-sm leading-relaxed mb-6 line-clamp-4 flex-1">
+      {testimonial.content}
+    </p>
+
+    {/* Author */}
+    <div className="flex items-center gap-3 pt-4 border-t border-border/50 mt-auto">
+      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+        <span className="text-primary-foreground font-semibold text-sm">
+          {testimonial.name.charAt(0)}
+        </span>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-foreground text-sm truncate">{testimonial.name}</p>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground truncate">
+            {testimonial.location || testimonial.date}
+          </span>
+          <PlatformBadge platform="verified" />
+        </div>
+      </div>
+    </div>
+
+    {/* Tour name tag */}
+    {testimonial.tourName && (
+      <div className="mt-3">
+        <span className="text-xs text-secondary font-medium bg-secondary/10 px-2.5 py-1 rounded-full">
+          {testimonial.tourName}
+        </span>
+      </div>
+    )}
+  </motion.div>
+));
+
+ReviewCard.displayName = "ReviewCard";
+
+const TestimonialsCarousel = () => {
   const { data: testimonials = [], isLoading } = useTestimonials(6);
   const { data: ratingData } = useAverageRating();
 
-  const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
-      opacity: 0
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 300 : -300,
-      opacity: 0
-    })
-  };
-
-  const swipeConfidenceThreshold = 10000;
-  const swipePower = (offset: number, velocity: number) => {
-    return Math.abs(offset) * velocity;
-  };
-
-  const paginate = useCallback((newDirection: number) => {
-    if (testimonials.length === 0) return;
-    setDirection(newDirection);
-    setCurrentIndex((prevIndex) => {
-      let next = prevIndex + newDirection;
-      if (next < 0) next = testimonials.length - 1;
-      if (next >= testimonials.length) next = 0;
-      return next;
-    });
-  }, [testimonials.length]);
-
-  // Auto-advance carousel with pause on interaction
-  useEffect(() => {
-    if (testimonials.length === 0 || isPaused) return;
-    
-    autoPlayRef.current = setInterval(() => {
-      paginate(1);
-    }, 6000);
-    
-    return () => {
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-    };
-  }, [testimonials.length, isPaused, paginate]);
-
-  // Pause on user interaction
-  const handleInteraction = useCallback(() => {
-    setIsPaused(true);
-    // Resume after 10 seconds of no interaction
-    setTimeout(() => setIsPaused(false), 10000);
-  }, []);
-
   if (isLoading) {
     return (
-      <section className="py-24 bg-muted/30 overflow-hidden">
+      <section className="py-24 bg-muted/30">
         <div className="container">
-          <div className="text-center mb-16">
-            <Skeleton className="h-6 w-32 mx-auto mb-3" />
-            <Skeleton className="h-12 w-80 mx-auto mb-6" />
-            <Skeleton className="h-6 w-48 mx-auto" />
+          <div className="text-center mb-14">
+            <Skeleton className="h-5 w-28 mx-auto mb-3" />
+            <Skeleton className="h-10 w-72 mx-auto mb-4" />
+            <Skeleton className="h-5 w-48 mx-auto" />
           </div>
-          <div className="max-w-4xl mx-auto">
-            <Skeleton className="h-80 w-full rounded-3xl" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-64 rounded-2xl" />
+            ))}
           </div>
         </div>
       </section>
     );
   }
 
-  if (testimonials.length === 0) {
-    return null;
-  }
-
-  const currentTestimonial = testimonials[currentIndex];
+  if (testimonials.length === 0) return null;
 
   return (
     <section className="py-24 bg-muted/30 overflow-hidden">
       <div className="container">
+        {/* Header */}
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-14"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -123,154 +141,35 @@ const TestimonialsCarousel = () => {
           <p className="text-secondary font-bold tracking-widest uppercase mb-3 text-sm">
             Guest Reviews
           </p>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-6 tracking-tight">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-5 tracking-tight">
             What Our Guests Say
           </h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <div className="flex items-center gap-2">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="w-5 h-5 sm:w-6 sm:h-6 fill-secondary text-secondary" />
+                  <Star key={i} className="w-5 h-5 fill-secondary text-secondary" />
                 ))}
               </div>
-              <span className="font-bold text-lg sm:text-xl text-foreground">{ratingData?.average || 4.9}</span>
+              <span className="font-bold text-lg text-foreground">
+                {ratingData?.average || 4.9}
+              </span>
             </div>
-            <span className="text-muted-foreground">• {ratingData?.count || 0}+ verified reviews</span>
+            <span className="text-muted-foreground">
+              • {ratingData?.count || 0}+ verified reviews
+            </span>
           </div>
-          
-          {/* Platform trust badges */}
           <div className="flex flex-wrap justify-center gap-2 mt-4">
             <PlatformBadge platform="google" />
             <PlatformBadge platform="tripadvisor" />
           </div>
         </motion.div>
 
-        {/* Carousel Container */}
-        <div 
-          className="relative max-w-4xl mx-auto"
-          onMouseEnter={handleInteraction}
-          onTouchStart={handleInteraction}
-        >
-          {/* Quote Icon */}
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 z-10">
-            <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center shadow-lg">
-              <Quote className="w-8 h-8 text-secondary-foreground" />
-            </div>
-          </div>
-
-          <div className="bg-card rounded-2xl sm:rounded-3xl shadow-xl p-5 sm:p-8 md:p-12 pt-12 sm:pt-16 relative overflow-hidden min-h-[280px] sm:min-h-[320px]">
-            {/* Background Decoration */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-
-            <AnimatePresence initial={false} custom={direction} mode="wait">
-              <motion.div
-                key={currentIndex}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.3 }
-                }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={1}
-                onDragStart={handleInteraction}
-                onDragEnd={(e, { offset, velocity }) => {
-                  const swipe = swipePower(offset.x, velocity.x);
-                  if (swipe < -swipeConfidenceThreshold) {
-                    paginate(1);
-                  } else if (swipe > swipeConfidenceThreshold) {
-                    paginate(-1);
-                  }
-                }}
-                className="text-center relative"
-              >
-                {/* Stars */}
-                <div className="flex justify-center gap-1 mb-6">
-                  {Array.from({ length: currentTestimonial.rating }).map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-secondary text-secondary" />
-                  ))}
-                </div>
-
-                {/* Title */}
-                {currentTestimonial.title && (
-                  <h3 className="font-display text-xl md:text-2xl font-bold text-foreground mb-4">
-                    "{currentTestimonial.title}"
-                  </h3>
-                )}
-
-                {/* Content */}
-                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
-                  {currentTestimonial.content}
-                </p>
-
-                {/* Author */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                  <div className="w-14 h-14 rounded-full bg-secondary/20 flex items-center justify-center text-xl font-bold text-secondary">
-                    {currentTestimonial.name.charAt(0)}
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <p className="font-semibold text-foreground">{currentTestimonial.name}</p>
-                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
-                      <p className="text-sm text-muted-foreground">
-                        {currentTestimonial.location || currentTestimonial.date}
-                      </p>
-                      <PlatformBadge platform="verified" />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-center gap-3 sm:gap-4 mt-6 sm:mt-8">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full w-10 h-10 sm:w-12 sm:h-12 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
-              onClick={() => {
-                handleInteraction();
-                paginate(-1);
-              }}
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-
-            {/* Dots */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    handleInteraction();
-                    setDirection(index > currentIndex ? 1 : -1);
-                    setCurrentIndex(index);
-                  }}
-                  className={`transition-all duration-300 rounded-full touch-target ${
-                    index === currentIndex
-                      ? "w-6 sm:w-8 h-2.5 sm:h-3 bg-secondary"
-                      : "w-2.5 sm:w-3 h-2.5 sm:h-3 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                  }`}
-                />
-              ))}
-            </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full w-10 h-10 sm:w-12 sm:h-12 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all touch-target"
-              onClick={() => {
-                handleInteraction();
-                paginate(1);
-              }}
-            >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-          </div>
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
+            <ReviewCard key={t.id} testimonial={t} index={i} />
+          ))}
         </div>
       </div>
     </section>
